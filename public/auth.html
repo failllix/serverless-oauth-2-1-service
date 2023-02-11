@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="description"
+            content="A login page of an authorization server"
+        />
+        <title>Login</title>
+    </head>
+    <body>
+        <script>
+            function submitLogin(e) {
+                e.preventDefault();
+                const errorText = document.getElementById("error-text");
+
+                const username = document.getElementById("username").value;
+                const password = document.getElementById("password").value;
+                const params = new URL(document.location).searchParams;
+                const scope = params.get("scope").split(",");
+                const redirect_uri = params.get("redirect_uri");
+                const client_id = params.get("client_id");
+
+                if (username === "" || password === "") {
+                    errorText.innerHTML = "Username and password are required";
+                    return false;
+                }
+
+                const options = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        redirect_uri,
+                        return_type: "body",
+                        username: username,
+                        password: password,
+                        client_id,
+                        scope,
+                    }),
+                };
+
+                console.log(options);
+
+                fetch(
+                    new URL("/code", window.location.origin).toString(),
+                    options
+                )
+                    .then(async (resp) => {
+                        if (resp.status === 403) {
+                            errorText.innerHTML = "Login failed";
+                        }
+                        if (resp.status === 401) {
+                            errorText.innerHTMl = "Login failed";
+                        }
+
+                        if (resp.status === 400) {
+                            errorText.innerHTMl = "Bad request";
+                        }
+
+                        if (resp.status === 200) {
+                            const jsonRes = await resp.json();
+                            window.location.href = jsonRes.redirect_uri;
+                        }
+                    })
+                    .catch((err) => console.error(err));
+                return false;
+            }
+        </script>
+
+        <main>
+            <div>
+                <h1>Login</h1>
+                <form onsubmit="return submitLogin(event)">
+                    <div class="input-wrapper">
+                        <label for="username">Username</label>
+                        <input placeholder="Username" id="username" />
+                    </div>
+
+                    <div class="input-wrapper">
+                        <label for="password">Password</label>
+                        <input
+                            type="password"
+                            placeholder="Password"
+                            id="password"
+                        />
+                    </div>
+                    <span id="error-text"></span>
+                    <input type="submit" value="Sign in" />
+                </form>
+            </div>
+        </main>
+    </body>
+
+    <style>
+        html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: sans-serif;
+            background-color: rgb(254, 254, 252);
+            color: rgb(32, 32, 31);
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        main {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 0 3rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        main > div {
+            flex: 1 0 0;
+        }
+
+        input {
+            font-size: 1.1rem;
+            outline: none;
+            border: 1px solid rgb(32, 32, 31);
+            border-radius: 0.2rem;
+            padding: 0.4rem 0.6rem;
+        }
+
+        #error-text {
+            color: rgb(218, 42, 23);
+            margin-top: 1rem;
+            display: block;
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-wrapper:nth-child(n + 2) {
+            margin-top: 1rem;
+        }
+
+        label {
+            margin-bottom: 0.3rem;
+        }
+
+        input[type="submit"] {
+            margin-top: 1.4rem;
+            background: none;
+            border: none;
+            border-radius: 0.2rem;
+            padding: 0.4rem 0.6rem;
+            color: white;
+            font-size: 1.3rem;
+            background-color: rgb(28, 49, 209);
+        }
+    </style>
+</html>
