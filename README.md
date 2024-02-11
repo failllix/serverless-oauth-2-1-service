@@ -17,8 +17,8 @@ Clients are stored in a seperate KV store, where the key is the corresponding `c
 
 ```json
 {
-    "name": "My fancy application",
-    "redirect_uris": ["http://localhost:3000", "http://localhost:3000/admin"]
+  "name": "My fancy application",
+  "redirect_uris": ["http://localhost:3000", "http://localhost:3000/admin"]
 }
 ```
 
@@ -34,9 +34,9 @@ Users are stored in a seperate KV store, where the key is the corresponding `use
 
 ```json
 {
-    "pwdToken": "c5e882bb4479f705dc777785c9e752517688a0ef00fe9a3ac3475d631a66999507589fea66c788751c993e2b1e18c237722940cf8637e98b51827cc82f68f479",
-    "salt": "3808fc54-fbe0-453f-a2b3-a2cdea0f8fe8",
-    "scope": ["API_TEST"]
+  "pwdToken": "c5e882bb4479f705dc777785c9e752517688a0ef00fe9a3ac3475d631a66999507589fea66c788751c993e2b1e18c237722940cf8637e98b51827cc82f68f479",
+  "salt": "3808fc54-fbe0-453f-a2b3-a2cdea0f8fe8",
+  "scope": ["API_TEST"]
 }
 ```
 
