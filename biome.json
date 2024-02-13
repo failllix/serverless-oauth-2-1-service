@@ -1,6 +1,6 @@
 {
     "formatter": {
-        "ignore": ["package-lock.json", ".temp", ".wrangler", ".node_modules", ".dev.vars"],
+        "ignore": ["package-lock.json", ".temp", ".wrangler", ".node_modules", ".dev.vars", "coverage"],
         "indentStyle": "space",
         "indentWidth": 4,
         "lineWidth": 320
