@@ -1,58 +1,39 @@
-import { BAD_REQUEST } from "./responses.js";
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from "./responses.js";
+
+import logger from "./logger.js";
+import authCodeGrantValidator from "./validation/authCodeGrantValidator.js";
 
 const getValidatedParameters = (body) => {
-    const typeMap = {
-        redirect_uri: "string",
-        username: "string",
-        password: "string",
-        client_id: "string",
-        scope: "array",
-    };
-
-    const bodyFieldNames = Object.keys(body);
-    const expectedFieldnames = Object.keys(typeMap);
-
-    const missingFieldNames = expectedFieldnames.filter((name) => !bodyFieldNames.includes(name));
-    const unexpectedFieldNames = bodyFieldNames.filter((name) => !expectedFieldnames.includes(name));
-
-    if (missingFieldNames.length > 0) {
-        throw new Error(`Missing properties: ${missingFieldNames.join(", ")}`);
+    try {
+        return {
+            redirectUri: authCodeGrantValidator.isValidRedirectUri(body.redirect_uri),
+            username: authCodeGrantValidator.isValidUsername(body.username),
+            password: authCodeGrantValidator.isValidPassword(body.password),
+            clientId: authCodeGrantValidator.isValidClientId(body.client_id),
+            scope: authCodeGrantValidator.isValidScope(body.scope),
+        };
+    } catch (error) {
+        logger.logError(error);
+        throw BAD_REQUEST(error.message);
     }
-
-    if (unexpectedFieldNames.length > 0) {
-        throw new Error(`Missing properties: ${unexpectedFieldNames.join(", ")}`);
-    }
-
-    for (const fieldName in typeMap) {
-        if (typeof body[fieldName] !== typeMap[fieldName]) {
-            throw new Error(`${fieldName} must be of type ${typeMap[fieldName]}`);
-        }
-
-        if (typeMap[fieldName] === "string" && !body[fieldName]) {
-            throw new Error(`${fieldName} musat not be empty, null or undefined`);
-        }
-    }
-
-    return {
-        redirectUri: body.redirect_uri,
-        username: body.username,
-        password: body.password,
-        clientId: body.client_id,
-        scope: body.scope,
-    };
 };
 
 async function handleAuthCodeRequest(request) {
-    const body = await request.json();
-
     try {
+        const body = await request.json();
         const params = getValidatedParameters(body);
-    } catch (error) {
-        return BAD_REQUEST(error.message);
+    } catch (failure) {
+        if (failure instanceof Response) {
+            return failure;
+        }
+
+        logger.logError(failure);
+
+        return INTERNAL_SERVER_ERROR("Encountered unexpected error.");
     }
 
     //   const client = JSON.parse(await clientsKV.get(clientId));
-    //   const user = JSON.parse(await userKV.get(username));
+    //   const usber = JSON.parse(await userKV.get(username));
 
     //   // Check if client and user exist
     //   if (client == null || user == null) return UNAUTHORIZED;
@@ -110,4 +91,4 @@ async function handleAuthCodeRequest(request) {
     //   });
 }
 
-export { handleAuthCodeRequest };
+export default { handleAuthCodeRequest };
