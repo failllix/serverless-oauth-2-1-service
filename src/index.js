@@ -1,6 +1,8 @@
 import { strToSha512HexString, strToUint8, strToUrlBase64, uint8ToUrlBase64, urlBase64Touint8 } from "./util.js";
 
-import { handleAuthCodeRequest } from "./authCodeGrant.js";
+import authCodeGrantHandler from "./authCodeGrantHandler.js";
+import storageManager from "./storage/manager.js";
+
 import { BAD_REQUEST, FORBIDDEN, NOT_FOUND, UNAUTHORIZED } from "./responses.js";
 
 const corsHeaders = {
@@ -247,6 +249,8 @@ async function returnPublicKeys(publicJwk) {
 
 export default {
     async fetch(request, env, ctx) {
+        storageManager.initializeStorage(env);
+
         const method = request.method;
         const url = new URL(request.url);
         const pathname = url.pathname;
@@ -258,7 +262,7 @@ export default {
         }
 
         if (method === "POST" && pathname === "/code") {
-            return await handleAuthCodeRequest(request);
+            return await authCodeGrantHandler.handleAuthCodeRequest(request);
             // return redirectWithCode(request, env.USERS, env.CLIENTS, env.CODES);
         }
 
