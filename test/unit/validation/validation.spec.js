@@ -381,6 +381,31 @@ describe("Validation", () => {
         });
     });
 
+    describe("isAllowedResponseType", () => {
+        it("passes for value 'code'", () => {
+            const result = validation.isAllowedResponseType("test", "code");
+            assert.isTrue(result);
+        });
+
+        it("throws for string value not equal to 'code'", () => {
+            try {
+                validation.isAllowedResponseType("test", "notCode");
+                return Promise.reject(new Error("Function under test never threw Error."));
+            } catch (error) {
+                assert.equal(error.message, "Parameter 'test' must be one of: 'code'.");
+            }
+        });
+
+        it("throws for number value not equal to 'code'", () => {
+            try {
+                validation.isAllowedResponseType("test", 12398);
+                return Promise.reject(new Error("Function under test never threw Error."));
+            } catch (error) {
+                assert.equal(error.message, "Parameter 'test' must be one of: 'code'.");
+            }
+        });
+    });
+
     describe("sequentiallyMatchAllValidations", () => {
         it("calls all validations with field name and value and returns value if all validations resolve to true", () => {
             const validationStub1 = sinon.stub();

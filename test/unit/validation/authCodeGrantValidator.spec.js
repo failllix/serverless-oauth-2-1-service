@@ -6,6 +6,46 @@ import validation from "../../../src/validation/validation.js";
 import { assert } from "chai";
 
 describe("Auth code grant validator", () => {
+    describe("isValidResponseType", () => {
+        it("returns value, if sequentially asserted validations pass", () => {
+            const sequentiallyMatchAllValidationsStub = sinon.stub(validation, "sequentiallyMatchAllValidations");
+
+            sequentiallyMatchAllValidationsStub
+                .withArgs({
+                    fieldName: "response_type",
+                    value: "abc",
+                    validations: [validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isString, validation.isAllowedResponseType],
+                })
+                .returns("someValue");
+
+            const result = authCodeGrantValidator.isValidResponseType("abc");
+
+            assert.equal(result, "someValue");
+            sinon.assert.calledOnce(sequentiallyMatchAllValidationsStub);
+        });
+
+        it("throws, if sequentially asserted validations throw error", () => {
+            const sequentiallyMatchAllValidationsStub = sinon.stub(validation, "sequentiallyMatchAllValidations");
+
+            const expectedError = new Error("Something did not pass validation");
+            sequentiallyMatchAllValidationsStub
+                .withArgs({
+                    fieldName: "response_type",
+                    value: "abc",
+                    validations: [validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isString, validation.isAllowedResponseType],
+                })
+                .throws(expectedError);
+
+            try {
+                authCodeGrantValidator.isValidResponseType("abc");
+                return Promise.reject("Function under test never threw an error");
+            } catch (error) {
+                assert.equal(error, expectedError);
+                assert.deepEqual(error, new Error("Something did not pass validation"));
+            }
+        });
+    });
+
     describe("isValidRedirectUri", () => {
         it("returns value, if sequentially asserted validations pass", () => {
             const sequentiallyMatchAllValidationsStub = sinon.stub(validation, "sequentiallyMatchAllValidations");

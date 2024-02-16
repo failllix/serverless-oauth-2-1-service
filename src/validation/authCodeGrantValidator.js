@@ -1,5 +1,13 @@
 import validation from "./validation.js";
 
+const isValidResponseType = (responseType) => {
+    return validation.sequentiallyMatchAllValidations({
+        validations: [validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isString, validation.isAllowedResponseType],
+        fieldName: "response_type",
+        value: responseType,
+    });
+};
+
 const isValidRedirectUri = (redirectUri) => {
     return validation.sequentiallyMatchAllValidations({
         validations: [validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isString],
@@ -41,6 +49,7 @@ const isValidScope = (scope) => {
 };
 
 export default {
+    isValidResponseType,
     isValidRedirectUri,
     isValidUsername,
     isValidPassword,

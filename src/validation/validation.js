@@ -62,6 +62,19 @@ const isString = (fieldName, value) => {
     throw new Error(`Parameter '${fieldName}' must be a String.`);
 };
 
+const allowedResponseTypes = ["code"];
+const isAllowedResponseType = (fieldName, value) => {
+    if (allowedResponseTypes.includes(value)) {
+        return true;
+    }
+
+    throw new Error(
+        `Parameter '${fieldName}' must be one of: ${Object.values(allowedResponseTypes)
+            .map((value) => `'${value}'`)
+            .join(", ")}.`,
+    );
+};
+
 const sequentiallyMatchAllValidations = ({ validations, fieldName, value }) => {
     for (const validation of validations) {
         const result = validation.call(null, fieldName, value);
@@ -79,5 +92,6 @@ export default {
     isObject,
     isArray,
     isString,
+    isAllowedResponseType,
     sequentiallyMatchAllValidations,
 };
