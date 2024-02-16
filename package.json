@@ -19,7 +19,7 @@
     "start": "wrangler dev",
     "publish": "wrangler publish --env production",
     "pretlint": "npx @biomejs/biome check --apply ./src",
-    "start:local": " wrangler dev --local --persist --ip 127.0.0.1",
+    "start:local": " wrangler dev --local --ip 127.0.0.1",
     "test:unit": "mocha --recursive --require './test/unit/mochaHooks.js' './test/unit/**/*.spec.js'",
     "test:unit:coverage": "c8 npm run test:unit",
     "create:local-user": "node ./helperScripts/generateUser.js",

@@ -2,7 +2,7 @@ node_modules
 wrangler.toml
 .dev.vars
 
-.wrangler/state
+.wrangler
 .temp
 
 coverage
