@@ -1,5 +1,5 @@
 {
-  "all": true,
+  "include": ["src"],
   "check-coverage": true,
   "per-file": true,
   "100": true
