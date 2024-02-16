@@ -5,114 +5,114 @@ import sinon from "sinon";
 
 describe("Validation", () => {
     describe("isNotEmpty", () => {
-        it("resolves for non-empty string values", async () => {
-            const result = await validation.isNotEmpty("test", "something");
+        it("passes for non-empty string values", () => {
+            const result = validation.isNotEmpty("test", "something");
             assert.isTrue(result);
         });
 
-        it("resolves for non-empty objects", async () => {
-            const result = await validation.isNotEmpty("test", { foo: "bar" });
+        it("passes for non-empty objects", () => {
+            const result = validation.isNotEmpty("test", { foo: "bar" });
             assert.isTrue(result);
         });
 
-        it("resolves for non-empty arrays", async () => {
-            const result = await validation.isNotEmpty("test", ["something"]);
+        it("passes for non-empty arrays", () => {
+            const result = validation.isNotEmpty("test", ["something"]);
             assert.isTrue(result);
         });
 
-        it("rejects empty strings", async () => {
+        it("throws for empty strings", () => {
             try {
-                await validation.isNotEmpty("test", "");
+                validation.isNotEmpty("test", "");
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must not be empty.");
             }
         });
 
-        it("rejects empty objects", async () => {
+        it("throws for empty objects", () => {
             try {
-                await validation.isNotEmpty("test", {});
+                validation.isNotEmpty("test", {});
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must not be empty.");
             }
         });
 
-        it("rejects empty arrays", async () => {
+        it("throws for empty arrays", () => {
             try {
-                await validation.isNotEmpty("test", []);
+                validation.isNotEmpty("test", []);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must not be empty.");
             }
         });
 
-        it("rejects null values", async () => {
+        it("throws for null values", () => {
             try {
-                await validation.isNotEmpty("test", null);
+                validation.isNotEmpty("test", null);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must not be null or empty.");
             }
         });
 
-        it("rejects numbers", async () => {
+        it("throws for numbers", () => {
             try {
-                await validation.isNotEmpty("test", 5);
+                validation.isNotEmpty("test", 5);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
-                assert.equal(error.message, "Encountered unexpected type 'number' while validating 'test' is not empty.");
+                assert.equal(error.message, "Encountered unexpected type 'number' while ensuring 'test' is not empty. Expected one of: 'string', 'object', 'array'.");
             }
         });
 
-        it("rejects booleans", async () => {
+        it("throws for booleans", () => {
             try {
-                await validation.isNotEmpty("test", true);
+                validation.isNotEmpty("test", true);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
-                assert.equal(error.message, "Encountered unexpected type 'boolean' while validating 'test' is not empty.");
+                assert.equal(error.message, "Encountered unexpected type 'boolean' while ensuring 'test' is not empty. Expected one of: 'string', 'object', 'array'.");
             }
         });
 
-        it("rejects undefined", async () => {
+        it("throws for undefined", () => {
             try {
-                await validation.isNotEmpty("test", undefined);
+                validation.isNotEmpty("test", undefined);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
-                assert.equal(error.message, "Encountered unexpected type 'undefined' while validating 'test' is not empty.");
+                assert.equal(error.message, "Encountered unexpected type 'undefined' while ensuring 'test' is not empty. Expected one of: 'string', 'object', 'array'.");
             }
         });
     });
 
     describe("isNotNull", () => {
-        it("resolves for non-null string values", async () => {
-            const result = await validation.isNotNull("test", "something");
+        it("passes for non-null string values", () => {
+            const result = validation.isNotNull("test", "something");
             assert.isTrue(result);
         });
 
-        it("resolves for non-null array values", async () => {
-            const result = await validation.isNotNull("test", []);
+        it("passes for non-null array values", () => {
+            const result = validation.isNotNull("test", []);
             assert.isTrue(result);
         });
 
-        it("resolves for non-null object values", async () => {
-            const result = await validation.isNotNull("test", {});
+        it("passes for non-null object values", () => {
+            const result = validation.isNotNull("test", {});
             assert.isTrue(result);
         });
 
-        it("resolves for non-null number values", async () => {
-            const result = await validation.isNotNull("test", 5);
+        it("passes for non-null number values", () => {
+            const result = validation.isNotNull("test", 5);
             assert.isTrue(result);
         });
 
-        it("resolves for undefined values", async () => {
-            const result = await validation.isNotNull("test", undefined);
+        it("passes for undefined values", () => {
+            const result = validation.isNotNull("test", undefined);
             assert.isTrue(result);
         });
 
-        it("rejects null values", async () => {
+        it("throws for null values", () => {
             try {
-                await validation.isNotNull("test", null);
+                validation.isNotNull("test", null);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must not be null.");
@@ -121,34 +121,34 @@ describe("Validation", () => {
     });
 
     describe("isNotUndefined", () => {
-        it("resolves for non-undefined string values", async () => {
-            const result = await validation.isNotUndefined("test", "something");
+        it("passes for non-undefined string values", () => {
+            const result = validation.isNotUndefined("test", "something");
             assert.isTrue(result);
         });
 
-        it("resolves for non-undefined array values", async () => {
-            const result = await validation.isNotUndefined("test", []);
+        it("passes for non-undefined array values", () => {
+            const result = validation.isNotUndefined("test", []);
             assert.isTrue(result);
         });
 
-        it("resolves for non-nuundefined object values", async () => {
-            const result = await validation.isNotUndefined("test", {});
+        it("passes for non-nuundefined object values", () => {
+            const result = validation.isNotUndefined("test", {});
             assert.isTrue(result);
         });
 
-        it("resolves for non-nuundefined number values", async () => {
-            const result = await validation.isNotUndefined("test", 5);
+        it("passes for non-nuundefined number values", () => {
+            const result = validation.isNotUndefined("test", 5);
             assert.isTrue(result);
         });
 
-        it("resolves for null values", async () => {
-            const result = await validation.isNotUndefined("test", null);
+        it("passes for null values", () => {
+            const result = validation.isNotUndefined("test", null);
             assert.isTrue(result);
         });
 
-        it("rejects undefined values", async () => {
+        it("throws for undefined values", () => {
             try {
-                await validation.isNotUndefined("test", undefined);
+                validation.isNotUndefined("test", undefined);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must not be undefined.");
@@ -157,13 +157,13 @@ describe("Validation", () => {
     });
 
     describe("isObject", () => {
-        it("resolves for empty objects", async () => {
-            const result = await validation.isObject("test", {});
+        it("passes for empty objects", () => {
+            const result = validation.isObject("test", {});
             assert.isTrue(result);
         });
 
-        it("resolves for objects", async () => {
-            const result = await validation.isObject("test", {
+        it("passes for objects", () => {
+            const result = validation.isObject("test", {
                 foo: "bar",
                 buzz: 10,
                 shizzle: ["foo"],
@@ -171,8 +171,8 @@ describe("Validation", () => {
             assert.isTrue(result);
         });
 
-        it("resolves for nested objects", async () => {
-            const result = await validation.isObject("test", {
+        it("passes for nested objects", () => {
+            const result = validation.isObject("test", {
                 nested: {
                     arr: [{ foo: "bar", shizzle: 42 }],
                 },
@@ -180,63 +180,63 @@ describe("Validation", () => {
             assert.isTrue(result);
         });
 
-        it("rejects string values", async () => {
+        it("throws for string values", () => {
             try {
-                await validation.isObject("test", "something");
+                validation.isObject("test", "something");
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be an object.");
             }
         });
 
-        it("rejects number values", async () => {
+        it("throws for number values", () => {
             try {
-                await validation.isObject("test", 5);
+                validation.isObject("test", 5);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be an object.");
             }
         });
 
-        it("rejects boolean values", async () => {
+        it("throws for boolean values", () => {
             try {
-                await validation.isObject("test", false);
+                validation.isObject("test", false);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be an object.");
             }
         });
 
-        it("rejects null values", async () => {
+        it("throws for null values", () => {
             try {
-                await validation.isObject("test", null);
+                validation.isObject("test", null);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be an object.");
             }
         });
 
-        it("rejects undefined values", async () => {
+        it("throws for undefined values", () => {
             try {
-                await validation.isObject("test", undefined);
+                validation.isObject("test", undefined);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be an object.");
             }
         });
 
-        it("rejects array values", async () => {
+        it("throws for array values", () => {
             try {
-                await validation.isObject("test", []);
+                validation.isObject("test", []);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be an object.");
             }
         });
 
-        it("rejects filled array values", async () => {
+        it("throws for filled array values", () => {
             try {
-                await validation.isObject("test", ["someString", 5, true, false, undefined]);
+                validation.isObject("test", ["someString", 5, true, false, undefined]);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be an object.");
@@ -245,78 +245,78 @@ describe("Validation", () => {
     });
 
     describe("isArray", () => {
-        it("resolves for empty arrays", async () => {
-            const result = await validation.isArray("test", []);
+        it("passes for empty arrays", () => {
+            const result = validation.isArray("test", []);
             assert.isTrue(result);
         });
 
-        it("resolves for arrays", async () => {
-            const result = await validation.isArray("test", ["some", "thing", 5, 12, false, true]);
+        it("passes for arrays", () => {
+            const result = validation.isArray("test", ["some", "thing", 5, 12, false, true]);
             assert.isTrue(result);
         });
 
-        it("resolves for nested arrays", async () => {
-            const result = await validation.isArray("test", [["a"], [["b"]], "12", 1, true, {}]);
+        it("passes for nested arrays", () => {
+            const result = validation.isArray("test", [["a"], [["b"]], "12", 1, true, {}]);
             assert.isTrue(result);
         });
 
-        it("rejects string values", async () => {
+        it("throws for string values", () => {
             try {
-                await validation.isArray("test", "something");
+                validation.isArray("test", "something");
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be an array.");
             }
         });
 
-        it("rejects number values", async () => {
+        it("throws for number values", () => {
             try {
-                await validation.isArray("test", 5);
+                validation.isArray("test", 5);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be an array.");
             }
         });
 
-        it("rejects boolean values", async () => {
+        it("throws for boolean values", () => {
             try {
-                await validation.isArray("test", false);
+                validation.isArray("test", false);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be an array.");
             }
         });
 
-        it("rejects null values", async () => {
+        it("throws for null values", () => {
             try {
-                await validation.isArray("test", null);
+                validation.isArray("test", null);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be an array.");
             }
         });
 
-        it("rejects undefined values", async () => {
+        it("throws for undefined values", () => {
             try {
-                await validation.isArray("test", undefined);
+                validation.isArray("test", undefined);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be an array.");
             }
         });
 
-        it("rejects object values", async () => {
+        it("throws for object values", () => {
             try {
-                await validation.isArray("test", {});
+                validation.isArray("test", {});
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be an array.");
             }
         });
 
-        it("rejects filled object values", async () => {
+        it("throws for filled object values", () => {
             try {
-                await validation.isArray("test", { a: [] });
+                validation.isArray("test", { a: [] });
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be an array.");
@@ -325,55 +325,55 @@ describe("Validation", () => {
     });
 
     describe("isString", () => {
-        it("resolves for empty strings", async () => {
-            const result = await validation.isString("test", "");
+        it("passes for empty strings", () => {
+            const result = validation.isString("test", "");
             assert.isTrue(result);
         });
 
-        it("resolves for strings", async () => {
-            const result = await validation.isString("test", "something");
+        it("passes for strings", () => {
+            const result = validation.isString("test", "something");
             assert.isTrue(result);
         });
 
-        it("rejects number values", async () => {
+        it("throws for number values", () => {
             try {
-                await validation.isString("test", 5);
+                validation.isString("test", 5);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be a String.");
             }
         });
 
-        it("rejects boolean values", async () => {
+        it("throws for boolean values", () => {
             try {
-                await validation.isString("test", false);
+                validation.isString("test", false);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be a String.");
             }
         });
 
-        it("rejects null values", async () => {
+        it("throws for null values", () => {
             try {
-                await validation.isString("test", null);
+                validation.isString("test", null);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be a String.");
             }
         });
 
-        it("rejects undefined values", async () => {
+        it("throws for undefined values", () => {
             try {
-                await validation.isString("test", undefined);
+                validation.isString("test", undefined);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be a String.");
             }
         });
 
-        it("rejects object values", async () => {
+        it("throws for object values", () => {
             try {
-                await validation.isString("test", {});
+                validation.isString("test", {});
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
                 assert.equal(error.message, "Parameter 'test' must be a String.");
@@ -382,14 +382,14 @@ describe("Validation", () => {
     });
 
     describe("sequentiallyMatchAllValidations", () => {
-        it("calls all validations with field name and value and returns value if all validations resolve to true", async () => {
+        it("calls all validations with field name and value and returns value if all validations resolve to true", () => {
             const validationStub1 = sinon.stub();
             const validationStub2 = sinon.stub();
 
-            validationStub1.withArgs("field", 42).resolves(true);
-            validationStub2.withArgs("field", 42).resolves(true);
+            validationStub1.withArgs("field", 42).returns(true);
+            validationStub2.withArgs("field", 42).returns(true);
 
-            const result = await validation.sequentiallyMatchAllValidations({
+            const result = validation.sequentiallyMatchAllValidations({
                 validations: [validationStub1, validationStub2],
                 fieldName: "field",
                 value: 42,
@@ -400,14 +400,14 @@ describe("Validation", () => {
             sinon.assert.calledOnce(validationStub2);
         });
 
-        it("calls only first validation with field name and value and throws if the first validation returns something else than true", async () => {
+        it("calls only first validation with field name and value and throws if the first validation returns something else than true", () => {
             const validationStub1 = sinon.stub();
             const validationStub2 = sinon.stub();
 
-            validationStub1.withArgs("field", 42).resolves("true");
+            validationStub1.withArgs("field", 42).returns("true");
 
             try {
-                await validation.sequentiallyMatchAllValidations({
+                validation.sequentiallyMatchAllValidations({
                     validations: [validationStub1, validationStub2],
                     fieldName: "field",
                     value: 42,
@@ -420,15 +420,15 @@ describe("Validation", () => {
             }
         });
 
-        it("calls all validations with field name and value and throws if the second validation returns something else than true", async () => {
+        it("calls all validations with field name and value and throws if the second validation returns something else than true", () => {
             const validationStub1 = sinon.stub();
             const validationStub2 = sinon.stub();
 
-            validationStub1.withArgs("field", 42).resolves(true);
-            validationStub2.withArgs("field", 42).resolves("true");
+            validationStub1.withArgs("field", 42).returns(true);
+            validationStub2.withArgs("field", 42).returns("true");
 
             try {
-                await validation.sequentiallyMatchAllValidations({
+                validation.sequentiallyMatchAllValidations({
                     validations: [validationStub1, validationStub2],
                     fieldName: "field",
                     value: 42,
@@ -441,7 +441,7 @@ describe("Validation", () => {
             }
         });
 
-        it("calls only first validation with field name and value and throws if the first validation throws error", async () => {
+        it("calls only first validation with field name and value and throws if the first validation throws error", () => {
             const validationStub1 = sinon.stub();
             const validationStub2 = sinon.stub();
 
@@ -450,7 +450,7 @@ describe("Validation", () => {
             validationStub1.withArgs("field", 42).throws(expectedError);
 
             try {
-                await validation.sequentiallyMatchAllValidations({
+                validation.sequentiallyMatchAllValidations({
                     validations: [validationStub1, validationStub2],
                     fieldName: "field",
                     value: 42,
@@ -465,17 +465,17 @@ describe("Validation", () => {
             }
         });
 
-        it("calls all validations with field name and value and throws if the second validation throws error", async () => {
+        it("calls all validations with field name and value and throws if the second validation throws error", () => {
             const validationStub1 = sinon.stub();
             const validationStub2 = sinon.stub();
 
             const expectedError = new Error("I did not match");
 
-            validationStub1.withArgs("field", 42).resolves(true);
+            validationStub1.withArgs("field", 42).returns(true);
             validationStub2.withArgs("field", 42).throws(expectedError);
 
             try {
-                await validation.sequentiallyMatchAllValidations({
+                validation.sequentiallyMatchAllValidations({
                     validations: [validationStub1, validationStub2],
                     fieldName: "field",
                     value: 42,

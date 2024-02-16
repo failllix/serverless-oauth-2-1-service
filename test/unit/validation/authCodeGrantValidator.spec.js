@@ -7,7 +7,7 @@ import { assert } from "chai";
 
 describe("Auth code grant validator", () => {
   describe("isValidRedirectUri", () => {
-    it("resolves to value, if sequentially asserted validations pass", async () => {
+    it("returns value, if sequentially asserted validations pass", () => {
       const sequentiallyMatchAllValidationsStub = sinon.stub(
         validation,
         "sequentiallyMatchAllValidations"
@@ -24,15 +24,15 @@ describe("Auth code grant validator", () => {
             validation.isString,
           ],
         })
-        .resolves("someValue");
+        .returns("someValue");
 
-      const result = await authCodeGrantValidator.isValidRedirectUri("abc");
+      const result = authCodeGrantValidator.isValidRedirectUri("abc");
 
       assert.equal(result, "someValue");
       sinon.assert.calledOnce(sequentiallyMatchAllValidationsStub);
     });
 
-    it("throws, if sequentially asserted validations throw error", async () => {
+    it("throws, if sequentially asserted validations throw error", () => {
       const sequentiallyMatchAllValidationsStub = sinon.stub(
         validation,
         "sequentiallyMatchAllValidations"
@@ -53,7 +53,7 @@ describe("Auth code grant validator", () => {
         .throws(expectedError);
 
       try {
-        await authCodeGrantValidator.isValidRedirectUri("abc");
+        authCodeGrantValidator.isValidRedirectUri("abc");
         return Promise.reject("Function under test never threw an error");
       } catch (error) {
         assert.equal(error, expectedError);
@@ -63,7 +63,7 @@ describe("Auth code grant validator", () => {
   });
 
   describe("isValidUsername", () => {
-    it("resolves to value, if sequentially asserted validations pass", async () => {
+    it("returns value, if sequentially asserted validations pass", () => {
       const sequentiallyMatchAllValidationsStub = sinon.stub(
         validation,
         "sequentiallyMatchAllValidations"
@@ -80,15 +80,15 @@ describe("Auth code grant validator", () => {
             validation.isString,
           ],
         })
-        .resolves("someValue");
+        .returns("someValue");
 
-      const result = await authCodeGrantValidator.isValidUsername("john");
+      const result = authCodeGrantValidator.isValidUsername("john");
 
       assert.equal(result, "someValue");
       sinon.assert.calledOnce(sequentiallyMatchAllValidationsStub);
     });
 
-    it("throws, if sequentially asserted validations throw error", async () => {
+    it("throws, if sequentially asserted validations throw error", () => {
       const sequentiallyMatchAllValidationsStub = sinon.stub(
         validation,
         "sequentiallyMatchAllValidations"
@@ -109,7 +109,7 @@ describe("Auth code grant validator", () => {
         .throws(expectedError);
 
       try {
-        await authCodeGrantValidator.isValidUsername("john");
+        authCodeGrantValidator.isValidUsername("john");
         return Promise.reject("Function under test never threw an error");
       } catch (error) {
         assert.equal(error, expectedError);
@@ -119,7 +119,7 @@ describe("Auth code grant validator", () => {
   });
 
   describe("isValidPassword", () => {
-    it("resolves to value, if sequentially asserted validations pass", async () => {
+    it("returns value, if sequentially asserted validations pass", () => {
       const sequentiallyMatchAllValidationsStub = sinon.stub(
         validation,
         "sequentiallyMatchAllValidations"
@@ -136,15 +136,15 @@ describe("Auth code grant validator", () => {
             validation.isString,
           ],
         })
-        .resolves("someValue");
+        .returns("someValue");
 
-      const result = await authCodeGrantValidator.isValidPassword("secret");
+      const result = authCodeGrantValidator.isValidPassword("secret");
 
       assert.equal(result, "someValue");
       sinon.assert.calledOnce(sequentiallyMatchAllValidationsStub);
     });
 
-    it("throws, if sequentially asserted validations throw error", async () => {
+    it("throws, if sequentially asserted validations throw error", () => {
       const sequentiallyMatchAllValidationsStub = sinon.stub(
         validation,
         "sequentiallyMatchAllValidations"
@@ -165,7 +165,7 @@ describe("Auth code grant validator", () => {
         .throws(expectedError);
 
       try {
-        await authCodeGrantValidator.isValidPassword("secret");
+        authCodeGrantValidator.isValidPassword("secret");
         return Promise.reject("Function under test never threw an error");
       } catch (error) {
         assert.equal(error, expectedError);
@@ -175,7 +175,7 @@ describe("Auth code grant validator", () => {
   });
 
   describe("isValidClientId", () => {
-    it("resolves to value, if sequentially asserted validations pass", async () => {
+    it("returns value, if sequentially asserted validations pass", () => {
       const sequentiallyMatchAllValidationsStub = sinon.stub(
         validation,
         "sequentiallyMatchAllValidations"
@@ -192,15 +192,15 @@ describe("Auth code grant validator", () => {
             validation.isString,
           ],
         })
-        .resolves("someValue");
+        .returns("someValue");
 
-      const result = await authCodeGrantValidator.isValidClientId("client");
+      const result = authCodeGrantValidator.isValidClientId("client");
 
       assert.equal(result, "someValue");
       sinon.assert.calledOnce(sequentiallyMatchAllValidationsStub);
     });
 
-    it("throws, if sequentially asserted validations throw error", async () => {
+    it("throws, if sequentially asserted validations throw error", () => {
       const sequentiallyMatchAllValidationsStub = sinon.stub(
         validation,
         "sequentiallyMatchAllValidations"
@@ -221,7 +221,7 @@ describe("Auth code grant validator", () => {
         .throws(expectedError);
 
       try {
-        await authCodeGrantValidator.isValidClientId("client");
+        authCodeGrantValidator.isValidClientId("client");
         return Promise.reject("Function under test never threw an error");
       } catch (error) {
         assert.equal(error, expectedError);
@@ -231,7 +231,7 @@ describe("Auth code grant validator", () => {
   });
 
   describe("isValidScope", () => {
-    it("resolves to value, if sequentially asserted validations pass", async () => {
+    it("returns value, if sequentially asserted validations pass", () => {
       const sequentiallyMatchAllValidationsStub = sinon.stub(
         validation,
         "sequentiallyMatchAllValidations"
@@ -248,15 +248,15 @@ describe("Auth code grant validator", () => {
             validation.isArray,
           ],
         })
-        .resolves("someValue");
+        .returns("someValue");
 
-      const result = await authCodeGrantValidator.isValidScope(["superpowers"]);
+      const result = authCodeGrantValidator.isValidScope(["superpowers"]);
 
       assert.equal(result, "someValue");
       sinon.assert.calledOnce(sequentiallyMatchAllValidationsStub);
     });
 
-    it("throws, if sequentially asserted validations throw error", async () => {
+    it("throws, if sequentially asserted validations throw error", () => {
       const sequentiallyMatchAllValidationsStub = sinon.stub(
         validation,
         "sequentiallyMatchAllValidations"
@@ -277,7 +277,7 @@ describe("Auth code grant validator", () => {
         .throws(expectedError);
 
       try {
-        await authCodeGrantValidator.isValidScope(["superpowers"]);
+        authCodeGrantValidator.isValidScope(["superpowers"]);
         return Promise.reject("Function under test never threw an error");
       } catch (error) {
         assert.equal(error, expectedError);
