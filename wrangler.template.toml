@@ -5,7 +5,7 @@ compatibility_date = "2023-02-04"
 kv_namespaces = [
 { binding = "USERS", id = "local", preview_id = "local" },
 { binding = "CODES", id = "local", preview_id = "local" },
-{ binding = "CLIENTS", id = "local", preview_id = "local" },
+{ binding = "CLIENT", id = "local", preview_id = "local" },
 { binding = "TOKENS", id = "local", preview_id = "local" }
 ]
 
@@ -17,6 +17,6 @@ PUBLIC_KEY=""
 kv_namespaces = [
 { binding = "USERS", id = "SOME_KV_ID" },
 { binding = "CODES", id = "SOME_KV_ID" },
-{ binding = "CLIENTS", id = "SOME_KV_ID" },
+{ binding = "CLIENT", id = "SOME_KV_ID" },
 { binding = "TOKENS", id = "SOME_KV_ID" }
 ]
