@@ -6,8 +6,8 @@ const logMessage = (message) => {
     console.log(message);
 };
 
-const logObject = (object) => {
-    console.dir(object, { depth: 15 });
+const logObject = ({ label, object }) => {
+    console.log(label, JSON.stringify(object));
 };
 
 export default { logError, logMessage, logObject };

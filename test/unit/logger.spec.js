@@ -1,7 +1,5 @@
-import { assert } from "chai";
 import { describe } from "mocha";
 import sinon from "sinon";
-import authCodeGrantHandler from "../../src/authCodeGrantHandler.js";
 
 import logger from "../../src/logger.js";
 
@@ -28,13 +26,11 @@ describe("Logger", () => {
     });
 
     describe("logObject", () => {
-        it("should pass the object to the console for logging with depth 15", () => {
+        it("should pass the stringified object to the console and log with label ", () => {
             const expectedObject = Object.freeze({ nested: true });
-            logger.logObject(expectedObject);
+            logger.logObject({ label: "someLabel", object: expectedObject });
 
-            sinon.assert.calledOnceWithExactly(console.dir, expectedObject, {
-                depth: 15,
-            });
+            sinon.assert.calledOnceWithExactly(console.log, "someLabel", JSON.stringify(expectedObject));
         });
     });
 });
