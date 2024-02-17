@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login example</title>
+</head>
+<body>
+    
+    <button id="login">Login</button>
+</body>
+
+<script>
+    const loginButton = document.getElementById("login");
+
+    loginButton.addEventListener("click", (event) => {
+        event.preventDefault();
+
+        window.location = "http://localhost:8787/authorize?response_type=code&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8788/app&scope=superpower%2Cabc"
+    })
+</script>
+</html>

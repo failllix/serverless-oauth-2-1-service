@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oauth2 Login</title>
+  </head>
+
+  <body>
+    <h1>Login</h1>
+    <form>
+      <input id="username" type="text" placeholder="username" />
+      <input id="password" type="password" placeholder="password" />
+      <button type="submit" id="login">Login</button>
+    </form>
+  </body>
+
+  <script>
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+    const loginButton = document.getElementById("login");
+
+    loginButton.addEventListener("click", async (event) => {
+      event.preventDefault();
+      console.log("Login clicked");
+
+      const username = usernameInput.value;
+      const password = passwordInput.value;
+
+      console.log(username);
+      console.log(password);
+
+      const basicAuthRaw = `${username}:${password}`;
+      const basicAuthBytes = new TextEncoder().encode(basicAuthRaw);
+      const binaryString = String.fromCodePoint(...basicAuthBytes);
+      const basicAuthEncoded = btoa(binaryString);
+
+      const authServerUrl = new URL(window.location);
+      authServerUrl.host = "localhost:8787";
+      authServerUrl.pathname = "/authorize"
+
+      const response = await fetch(authServerUrl, {
+        headers: {
+          Authorization: `Basic ${basicAuthEncoded}`,
+        },
+      });
+
+      console.log(response);
+    });
+  </script>
+</html>
