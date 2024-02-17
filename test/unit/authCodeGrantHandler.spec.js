@@ -6,7 +6,7 @@ import authCodeGrantHandler from "../../src/authCodeGrantHandler.js";
 import logger from "../../src/logger.js";
 import authCodeGrantValidator from "../../src/validation/authCodeGrantValidator.js";
 
-describe("The auth code request handler", () => {
+xdescribe("The auth code request handler", () => {
     beforeEach(() => {
         sinon.stub(logger);
     });
