@@ -1,3 +1,14 @@
+const SUCCESS = (jsonResponse, headers) => {
+    return new Response(JSON.stringify(jsonResponse), { status: 200, headers });
+};
+
+const FOUND = (newUrl) => {
+    return new Response(null, {
+        status: 302,
+        headers: { Location: newUrl },
+    });
+};
+
 const BAD_REQUEST = (message) =>
     new Response(message, {
         status: 400,
@@ -15,4 +26,4 @@ const UNAUTHORIZED = new Response(null, {
     status: 401,
 });
 
-export { BAD_REQUEST, NOT_FOUND, FORBIDDEN, UNAUTHORIZED, INTERNAL_SERVER_ERROR };
+export { SUCCESS, FOUND, BAD_REQUEST, NOT_FOUND, FORBIDDEN, UNAUTHORIZED, INTERNAL_SERVER_ERROR };

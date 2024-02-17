@@ -1,9 +1,9 @@
-import { strToSha512HexString, strToUint8, strToUrlBase64, uint8ToUrlBase64, urlBase64Touint8 } from "./util.js";
+// import { strToSha512HexString, strToUint8, strToUrlBase64, uint8ToUrlBase64, urlBase64Touint8 } from "./util.js";
 
 import authCodeGrantHandler from "./authCodeGrantHandler.js";
 import storageManager from "./storage/manager.js";
 
-import { BAD_REQUEST, FORBIDDEN, NOT_FOUND, UNAUTHORIZED } from "./responses.js";
+import { BAD_REQUEST, FORBIDDEN, NOT_FOUND, SUCCESS, UNAUTHORIZED } from "./responses.js";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -255,23 +255,43 @@ export default {
         const url = new URL(request.url);
         const pathname = url.pathname;
 
-        if (method === "OPTIONS") {
-            return new Response(null, {
-                headers: corsHeaders,
-            });
+        if (pathname === "/authorize") {
+            if (method === "OPTIONS") {
+                return SUCCESS("", {
+                    "Access-Control-Allow-Origin": "http://localhost:8788",
+                    "Access-Control-Allow-Methods": "GET, POST",
+                    "Access-Control-Allow-Headers": "Authorization, Content-Type",
+                });
+            }
+            if (method === "POST" || method === "GET") {
+                return await authCodeGrantHandler.handleAuthCodeRequest(request);
+                // return redirectWithCode(request, env.USERS, env.CLIENTS, env.CODES);
+            }
         }
 
-        if (method === "POST" && pathname === "/code") {
-            return await authCodeGrantHandler.handleAuthCodeRequest(request);
-            // return redirectWithCode(request, env.USERS, env.CLIENTS, env.CODES);
+        if (pathname === "/token") {
+            if (method === "OPTIONS") {
+                return new Response(null, {
+                    headers: corsHeaders,
+                });
+            }
+            if (method === "POST") {
+                //TODO
+                // return exchangeCodeForToken(
+                //     request,
+                //     env.CODES,
+                //     env.CLIENTS,
+                //     env.TOKENS,
+                //     env.SIGNING_KEY
+                //   );
+            }
         }
 
-        //Exchange code for access token
-        if (url.pathname.includes("/token")) return exchangeCodeForToken(request, env.CODES, env.CLIENTS, env.TOKENS, env.SIGNING_KEY);
+        // if (url.pathname === "/introspect")
+        //   return verifyToken(request, env.TOKENS, env.PUBLIC_KEY);
 
-        if (url.pathname === "/introspect") return verifyToken(request, env.TOKENS, env.PUBLIC_KEY);
-
-        if (url.pathname === "/.well-known/jwks.json") return returnPublicKeys(env.PUBLIC_KEY);
+        // if (url.pathname === "/.well-known/jwks.json")
+        //   return returnPublicKeys(env.PUBLIC_KEY);
 
         return NOT_FOUND;
     },

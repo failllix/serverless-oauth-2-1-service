@@ -56,4 +56,10 @@ async function strToSha512HexString(str) {
     return uint8ToHexString(new Uint8Array(hashBuffer));
 }
 
-export { strToUrlBase64, strToUint8, uint8ToUrlBase64, strToSha512HexString, urlBase64Touint8 };
+export default {
+    strToUrlBase64,
+    strToUint8,
+    uint8ToUrlBase64,
+    strToSha512HexString,
+    urlBase64Touint8,
+};
