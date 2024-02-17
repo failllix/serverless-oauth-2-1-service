@@ -19,9 +19,9 @@ describe("Logger", () => {
 
     describe("logMessage", () => {
         it("should pass the message to the console for logging", () => {
-            logger.logError("Highly important");
+            logger.logMessage("Highly important");
 
-            sinon.assert.calledOnceWithExactly(console.error, "Highly important");
+            sinon.assert.calledOnceWithExactly(console.log, "Highly important");
         });
     });
 
