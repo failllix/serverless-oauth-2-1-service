@@ -19,6 +19,7 @@
     "start": "wrangler dev",
     "publish": "wrangler publish --env production",
     "pretlint": "npx @biomejs/biome check --apply ./src ./test",
+    "check:code": "npx @biomejs/biome ci --formatter-enabled=true --linter-enabled=true --organize-imports-enabled=true ./src ./test",
     "start:server:local": "wrangler dev --ip 127.0.0.1",
     "start:login:local": "wrangler pages dev ./src/loginPage",
     "test:unit": "mocha --recursive --require './test/unit/mochaHooks.js' './test/unit/**/*.spec.js'",
