@@ -1,4 +1,5 @@
-const clientIdKeyValueNamespace = "CLIENT";
+const clientKeyValueNamespace = "CLIENT";
+const userKeyValueNamespace = "USER";
 
 let clientKeyValueStorage;
 const getClientKeyValueStorage = () => {
@@ -8,8 +9,21 @@ const getClientKeyValueStorage = () => {
     return clientKeyValueStorage;
 };
 
-const initializeStorage = (env) => {
-    clientKeyValueStorage = env[clientIdKeyValueNamespace];
+let userKeyValueStorage;
+const getUserKeyValueStorage = () => {
+    if (userKeyValueStorage === undefined) {
+        throw new Error("User key-value storage was not initialized.");
+    }
+    return userKeyValueStorage;
 };
 
-export default { initializeStorage, getClientKeyValueStorage };
+const initializeStorage = (env) => {
+    clientKeyValueStorage = env[clientKeyValueNamespace];
+    userKeyValueStorage = env[userKeyValueNamespace];
+};
+
+export default {
+    initializeStorage,
+    getClientKeyValueStorage,
+    getUserKeyValueStorage,
+};
