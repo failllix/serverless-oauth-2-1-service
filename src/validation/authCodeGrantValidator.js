@@ -16,22 +16,6 @@ const isValidRedirectUri = (redirectUri) => {
     });
 };
 
-const isValidUsername = (username) => {
-    return validation.sequentiallyMatchAllValidations({
-        validations: [validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isString],
-        fieldName: "username",
-        value: username,
-    });
-};
-
-const isValidPassword = (password) => {
-    return validation.sequentiallyMatchAllValidations({
-        validations: [validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isString],
-        fieldName: "password",
-        value: password,
-    });
-};
-
 const isValidClientId = (clientId) => {
     return validation.sequentiallyMatchAllValidations({
         validations: [validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isString],
@@ -51,8 +35,6 @@ const isValidScope = (scope) => {
 export default {
     isValidResponseType,
     isValidRedirectUri,
-    isValidUsername,
-    isValidPassword,
     isValidClientId,
     isValidScope,
 };
