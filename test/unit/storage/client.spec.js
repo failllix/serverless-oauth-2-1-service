@@ -6,9 +6,9 @@ import storageManager from "../../../src/storage/manager.js";
 
 describe("Client storage", () => {
     describe("getClient", () => {
-        it("should get client key-value storage from manager and get client by id", async () => {
+        it("should get client key-value storage from manager and return parsed client by id", async () => {
             const keyValueGetStub = sinon.stub();
-            keyValueGetStub.withArgs("myId").resolves("myClient");
+            keyValueGetStub.withArgs("myId").resolves(JSON.stringify({ myClient: true }));
 
             const clientKeyValueStorageStub = sinon.stub(storageManager, "getClientKeyValueStorage");
 
@@ -16,7 +16,7 @@ describe("Client storage", () => {
 
             const clientId = await clientStorage.getClient("myId");
 
-            assert.equal(clientId, "myClient");
+            assert.deepEqual(clientId, { myClient: true });
         });
     });
 });
