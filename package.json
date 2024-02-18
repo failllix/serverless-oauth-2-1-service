@@ -25,7 +25,7 @@
     "test:unit": "mocha --recursive --require './test/unit/mochaHooks.js' './test/unit/**/*.spec.js'",
     "test:unit:coverage": "c8 npm run test:unit",
     "create:local-user": "node ./helperScripts/saveLocalUser.js",
-    "create:local-client": "node ./helperScripts/addLocalClient.js",
+    "create:local-client": "node ./helperScripts/saveLocalClient.js",
     "create:key-pair": "node ./helperScripts/generateKey.js",
     "create:api-test-setup": "node ./helperScripts/setupApiTests.js"
   }
