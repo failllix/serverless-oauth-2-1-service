@@ -56,10 +56,36 @@ async function strToSha512HexString(str) {
     return uint8ToHexString(new Uint8Array(hashBuffer));
 }
 
+async function getPBKDF2PasswordHash(password, base64Salt) {
+    try {
+        const encodedPassword = new TextEncoder().encode(password);
+
+        const key = await crypto.subtle.importKey("raw", encodedPassword, { name: "PBKDF2" }, false, ["deriveBits"]);
+
+        const decodedSalt = new Uint8Array(atob(base64Salt).split(","));
+
+        const derivedBits = await crypto.subtle.deriveBits(
+            {
+                name: "PBKDF2",
+                salt: decodedSalt,
+                iterations: 1000000,
+                hash: "SHA-512",
+            },
+            key,
+            512,
+        );
+
+        return btoa(new Uint8Array(derivedBits));
+    } catch (error) {
+        throw new Error("Could not derive password hash", { cause: error });
+    }
+}
+
 export default {
     strToUrlBase64,
     strToUint8,
     uint8ToUrlBase64,
     strToSha512HexString,
+    getPBKDF2PasswordHash,
     urlBase64Touint8,
 };

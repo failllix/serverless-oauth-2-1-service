@@ -2,6 +2,7 @@ import sinon from "sinon";
 import userAuthenticator from "../../../src/authentication/user.js";
 
 import { assert } from "chai";
+import logger from "../../../src/logger.js";
 import userStorage from "../../../src/storage/user.js";
 import util from "../../../src/util.js";
 
@@ -11,8 +12,8 @@ describe("User authentication", () => {
             const getUserStub = sinon.stub(userStorage, "getUser");
             getUserStub.withArgs("dummy").resolves({ salt: "abc", passwordToken: "hashed", scope: ["a", "b"] });
 
-            const strToSha512HexStringStub = sinon.stub(util, "strToSha512HexString");
-            strToSha512HexStringStub.withArgs("insecureabc").resolves("hashed");
+            const getPBKDF2PasswordHashStub = sinon.stub(util, "getPBKDF2PasswordHash");
+            getPBKDF2PasswordHashStub.withArgs("insecure", "abc").resolves("hashed");
 
             await userAuthenticator.authenticateUser({
                 username: "dummy",
@@ -37,11 +38,11 @@ describe("User authentication", () => {
             }
         });
 
-        it("throws, if null user was found, because undefined salt yields wrong hash", async () => {
+        it("throws, if null user was found and logs error", async () => {
             const getUserStub = sinon.stub(userStorage, "getUser");
             getUserStub.withArgs("dummy").resolves(null);
 
-            const strToSha512HexStringStub = sinon.stub(util, "strToSha512HexString");
+            const loggerErrorStub = sinon.stub(logger, "logError");
 
             try {
                 await userAuthenticator.authenticateUser({
@@ -52,52 +53,28 @@ describe("User authentication", () => {
             } catch (error) {
                 assert.equal(error.message, "Wrong username or password.");
 
-                sinon.assert.calledWithExactly(strToSha512HexStringStub, "insecureundefined");
+                sinon.assert.calledWithExactly(
+                    loggerErrorStub,
+                    sinon.match((error) => {
+                        try {
+                            assert.deepEqual(error, new Error("User 'dummy' was not found."));
+                            return true;
+                        } catch (error) {
+                            return false;
+                        }
+                    }),
+                );
             }
         });
 
-        it("throws, if user object does not include salt, because undefined salt yields wrong hash", async () => {
-            const getUserStub = sinon.stub(userStorage, "getUser");
-            getUserStub.withArgs("dummy").resolves({ notSalt: "abc", passwordToken: "hashed" });
-
-            const strToSha512HexStringStub = sinon.stub(util, "strToSha512HexString");
-            strToSha512HexStringStub.withArgs("insecureundefined").resolves("notHashedPassword");
-
-            try {
-                await userAuthenticator.authenticateUser({
-                    username: "dummy",
-                    password: "insecure",
-                });
-                return Promise.reject("Function under test never threw error");
-            } catch (error) {
-                assert.equal(error.message, "Wrong username or password.");
-            }
-        });
-
-        it("throws, if user object does not include passwordToken", async () => {
+        it("throws, if password and passwordToken don't match and logs error", async () => {
             const getUserStub = sinon.stub(userStorage, "getUser");
             getUserStub.withArgs("dummy").resolves({ salt: "abc", notPasswordToken: "hashed" });
 
-            const strToSha512HexStringStub = sinon.stub(util, "strToSha512HexString");
-            strToSha512HexStringStub.withArgs("insecureabc").resolves("hashed");
+            const getPBKDF2PasswordHashStub = sinon.stub(util, "getPBKDF2PasswordHash");
+            getPBKDF2PasswordHashStub.withArgs("wrong", "abc").resolves("notHashedPassword");
 
-            try {
-                await userAuthenticator.authenticateUser({
-                    username: "dummy",
-                    password: "insecure",
-                });
-                return Promise.reject("Function under test never threw error");
-            } catch (error) {
-                assert.equal(error.message, "Wrong username or password.");
-            }
-        });
-
-        it("throws, if password and passwordToken don't match", async () => {
-            const getUserStub = sinon.stub(userStorage, "getUser");
-            getUserStub.withArgs("dummy").resolves({ salt: "abc", notPasswordToken: "hashed" });
-
-            const strToSha512HexStringStub = sinon.stub(util, "strToSha512HexString");
-            strToSha512HexStringStub.withArgs("wrongabc").resolves("notHashedPassword");
+            const loggerErrorStub = sinon.stub(logger, "logError");
 
             try {
                 await userAuthenticator.authenticateUser({
@@ -107,6 +84,18 @@ describe("User authentication", () => {
                 return Promise.reject("Function under test never threw error");
             } catch (error) {
                 assert.equal(error.message, "Wrong username or password.");
+
+                sinon.assert.calledWithExactly(
+                    loggerErrorStub,
+                    sinon.match((error) => {
+                        try {
+                            assert.deepEqual(error, new Error("Wrong password."));
+                            return true;
+                        } catch (error) {
+                            return false;
+                        }
+                    }),
+                );
             }
         });
 
@@ -114,8 +103,8 @@ describe("User authentication", () => {
             const getUserStub = sinon.stub(userStorage, "getUser");
             getUserStub.withArgs("dummy").resolves({ salt: "abc", passwordToken: "hash", notScope: ["a", "b"] });
 
-            const strToSha512HexStringStub = sinon.stub(util, "strToSha512HexString");
-            strToSha512HexStringStub.withArgs("insecureabc").resolves("hash");
+            const getPBKDF2PasswordHashStub = sinon.stub(util, "getPBKDF2PasswordHash");
+            getPBKDF2PasswordHashStub.withArgs("insecure", "abc").resolves("hash");
 
             try {
                 await userAuthenticator.authenticateUser({
@@ -133,8 +122,8 @@ describe("User authentication", () => {
             const getUserStub = sinon.stub(userStorage, "getUser");
             getUserStub.withArgs("dummy").resolves({ salt: "abc", passwordToken: "hash", scope: ["a"] });
 
-            const strToSha512HexStringStub = sinon.stub(util, "strToSha512HexString");
-            strToSha512HexStringStub.withArgs("insecureabc").resolves("hash");
+            const getPBKDF2PasswordHashStub = sinon.stub(util, "getPBKDF2PasswordHash");
+            getPBKDF2PasswordHashStub.withArgs("insecure", "abc").resolves("hash");
 
             try {
                 await userAuthenticator.authenticateUser({

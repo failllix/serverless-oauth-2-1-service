@@ -10,15 +10,37 @@ const scopeString = prompt(
   "Enter a comma separated list of scopes (e.g. 'MY_SCOPE1,MY_SCOPE2'): "
 );
 const password = prompt("Enter the password: ", { echo: "*" });
-const salt = btoa(crypto.getRandomValues(new Uint32Array(16)));
 
-const rawSaltedPassword = new TextEncoder().encode(password + salt);
-const hash = crypto.createHash("sha512").update(rawSaltedPassword);
-const passwordHash = hash.digest("hex");
+const encodedPassword = new TextEncoder().encode(password);
+
+const key = await crypto.subtle.importKey(
+  "raw",
+  encodedPassword,
+  { name: "PBKDF2" },
+  false,
+  ["deriveBits"]
+);
+
+const salt = crypto.getRandomValues(new Uint8Array(16));
+
+console.log(salt);
+
+const derivedBits = await crypto.subtle.deriveBits(
+  {
+    name: "PBKDF2",
+    salt,
+    iterations: 1000000,
+    hash: "SHA-512",
+  },
+  key,
+  512
+);
+
+const passwordHash = btoa(new Uint8Array(derivedBits));
 
 const user = {
   name,
-  salt,
+  salt: btoa(salt),
   passwordToken: passwordHash,
   scope: scopeString.split(","),
 };
@@ -29,5 +51,7 @@ console.log();
 console.log(`Saving object with key '${username}': ${JSON.stringify(user)}`);
 
 execSync(
-  `wrangler kv:key put --binding USER --local ${username} '${JSON.stringify(user)}'`
+  `wrangler kv:key put --binding USER --local ${username} '${JSON.stringify(
+    user
+  )}'`
 );
