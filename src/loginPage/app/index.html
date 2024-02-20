@@ -1,11 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>App</title>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Redirect to App</h1>
-</body>
+  </body>
+
+  <script>
+    const clientId =
+      "2a3af50d2da12999c7344da5c4aed0d065824ce3b329ec05f05bdaf3ccdee5cb";
+
+    const redirectUri = "http://localhost:8788/app";
+
+    const loginUrl = `http://localhost:8787/authorize?response_type=code&client_id=${encodeURIComponent(
+      clientId
+    )}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=access`;
+
+    const tokenUrl = "http://localhost:8787/token";
+
+    const url = new URL(window.location.href);
+    const searchParams = Object.fromEntries(url.searchParams);
+    const code = searchParams.code;
+
+    if (code) {
+      const tokenResponse = fetch(tokenUrl, {
+        method: "POST",
+      });
+
+      if (tokenResponse.status !== 200) {
+        window.location = loginUrl;
+      }
+    } else {
+      window.location = loginUrl;
+    }
+  </script>
 </html>
