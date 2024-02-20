@@ -51,4 +51,25 @@ describe("Storage Manager", () => {
             }
         });
     });
+
+    describe("Code key-value storage", () => {
+        it("should initialize the code key-value storage to the value provided in the environment", () => {
+            storageManager.initializeStorage({
+                CODE: "code_KV",
+            });
+
+            const clientKeyValueStorage = storageManager.getCodeKeyValueStorage();
+
+            assert.equal(clientKeyValueStorage, "code_KV");
+        });
+
+        it("should throw an error if one tries to access the code key-value storage before initialization", () => {
+            try {
+                storageManager.getCodeKeyValueStorage();
+                return Promise.reject("Function under test never threw error");
+            } catch (error) {
+                assert.equal(error.message, "Code key-value storage was not initialized.");
+            }
+        });
+    });
 });
