@@ -56,6 +56,16 @@ async function strToSha512HexString(str) {
     return uint8ToHexString(new Uint8Array(hashBuffer));
 }
 
+async function generateRandomSha256HexString() {
+    const randomValues = crypto.getRandomValues(new Uint8Array(64));
+
+    const hashedBuffer = await crypto.subtle.digest("SHA-256", randomValues);
+
+    return Array.from(new Uint8Array(hashedBuffer))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+}
+
 async function getPBKDF2PasswordHash(password, base64Salt) {
     try {
         const encodedPassword = new TextEncoder().encode(password);
@@ -88,4 +98,5 @@ export default {
     strToSha512HexString,
     getPBKDF2PasswordHash,
     urlBase64Touint8,
+    generateRandomSha256HexString,
 };
