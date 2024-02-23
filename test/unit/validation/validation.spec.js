@@ -381,41 +381,77 @@ describe("Validation", () => {
         });
     });
 
-    describe("isAllowedResponseType", () => {
-        it("passes for value 'code'", () => {
-            const result = validation.isAllowedResponseType("test", "code");
+    describe("isInList", () => {
+        it("passes for value in list", () => {
+            const result = validation.isInList("test", "dummyValue", ["somethingElse", "dummyValue"]);
             assert.isTrue(result);
         });
 
-        it("throws for string value not equal to 'code'", () => {
+        it("throws for string value not in list", () => {
             try {
-                validation.isAllowedResponseType("test", "notCode");
+                validation.isInList("test", "notDummy", ["somethingElse", "dummyValue"]);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
-                assert.equal(error.message, "Parameter 'test' must be one of: 'code'.");
+                assert.equal(error.message, "Parameter 'test' must be one of: 'somethingElse', 'dummyValue'.");
             }
         });
 
-        it("throws for number value not equal to 'code'", () => {
+        it("throws for number value not in list", () => {
             try {
-                validation.isAllowedResponseType("test", 12398);
+                validation.isInList("test", 42, ["somethingElse", "dummyValue"]);
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
-                assert.equal(error.message, "Parameter 'test' must be one of: 'code'.");
+                assert.equal(error.message, "Parameter 'test' must be one of: 'somethingElse', 'dummyValue'.");
+            }
+        });
+    });
+
+    describe("matchesRegex", () => {
+        it("passes for value matching regex", () => {
+            const result = validation.matchesRegex("test", "something123", /^some[a-z]+[1-3]{3}$/);
+            assert.isTrue(result);
+        });
+
+        it("passes for value casted as string matching regex", () => {
+            const result = validation.matchesRegex("test", ["abc", 100], /^.+,[0-9]{3}$/);
+            assert.isTrue(result);
+        });
+
+        it("throws for value not matching regex", () => {
+            try {
+                validation.matchesRegex("test", "notDummy", /^dummy$/);
+                return Promise.reject(new Error("Function under test never threw Error."));
+            } catch (error) {
+                assert.equal(error.message, "Parameter 'test' did not match: /^dummy$/.");
+            }
+        });
+
+        it("throws for number not matching regex", () => {
+            try {
+                validation.matchesRegex("test", 425632, /^[0-9]{0,5}$/);
+                return Promise.reject(new Error("Function under test never threw Error."));
+            } catch (error) {
+                assert.equal(error.message, "Parameter 'test' did not match: /^[0-9]{0,5}$/.");
             }
         });
     });
 
     describe("sequentiallyMatchAllValidations", () => {
-        it("calls all validations with field name and value and returns value if all validations resolve to true", () => {
+        it("calls all validations with field name, value and additional args and returns value if all validations resolve to true", () => {
             const validationStub1 = sinon.stub();
             const validationStub2 = sinon.stub();
 
             validationStub1.withArgs("field", 42).returns(true);
-            validationStub2.withArgs("field", 42).returns(true);
+            validationStub2.withArgs("field", 42, "additionalString", 100, [{ anotherArray: true }]).returns(true);
 
             const result = validation.sequentiallyMatchAllValidations({
-                validations: [validationStub1, validationStub2],
+                validations: [
+                    { rule: validationStub1 },
+                    {
+                        rule: validationStub2,
+                        args: ["additionalString", 100, [{ anotherArray: true }]],
+                    },
+                ],
                 fieldName: "field",
                 value: 42,
             });
@@ -425,15 +461,15 @@ describe("Validation", () => {
             sinon.assert.calledOnce(validationStub2);
         });
 
-        it("calls only first validation with field name and value and throws if the first validation returns something else than true", () => {
+        it("calls only first validation with field name, value and additional args and throws if the first validation returns something else than true", () => {
             const validationStub1 = sinon.stub();
             const validationStub2 = sinon.stub();
 
-            validationStub1.withArgs("field", 42).returns("true");
+            validationStub1.withArgs("field", 42, "additional").returns("true");
 
             try {
                 validation.sequentiallyMatchAllValidations({
-                    validations: [validationStub1, validationStub2],
+                    validations: [{ rule: validationStub1, args: ["additional"] }, { rule: validationStub2 }],
                     fieldName: "field",
                     value: 42,
                 });
@@ -445,16 +481,16 @@ describe("Validation", () => {
             }
         });
 
-        it("calls all validations with field name and value and throws if the second validation returns something else than true", () => {
+        it("calls all validations with field name, value and additional args and throws if the second validation returns something else than true", () => {
             const validationStub1 = sinon.stub();
             const validationStub2 = sinon.stub();
 
             validationStub1.withArgs("field", 42).returns(true);
-            validationStub2.withArgs("field", 42).returns("true");
+            validationStub2.withArgs("field", 42, 100).returns("true");
 
             try {
                 validation.sequentiallyMatchAllValidations({
-                    validations: [validationStub1, validationStub2],
+                    validations: [{ rule: validationStub1 }, { rule: validationStub2, args: [100] }],
                     fieldName: "field",
                     value: 42,
                 });
@@ -466,17 +502,17 @@ describe("Validation", () => {
             }
         });
 
-        it("calls only first validation with field name and value and throws if the first validation throws error", () => {
+        it("calls only first validation with field name, value and additional args and throws if the first validation throws error", () => {
             const validationStub1 = sinon.stub();
             const validationStub2 = sinon.stub();
 
             const expectedError = new Error("I did not match");
 
-            validationStub1.withArgs("field", 42).throws(expectedError);
+            validationStub1.withArgs("field", 42, { something: "yey" }).throws(expectedError);
 
             try {
                 validation.sequentiallyMatchAllValidations({
-                    validations: [validationStub1, validationStub2],
+                    validations: [{ rule: validationStub1, args: [{ something: "yey" }] }, { rule: validationStub2 }],
                     fieldName: "field",
                     value: 42,
                 });
@@ -490,18 +526,18 @@ describe("Validation", () => {
             }
         });
 
-        it("calls all validations with field name and value and throws if the second validation throws error", () => {
+        it("calls all validations with field name, value and additional args and throws if the second validation throws error", () => {
             const validationStub1 = sinon.stub();
             const validationStub2 = sinon.stub();
 
             const expectedError = new Error("I did not match");
 
             validationStub1.withArgs("field", 42).returns(true);
-            validationStub2.withArgs("field", 42).throws(expectedError);
+            validationStub2.withArgs("field", 42, /regex/).throws(expectedError);
 
             try {
                 validation.sequentiallyMatchAllValidations({
-                    validations: [validationStub1, validationStub2],
+                    validations: [{ rule: validationStub1 }, { rule: validationStub2, args: [/regex/] }],
                     fieldName: "field",
                     value: 42,
                 });

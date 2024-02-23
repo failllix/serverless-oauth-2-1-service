@@ -14,7 +14,7 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "response_type",
                     value: "abc",
-                    validations: [validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isString, validation.isAllowedResponseType],
+                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }, { rule: validation.isInList, args: [["code"]] }],
                 })
                 .returns("someValue");
 
@@ -32,7 +32,7 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "response_type",
                     value: "abc",
-                    validations: [validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isString, validation.isAllowedResponseType],
+                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }, { rule: validation.isInList, args: [["code"]] }],
                 })
                 .throws(expectedError);
 
@@ -54,7 +54,7 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "redirect_uri",
                     value: "abc",
-                    validations: [validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isString],
+                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }],
                 })
                 .returns("someValue");
 
@@ -72,7 +72,7 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "redirect_uri",
                     value: "abc",
-                    validations: [validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isString],
+                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }],
                 })
                 .throws(expectedError);
 
@@ -94,7 +94,7 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "client_id",
                     value: "client",
-                    validations: [validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isString],
+                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }],
                 })
                 .returns("someValue");
 
@@ -112,7 +112,7 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "client_id",
                     value: "client",
-                    validations: [validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isString],
+                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }],
                 })
                 .throws(expectedError);
 
@@ -134,7 +134,7 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "scope",
                     value: ["superpowers"],
-                    validations: [validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isArray],
+                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isArray }],
                 })
                 .returns("someValue");
 
@@ -152,7 +152,7 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "scope",
                     value: ["superpowers"],
-                    validations: [validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isArray],
+                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isArray }],
                 })
                 .throws(expectedError);
 

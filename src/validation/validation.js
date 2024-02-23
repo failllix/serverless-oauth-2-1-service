@@ -62,22 +62,30 @@ const isString = (fieldName, value) => {
     throw new Error(`Parameter '${fieldName}' must be a String.`);
 };
 
-const allowedResponseTypes = ["code"];
-const isAllowedResponseType = (fieldName, value) => {
-    if (allowedResponseTypes.includes(value)) {
+const isInList = (fieldName, value, list) => {
+    if (list.includes(value)) {
         return true;
     }
 
     throw new Error(
-        `Parameter '${fieldName}' must be one of: ${Object.values(allowedResponseTypes)
+        `Parameter '${fieldName}' must be one of: ${Object.values(list)
             .map((value) => `'${value}'`)
             .join(", ")}.`,
     );
 };
 
+const matchesRegex = (fieldName, value, regex) => {
+    const matches = value.toString().match(regex);
+    if (matches !== null) {
+        return true;
+    }
+
+    throw new Error(`Parameter '${fieldName}' did not match: ${regex}.`);
+};
+
 const sequentiallyMatchAllValidations = ({ validations, fieldName, value }) => {
-    for (const validation of validations) {
-        const result = validation.call(null, fieldName, value);
+    for (const { rule, args = [] } of validations) {
+        const result = rule.call(null, fieldName, value, ...args);
         if (result !== true) {
             throw new Error("Validation method returned unexpected result (not 'true')");
         }
@@ -92,6 +100,7 @@ export default {
     isObject,
     isArray,
     isString,
-    isAllowedResponseType,
+    isInList,
+    matchesRegex,
     sequentiallyMatchAllValidations,
 };
