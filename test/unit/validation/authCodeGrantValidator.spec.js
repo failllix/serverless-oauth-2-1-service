@@ -165,4 +165,62 @@ describe("Auth code grant validator", () => {
             }
         });
     });
+
+    describe("isValidCodeChallenge", () => {
+        it("returns value, if sequentially asserted validations pass", () => {
+            const sequentiallyMatchAllValidationsStub = sinon.stub(validation, "sequentiallyMatchAllValidations");
+
+            sequentiallyMatchAllValidationsStub
+                .withArgs({
+                    fieldName: "code_challenge",
+                    value: "fad7910c9a",
+                    validations: [
+                        { rule: validation.isNotUndefined },
+                        { rule: validation.isNotNull },
+                        { rule: validation.isNotEmpty },
+                        { rule: validation.isString },
+                        {
+                            rule: validation.matchesRegex,
+                            args: [/^[a-zA-Z0-9_\.~-]{43,128}$/],
+                        },
+                    ],
+                })
+                .returns("someValue");
+
+            const result = authCodeGrantValidator.isValidCodeChallenge("fad7910c9a");
+
+            assert.equal(result, "someValue");
+            sinon.assert.calledOnce(sequentiallyMatchAllValidationsStub);
+        });
+
+        it("throws, if sequentially asserted validations throw error", () => {
+            const sequentiallyMatchAllValidationsStub = sinon.stub(validation, "sequentiallyMatchAllValidations");
+
+            const expectedError = new Error("Something did not pass validation");
+            sequentiallyMatchAllValidationsStub
+                .withArgs({
+                    fieldName: "code_challenge",
+                    value: "fad7910c9a",
+                    validations: [
+                        { rule: validation.isNotUndefined },
+                        { rule: validation.isNotNull },
+                        { rule: validation.isNotEmpty },
+                        { rule: validation.isString },
+                        {
+                            rule: validation.matchesRegex,
+                            args: [/^[a-zA-Z0-9_\.~-]{43,128}$/],
+                        },
+                    ],
+                })
+                .throws(expectedError);
+
+            try {
+                authCodeGrantValidator.isValidCodeChallenge("fad7910c9a");
+                return Promise.reject("Function under test never threw an error");
+            } catch (error) {
+                assert.equal(error, expectedError);
+                assert.deepEqual(error, new Error("Something did not pass validation"));
+            }
+        });
+    });
 });

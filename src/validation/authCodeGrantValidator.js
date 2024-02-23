@@ -32,9 +32,18 @@ const isValidScope = (scope) => {
     });
 };
 
+const isValidCodeChallenge = (codeChallenge) => {
+    return validation.sequentiallyMatchAllValidations({
+        validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }, { rule: validation.matchesRegex, args: [/^[a-zA-Z0-9_\.~-]{43,128}$/] }],
+        fieldName: "code_challenge",
+        value: codeChallenge,
+    });
+};
+
 export default {
     isValidResponseType,
     isValidRedirectUri,
     isValidClientId,
     isValidScope,
+    isValidCodeChallenge,
 };
