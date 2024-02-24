@@ -22,13 +22,9 @@
 
     loginButton.addEventListener("click", async (event) => {
       event.preventDefault();
-      console.log("Login clicked");
-
+      
       const username = usernameInput.value;
       const password = passwordInput.value;
-
-      console.log(username);
-      console.log(password);
 
       const basicAuthRaw = `${username}:${password}`;
       const basicAuthBytes = new TextEncoder().encode(basicAuthRaw);
