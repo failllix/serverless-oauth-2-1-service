@@ -2,6 +2,10 @@ name = "oauth"
 main = "src/index.js"
 compatibility_date = "2023-02-04"
 
+[env.local.vars]
+ENVIRONMENT="local"
+
+[env.local]
 kv_namespaces = [
 { binding = "USERS", id = "local", preview_id = "local" },
 { binding = "CODES", id = "local", preview_id = "local" },
@@ -9,9 +13,11 @@ kv_namespaces = [
 { binding = "TOKENS", id = "local", preview_id = "local" }
 ]
 
+
 # Use 'npm run create:key-pair' to gain a valid key pair. Make sure to set the signing key as a secret using 'wrangler secert put SIGNING_KEY'. Never expose your private key!
 [env.production.vars]
 PUBLIC_KEY=""
+ENVIRONMENT="production"
 
 [env.production]
 kv_namespaces = [
