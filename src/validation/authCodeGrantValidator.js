@@ -40,10 +40,19 @@ const isValidCodeChallenge = (codeChallenge) => {
     });
 };
 
+const isValidCodeChallengeTransformMethod = (codeChallengeMethod) => {
+    return validation.sequentiallyMatchAllValidations({
+        validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }, { rule: validation.isInList, args: [["S256"]] }],
+        fieldName: "code_challenge_method",
+        value: codeChallengeMethod,
+    });
+};
+
 export default {
     isValidResponseType,
     isValidRedirectUri,
     isValidClientId,
     isValidScope,
     isValidCodeChallenge,
+    isValidCodeChallengeTransformMethod,
 };
