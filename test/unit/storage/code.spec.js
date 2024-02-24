@@ -23,17 +23,19 @@ describe("Code storage", () => {
     describe("saveAccessCode", () => {
         it("should save stringified access code information to key-value storage", async () => {
             const keyValuePutStub = sinon.stub();
-            keyValuePutStub.withArgs("someNewCode", '{"secretInfo":true}', { expirationTtl: 120 }).resolves();
 
             const codeKeyValueStorageStub = sinon.stub(storageManager, "getCodeKeyValueStorage");
 
             codeKeyValueStorageStub.callsFake((...args) => (args.length === 0 ? { put: keyValuePutStub } : undefined));
 
-            await codeStorage.saveAccessCode("myCode", {
-                secretInfo: true,
+            await codeStorage.saveAccessCode({
+                code: "myCode",
+                clientId: "test",
+                codeChallenge: "abc",
+                codeChallengeMethod: "def",
             });
 
-            sinon.assert.calledOnce(keyValuePutStub);
+            sinon.assert.calledOnceWithExactly(keyValuePutStub, "myCode", '{"clientId":"test","codeChallenge":"abc","codeChallengeMethod":"def"}', { expirationTtl: 120 });
         });
     });
 });
