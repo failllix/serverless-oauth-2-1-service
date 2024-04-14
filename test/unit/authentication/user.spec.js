@@ -27,6 +27,8 @@ describe("User authentication", () => {
             const getUserStub = sinon.stub(userStorage, "getUser");
             getUserStub.withArgs("dummy").throws(expectedError);
 
+            const loggerErrorStub = sinon.stub(logger, "logError");
+
             try {
                 await userAuthenticator.authenticateUser({
                     username: "dummy",
@@ -34,7 +36,19 @@ describe("User authentication", () => {
                 });
                 return Promise.reject("Function under test never threw error");
             } catch (error) {
-                assert.equal(error, expectedError);
+                assert.equal(error.message, "Wrong username or password.");
+
+                sinon.assert.calledWithExactly(
+                    loggerErrorStub,
+                    sinon.match((error) => {
+                        try {
+                            assert.deepEqual(error, expectedError);
+                            return true;
+                        } catch (error) {
+                            return false;
+                        }
+                    }),
+                );
             }
         });
 
