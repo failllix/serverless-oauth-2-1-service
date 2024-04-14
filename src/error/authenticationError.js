@@ -15,9 +15,10 @@ class AuthenticationError {
     }
 
     toResponse(baseUrl) {
-        baseUrl.searchParams.set("error", this.errorCategory);
-        baseUrl.searchParams.set("error_description", this.errorDescription);
-        return FOUND(baseUrl);
+        const url = new URL(baseUrl);
+        url.searchParams.set("error", this.errorCategory);
+        url.searchParams.set("error_description", this.errorDescription);
+        return FOUND(url.toString());
     }
 }
 
