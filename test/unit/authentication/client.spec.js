@@ -6,8 +6,8 @@ import AuthenticationError from "../../../src/error/authenticationError.js";
 import logger from "../../../src/logger.js";
 import clientStorage from "../../../src/storage/client.js";
 
-describe.only("User authentication", () => {
-    describe("authenticateUser", () => {
+describe("Client authentication", () => {
+    describe("authenticateClient", () => {
         it("does not throw, if client was found and supplied redirect uri matches", async () => {
             const getClientStub = sinon.stub(clientStorage, "getClient");
             getClientStub.withArgs("someClient").resolves({
