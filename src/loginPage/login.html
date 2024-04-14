@@ -13,16 +13,29 @@
       <input id="password" type="password" placeholder="password" />
       <button type="submit" id="login">Login</button>
     </form>
+
+    <h3>Error</h3>
+    <p>Category: <span id="error-category"></span></p>
+    <p>Details: <span id="error-details"></span></p>
   </body>
 
   <script>
+    const url = new URL(window.location.href);
+    const errorCategory = document.getElementById("error-category");
+    const errorDetails = document.getElementById("error-details");
+
+    if (url.searchParams.get("error")) {
+      errorCategory.innerHTML = url.searchParams.get("error");
+      errorDetails.innerHTML = url.searchParams.get("error_description");
+    }
+
     const usernameInput = document.getElementById("username");
     const passwordInput = document.getElementById("password");
     const loginButton = document.getElementById("login");
 
     loginButton.addEventListener("click", async (event) => {
       event.preventDefault();
-      
+
       const username = usernameInput.value;
       const password = passwordInput.value;
 
@@ -33,7 +46,7 @@
 
       const authServerUrl = new URL(window.location);
       authServerUrl.host = "localhost:8787";
-      authServerUrl.pathname = "/authorize"
+      authServerUrl.pathname = "/authorize";
 
       const response = await fetch(authServerUrl, {
         headers: {
@@ -41,7 +54,7 @@
         },
       });
 
-      window.location = response.url
+      window.location = response.url;
     });
   </script>
 </html>
