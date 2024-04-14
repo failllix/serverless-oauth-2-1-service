@@ -4,29 +4,41 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Oauth2 Login</title>
+    <style>
+      .hidden{
+        display: none;
+      }
+    </style>
   </head>
 
   <body>
     <h1>Login</h1>
-    <form>
+    <form id="login-form">
       <input id="username" type="text" placeholder="username" />
       <input id="password" type="password" placeholder="password" />
       <button type="submit" id="login">Login</button>
     </form>
 
-    <h3>Error</h3>
-    <p>Category: <span id="error-category"></span></p>
-    <p>Details: <span id="error-details"></span></p>
+    <div id="error-container">
+      <h3>Error</h3>
+      <p>Category: <span id="error-category"></span></p>
+      <p>Details: <span id="error-details"></span></p>
+    </div>
   </body>
 
   <script>
     const url = new URL(window.location.href);
+    const loginForm = document.getElementById("login-form");
+    const errorContainer = document.getElementById("error-container");
     const errorCategory = document.getElementById("error-category");
     const errorDetails = document.getElementById("error-details");
 
     if (url.searchParams.get("error")) {
       errorCategory.innerHTML = url.searchParams.get("error");
       errorDetails.innerHTML = url.searchParams.get("error_description");
+      loginForm.classList.add("hidden");
+    } else {
+      errorContainer.classList.add("hidden");
     }
 
     const usernameInput = document.getElementById("username");
