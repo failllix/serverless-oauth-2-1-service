@@ -8,13 +8,14 @@ import logger from "./logger.js";
 import codeStorage from "./storage/code.js";
 import util from "./util.js";
 import authCodeGrantValidator from "./validation/authCodeGrantValidator.js";
+import sharedValidator from "./validation/sharedValidator.js";
 
 const getValidatedParameters = (parameters) => {
     const validatedParameters = {
         responseType: authCodeGrantValidator.isValidResponseType(parameters.response_type),
-        clientId: authCodeGrantValidator.isValidClientId(parameters.client_id),
-        redirectUri: authCodeGrantValidator.isValidRedirectUri(parameters.redirect_uri),
-        scope: authCodeGrantValidator.isValidScope(parameters.scope?.split(",")),
+        clientId: sharedValidator.isValidClientId(parameters.client_id),
+        redirectUri: sharedValidator.isValidRedirectUri(parameters.redirect_uri),
+        scope: sharedValidator.isValidScope(parameters.scope?.split(",")),
         codeChallenge: authCodeGrantValidator.isValidCodeChallenge(parameters.code_challenge),
         codeChallengeMethod: authCodeGrantValidator.isValidCodeChallengeTransformMethod(parameters.code_challenge_method),
         state: parameters.state?.toString(),

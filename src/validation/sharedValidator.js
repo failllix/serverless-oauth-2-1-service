@@ -1,7 +1,7 @@
 import AuthenticationError from "../error/authenticationError.js";
 import validation from "./validation.js";
 
-const isValidResponseType = (responseType) => {
+const isValidRedirectUri = (redirectUri) => {
     return validation.sequentiallyMatchAllValidations({
         validations: [
             {
@@ -28,20 +28,13 @@ const isValidResponseType = (responseType) => {
                     errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
                 }),
             },
-            {
-                rule: validation.isInList,
-                args: [["code"]],
-                error: new AuthenticationError({
-                    errorCategory: AuthenticationError.errrorCategories.UNSUPPORTED_RESPONSE_TYPE,
-                }),
-            },
         ],
-        fieldName: "response_type",
-        value: responseType,
+        fieldName: "redirect_uri",
+        value: redirectUri,
     });
 };
 
-const isValidCodeChallenge = (codeChallenge) => {
+const isValidClientId = (clientId) => {
     return validation.sequentiallyMatchAllValidations({
         validations: [
             {
@@ -68,20 +61,13 @@ const isValidCodeChallenge = (codeChallenge) => {
                     errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
                 }),
             },
-            {
-                rule: validation.matchesRegex,
-                args: [/^[a-zA-Z0-9_\.~-]{43,128}$/],
-                error: new AuthenticationError({
-                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                }),
-            },
         ],
-        fieldName: "code_challenge",
-        value: codeChallenge,
+        fieldName: "client_id",
+        value: clientId,
     });
 };
 
-const isValidCodeChallengeTransformMethod = (codeChallengeMethod) => {
+const isValidScope = (scope) => {
     return validation.sequentiallyMatchAllValidations({
         validations: [
             {
@@ -103,26 +89,19 @@ const isValidCodeChallengeTransformMethod = (codeChallengeMethod) => {
                 }),
             },
             {
-                rule: validation.isString,
-                error: new AuthenticationError({
-                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                }),
-            },
-            {
-                rule: validation.isInList,
-                args: [["S256"]],
+                rule: validation.isArray,
                 error: new AuthenticationError({
                     errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
                 }),
             },
         ],
-        fieldName: "code_challenge_method",
-        value: codeChallengeMethod,
+        fieldName: "scope",
+        value: scope,
     });
 };
 
 export default {
-    isValidResponseType,
-    isValidCodeChallenge,
-    isValidCodeChallengeTransformMethod,
+    isValidClientId,
+    isValidRedirectUri,
+    isValidScope,
 };

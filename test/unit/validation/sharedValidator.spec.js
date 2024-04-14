@@ -1,18 +1,18 @@
 import sinon from "sinon";
 import AuthenticationError from "../../../src/error/authenticationError.js";
-import authCodeGrantValidator from "../../../src/validation/authCodeGrantValidator.js";
+import sharedValidator from "../../../src/validation/sharedValidator.js";
 import validation from "../../../src/validation/validation.js";
 
 import { assert } from "chai";
 
-describe("Auth code grant validator", () => {
-    describe("isValidResponseType", () => {
+describe("Shared validator", () => {
+    describe("isValidRedirectUri", () => {
         it("returns value, if sequentially asserted validations pass", () => {
             const sequentiallyMatchAllValidationsStub = sinon.stub(validation, "sequentiallyMatchAllValidations");
 
             sequentiallyMatchAllValidationsStub
                 .withArgs({
-                    fieldName: "response_type",
+                    fieldName: "redirect_uri",
                     value: "abc",
                     validations: [
                         {
@@ -39,18 +39,11 @@ describe("Auth code grant validator", () => {
                                 errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
                             }),
                         },
-                        {
-                            rule: validation.isInList,
-                            args: [["code"]],
-                            error: new AuthenticationError({
-                                errorCategory: AuthenticationError.errrorCategories.UNSUPPORTED_RESPONSE_TYPE,
-                            }),
-                        },
                     ],
                 })
                 .returns("someValue");
 
-            const result = authCodeGrantValidator.isValidResponseType("abc");
+            const result = sharedValidator.isValidRedirectUri("abc");
 
             assert.equal(result, "someValue");
             sinon.assert.calledOnce(sequentiallyMatchAllValidationsStub);
@@ -62,7 +55,7 @@ describe("Auth code grant validator", () => {
             const expectedError = new Error("Something did not pass validation");
             sequentiallyMatchAllValidationsStub
                 .withArgs({
-                    fieldName: "response_type",
+                    fieldName: "redirect_uri",
                     value: "abc",
                     validations: [
                         {
@@ -89,19 +82,12 @@ describe("Auth code grant validator", () => {
                                 errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
                             }),
                         },
-                        {
-                            rule: validation.isInList,
-                            args: [["code"]],
-                            error: new AuthenticationError({
-                                errorCategory: AuthenticationError.errrorCategories.UNSUPPORTED_RESPONSE_TYPE,
-                            }),
-                        },
                     ],
                 })
                 .throws(expectedError);
 
             try {
-                authCodeGrantValidator.isValidResponseType("abc");
+                sharedValidator.isValidRedirectUri("abc");
                 return Promise.reject("Function under test never threw an error");
             } catch (error) {
                 assert.equal(error, expectedError);
@@ -110,14 +96,14 @@ describe("Auth code grant validator", () => {
         });
     });
 
-    describe("isValidCodeChallenge", () => {
+    describe("isValidClientId", () => {
         it("returns value, if sequentially asserted validations pass", () => {
             const sequentiallyMatchAllValidationsStub = sinon.stub(validation, "sequentiallyMatchAllValidations");
 
             sequentiallyMatchAllValidationsStub
                 .withArgs({
-                    fieldName: "code_challenge",
-                    value: "fad7910c9a",
+                    fieldName: "client_id",
+                    value: "client",
                     validations: [
                         {
                             rule: validation.isNotUndefined,
@@ -143,18 +129,11 @@ describe("Auth code grant validator", () => {
                                 errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
                             }),
                         },
-                        {
-                            rule: validation.matchesRegex,
-                            args: [/^[a-zA-Z0-9_\.~-]{43,128}$/],
-                            error: new AuthenticationError({
-                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                            }),
-                        },
                     ],
                 })
                 .returns("someValue");
 
-            const result = authCodeGrantValidator.isValidCodeChallenge("fad7910c9a");
+            const result = sharedValidator.isValidClientId("client");
 
             assert.equal(result, "someValue");
             sinon.assert.calledOnce(sequentiallyMatchAllValidationsStub);
@@ -166,8 +145,8 @@ describe("Auth code grant validator", () => {
             const expectedError = new Error("Something did not pass validation");
             sequentiallyMatchAllValidationsStub
                 .withArgs({
-                    fieldName: "code_challenge",
-                    value: "fad7910c9a",
+                    fieldName: "client_id",
+                    value: "client",
                     validations: [
                         {
                             rule: validation.isNotUndefined,
@@ -189,13 +168,6 @@ describe("Auth code grant validator", () => {
                         },
                         {
                             rule: validation.isString,
-                            error: new AuthenticationError({
-                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                            }),
-                        },
-                        {
-                            rule: validation.matchesRegex,
-                            args: [/^[a-zA-Z0-9_\.~-]{43,128}$/],
                             error: new AuthenticationError({
                                 errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
                             }),
@@ -205,7 +177,7 @@ describe("Auth code grant validator", () => {
                 .throws(expectedError);
 
             try {
-                authCodeGrantValidator.isValidCodeChallenge("fad7910c9a");
+                sharedValidator.isValidClientId("client");
                 return Promise.reject("Function under test never threw an error");
             } catch (error) {
                 assert.equal(error, expectedError);
@@ -214,14 +186,14 @@ describe("Auth code grant validator", () => {
         });
     });
 
-    describe("isValidCodeChallengeTransformMethod", () => {
+    describe("isValidScope", () => {
         it("returns value, if sequentially asserted validations pass", () => {
             const sequentiallyMatchAllValidationsStub = sinon.stub(validation, "sequentiallyMatchAllValidations");
 
             sequentiallyMatchAllValidationsStub
                 .withArgs({
-                    fieldName: "code_challenge_method",
-                    value: "secureAlgorithm",
+                    fieldName: "scope",
+                    value: ["superpowers"],
                     validations: [
                         {
                             rule: validation.isNotUndefined,
@@ -242,14 +214,7 @@ describe("Auth code grant validator", () => {
                             }),
                         },
                         {
-                            rule: validation.isString,
-                            error: new AuthenticationError({
-                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                            }),
-                        },
-                        {
-                            rule: validation.isInList,
-                            args: [["S256"]],
+                            rule: validation.isArray,
                             error: new AuthenticationError({
                                 errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
                             }),
@@ -258,7 +223,7 @@ describe("Auth code grant validator", () => {
                 })
                 .returns("someValue");
 
-            const result = authCodeGrantValidator.isValidCodeChallengeTransformMethod("secureAlgorithm");
+            const result = sharedValidator.isValidScope(["superpowers"]);
 
             assert.equal(result, "someValue");
             sinon.assert.calledOnce(sequentiallyMatchAllValidationsStub);
@@ -270,8 +235,8 @@ describe("Auth code grant validator", () => {
             const expectedError = new Error("Something did not pass validation");
             sequentiallyMatchAllValidationsStub
                 .withArgs({
-                    fieldName: "code_challenge_method",
-                    value: "algorithm",
+                    fieldName: "scope",
+                    value: ["superpowers"],
                     validations: [
                         {
                             rule: validation.isNotUndefined,
@@ -292,14 +257,7 @@ describe("Auth code grant validator", () => {
                             }),
                         },
                         {
-                            rule: validation.isString,
-                            error: new AuthenticationError({
-                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                            }),
-                        },
-                        {
-                            rule: validation.isInList,
-                            args: [["S256"]],
+                            rule: validation.isArray,
                             error: new AuthenticationError({
                                 errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
                             }),
@@ -309,7 +267,7 @@ describe("Auth code grant validator", () => {
                 .throws(expectedError);
 
             try {
-                authCodeGrantValidator.isValidCodeChallengeTransformMethod("algorithm");
+                sharedValidator.isValidScope(["superpowers"]);
                 return Promise.reject("Function under test never threw an error");
             } catch (error) {
                 assert.equal(error, expectedError);
