@@ -2,6 +2,7 @@ import { assert } from "chai";
 import validation from "../../../src/validation/validation.js";
 
 import sinon from "sinon";
+import AuthenticationError from "../../../src/error/authenticationError.js";
 
 describe("Validation", () => {
     describe("isNotEmpty", () => {
@@ -461,7 +462,7 @@ describe("Validation", () => {
             sinon.assert.calledOnce(validationStub2);
         });
 
-        it("calls only first validation with field name, value and additional args and throws if the first validation returns something else than true", () => {
+        it("calls only first validation with field name, value and additional args and throws if the first validation returns no boolean", () => {
             const validationStub1 = sinon.stub();
             const validationStub2 = sinon.stub();
 
@@ -475,13 +476,45 @@ describe("Validation", () => {
                 });
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
-                assert.equal(error.message, "Validation method returned unexpected result (not 'true')");
+                assert.deepEqual(
+                    error,
+                    new AuthenticationError({
+                        errorCategory: AuthenticationError.errrorCategories.SERVER_ERROR,
+                        errorDescription: "Validation failed due to unexpected error.",
+                    }),
+                );
                 sinon.assert.calledOnce(validationStub1);
                 sinon.assert.notCalled(validationStub2);
             }
         });
 
-        it("calls all validations with field name, value and additional args and throws if the second validation returns something else than true", () => {
+        it("calls only first validation with field name, value and additional args and throws if the first validation returns false", () => {
+            const validationStub1 = sinon.stub();
+            const validationStub2 = sinon.stub();
+
+            validationStub1.withArgs("field", 42, "additional").returns(false);
+
+            try {
+                validation.sequentiallyMatchAllValidations({
+                    validations: [{ rule: validationStub1, args: ["additional"] }, { rule: validationStub2 }],
+                    fieldName: "field",
+                    value: 42,
+                });
+                return Promise.reject(new Error("Function under test never threw Error."));
+            } catch (error) {
+                assert.deepEqual(
+                    error,
+                    new AuthenticationError({
+                        errorCategory: AuthenticationError.errrorCategories.SERVER_ERROR,
+                        errorDescription: "Validation failed due to unexpected error.",
+                    }),
+                );
+                sinon.assert.calledOnce(validationStub1);
+                sinon.assert.notCalled(validationStub2);
+            }
+        });
+
+        it("calls all validations with field name, value and additional args and throws if the second validation returns no boolean", () => {
             const validationStub1 = sinon.stub();
             const validationStub2 = sinon.stub();
 
@@ -496,31 +529,77 @@ describe("Validation", () => {
                 });
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
-                assert.equal(error.message, "Validation method returned unexpected result (not 'true')");
+                assert.deepEqual(
+                    error,
+                    new AuthenticationError({
+                        errorCategory: AuthenticationError.errrorCategories.SERVER_ERROR,
+                        errorDescription: "Validation failed due to unexpected error.",
+                    }),
+                );
                 sinon.assert.calledOnce(validationStub1);
                 sinon.assert.calledOnce(validationStub2);
             }
         });
 
-        it("calls only first validation with field name, value and additional args and throws if the first validation throws error", () => {
+        it("calls all validations with field name, value and additional args and throws if the second validation returns false", () => {
             const validationStub1 = sinon.stub();
             const validationStub2 = sinon.stub();
 
-            const expectedError = new Error("I did not match");
-
-            validationStub1.withArgs("field", 42, { something: "yey" }).throws(expectedError);
+            validationStub1.withArgs("field", 42).returns(true);
+            validationStub2.withArgs("field", 42, 100).returns(false);
 
             try {
                 validation.sequentiallyMatchAllValidations({
-                    validations: [{ rule: validationStub1, args: [{ something: "yey" }] }, { rule: validationStub2 }],
+                    validations: [{ rule: validationStub1 }, { rule: validationStub2, args: [100] }],
                     fieldName: "field",
                     value: 42,
                 });
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
-                assert.equal(error, expectedError);
-                assert.deepEqual(error, new Error("I did not match"));
+                assert.deepEqual(
+                    error,
+                    new AuthenticationError({
+                        errorCategory: AuthenticationError.errrorCategories.SERVER_ERROR,
+                        errorDescription: "Validation failed due to unexpected error.",
+                    }),
+                );
+                sinon.assert.calledOnce(validationStub1);
+                sinon.assert.calledOnce(validationStub2);
+            }
+        });
 
+        it("calls only first validation with field name, value and additional args and throws enriched Authentication with correct message if the first validation throws error", () => {
+            const validationStub1 = sinon.stub();
+            const validationStub2 = sinon.stub();
+
+            const validationError = new Error("I did not match");
+
+            validationStub1.withArgs("field", 42, { something: "yey" }).throws(validationError);
+
+            try {
+                validation.sequentiallyMatchAllValidations({
+                    validations: [
+                        {
+                            rule: validationStub1,
+                            args: [{ something: "yey" }],
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        { rule: validationStub2 },
+                    ],
+                    fieldName: "field",
+                    value: 42,
+                });
+                return Promise.reject(new Error("Function under test never threw Error."));
+            } catch (error) {
+                assert.deepEqual(
+                    error,
+                    new AuthenticationError({
+                        errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                        errorDescription: "I did not match",
+                    }),
+                );
                 sinon.assert.calledOnce(validationStub1);
                 sinon.assert.notCalled(validationStub2);
             }
@@ -530,21 +609,35 @@ describe("Validation", () => {
             const validationStub1 = sinon.stub();
             const validationStub2 = sinon.stub();
 
-            const expectedError = new Error("I did not match");
+            const validationError = new Error("I did not match");
 
             validationStub1.withArgs("field", 42).returns(true);
-            validationStub2.withArgs("field", 42, /regex/).throws(expectedError);
+            validationStub2.withArgs("field", 42, /regex/).throws(validationError);
 
             try {
                 validation.sequentiallyMatchAllValidations({
-                    validations: [{ rule: validationStub1 }, { rule: validationStub2, args: [/regex/] }],
+                    validations: [
+                        { rule: validationStub1 },
+                        {
+                            rule: validationStub2,
+                            args: [/regex/],
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.UNAUTHORIZED_CLIENT,
+                            }),
+                        },
+                    ],
                     fieldName: "field",
                     value: 42,
                 });
                 return Promise.reject(new Error("Function under test never threw Error."));
             } catch (error) {
-                assert.equal(error, expectedError);
-                assert.deepEqual(error, new Error("I did not match"));
+                assert.deepEqual(
+                    error,
+                    new AuthenticationError({
+                        errorCategory: AuthenticationError.errrorCategories.UNAUTHORIZED_CLIENT,
+                        errorDescription: "I did not match",
+                    }),
+                );
 
                 sinon.assert.calledOnce(validationStub1);
                 sinon.assert.calledOnce(validationStub2);

@@ -1,3 +1,5 @@
+import AuthenticationError from "../error/authenticationError.js";
+
 const isNotEmpty = (fieldName, value) => {
     const notEmptyError = new Error(`Parameter '${fieldName}' must not be empty.`);
 
@@ -84,10 +86,21 @@ const matchesRegex = (fieldName, value, regex) => {
 };
 
 const sequentiallyMatchAllValidations = ({ validations, fieldName, value }) => {
-    for (const { rule, args = [] } of validations) {
-        const result = rule.call(null, fieldName, value, ...args);
-        if (result !== true) {
-            throw new Error("Validation method returned unexpected result (not 'true')");
+    for (const { rule, args = [], error: authenticationError } of validations) {
+        try {
+            const result = rule.call(null, fieldName, value, ...args);
+            if (result !== true) {
+                throw new AuthenticationError({
+                    errorCategory: AuthenticationError.errrorCategories.SERVER_ERROR,
+                    errorDescription: "Validation failed due to unexpected error.",
+                });
+            }
+        } catch (validationError) {
+            if (validationError instanceof AuthenticationError) {
+                throw validationError;
+            }
+            authenticationError.errorDescription = validationError.message;
+            throw authenticationError;
         }
     }
     return value;
