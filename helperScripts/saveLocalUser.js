@@ -23,8 +23,6 @@ const key = await crypto.subtle.importKey(
 
 const salt = crypto.getRandomValues(new Uint8Array(16));
 
-console.log(salt);
-
 const derivedBits = await crypto.subtle.deriveBits(
   {
     name: "PBKDF2",
@@ -48,10 +46,10 @@ console.log("Generated user:");
 console.log(user);
 console.log();
 
-console.log(`Saving object with key '${username}': ${JSON.stringify(user)}`);
+const stringifiedUser = JSON.stringify(user);
+console.log(`Saving object with key '${username}': ${stringifiedUser}`);
 
-execSync(
-  `wrangler kv:key put --binding USER --local ${username} '${JSON.stringify(
-    user
-  )}'`
-);
+const command = `wrangler kv:key put --env local --binding USER --local '${username}' '${stringifiedUser}'`;
+
+console.log(`\nRunning command: ${command}`);
+execSync(command);

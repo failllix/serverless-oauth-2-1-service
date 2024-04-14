@@ -26,10 +26,10 @@ console.log();
 console.log(`Take note of your client id: ${clientId}`);
 console.log();
 
-console.log(`Saving object with key '${clientId}': ${JSON.stringify(client)}`);
+const stringifiedClient = JSON.stringify(client);
+
+console.log(`Saving object with key '${clientId}': ${stringifiedClient}`);
 
 execSync(
-  `wrangler kv:key put --binding CLIENT --local ${clientId} '${JSON.stringify(
-    client
-  )}'`
+  `wrangler kv:key put --env local --binding CLIENT --local '${clientId}' '${stringifiedClient}'`
 );
