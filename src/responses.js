@@ -1,5 +1,5 @@
-const SUCCESS = (jsonResponse, headers) => {
-    return new Response(JSON.stringify(jsonResponse), { status: 200, headers });
+const SUCCESS = (jsonResponse) => {
+    return new Response(JSON.stringify(jsonResponse), { status: 200 });
 };
 
 const FOUND = (newUrl) => {
