@@ -1,6 +1,6 @@
 import sinon from "sinon";
+import AuthenticationError from "../../../src/error/authenticationError.js";
 import authCodeGrantValidator from "../../../src/validation/authCodeGrantValidator.js";
-
 import validation from "../../../src/validation/validation.js";
 
 import { assert } from "chai";
@@ -14,7 +14,39 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "response_type",
                     value: "abc",
-                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }, { rule: validation.isInList, args: [["code"]] }],
+                    validations: [
+                        {
+                            rule: validation.isNotUndefined,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotNull,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotEmpty,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isString,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isInList,
+                            args: [["code"]],
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.UNSUPPORTED_RESPONSE_TYPE,
+                            }),
+                        },
+                    ],
                 })
                 .returns("someValue");
 
@@ -32,7 +64,39 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "response_type",
                     value: "abc",
-                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }, { rule: validation.isInList, args: [["code"]] }],
+                    validations: [
+                        {
+                            rule: validation.isNotUndefined,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotNull,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotEmpty,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isString,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isInList,
+                            args: [["code"]],
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.UNSUPPORTED_RESPONSE_TYPE,
+                            }),
+                        },
+                    ],
                 })
                 .throws(expectedError);
 
@@ -54,7 +118,32 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "redirect_uri",
                     value: "abc",
-                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }],
+                    validations: [
+                        {
+                            rule: validation.isNotUndefined,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotNull,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotEmpty,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isString,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                    ],
                 })
                 .returns("someValue");
 
@@ -72,7 +161,32 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "redirect_uri",
                     value: "abc",
-                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }],
+                    validations: [
+                        {
+                            rule: validation.isNotUndefined,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotNull,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotEmpty,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isString,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                    ],
                 })
                 .throws(expectedError);
 
@@ -94,7 +208,32 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "client_id",
                     value: "client",
-                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }],
+                    validations: [
+                        {
+                            rule: validation.isNotUndefined,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotNull,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotEmpty,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isString,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                    ],
                 })
                 .returns("someValue");
 
@@ -112,7 +251,32 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "client_id",
                     value: "client",
-                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }],
+                    validations: [
+                        {
+                            rule: validation.isNotUndefined,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotNull,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotEmpty,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isString,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                    ],
                 })
                 .throws(expectedError);
 
@@ -134,7 +298,32 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "scope",
                     value: ["superpowers"],
-                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isArray }],
+                    validations: [
+                        {
+                            rule: validation.isNotUndefined,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotNull,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotEmpty,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isArray,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                    ],
                 })
                 .returns("someValue");
 
@@ -152,7 +341,32 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "scope",
                     value: ["superpowers"],
-                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isArray }],
+                    validations: [
+                        {
+                            rule: validation.isNotUndefined,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotNull,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotEmpty,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isArray,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                    ],
                 })
                 .throws(expectedError);
 
@@ -175,13 +389,36 @@ describe("Auth code grant validator", () => {
                     fieldName: "code_challenge",
                     value: "fad7910c9a",
                     validations: [
-                        { rule: validation.isNotUndefined },
-                        { rule: validation.isNotNull },
-                        { rule: validation.isNotEmpty },
-                        { rule: validation.isString },
+                        {
+                            rule: validation.isNotUndefined,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotNull,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotEmpty,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isString,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
                         {
                             rule: validation.matchesRegex,
                             args: [/^[a-zA-Z0-9_\.~-]{43,128}$/],
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
                         },
                     ],
                 })
@@ -202,13 +439,36 @@ describe("Auth code grant validator", () => {
                     fieldName: "code_challenge",
                     value: "fad7910c9a",
                     validations: [
-                        { rule: validation.isNotUndefined },
-                        { rule: validation.isNotNull },
-                        { rule: validation.isNotEmpty },
-                        { rule: validation.isString },
+                        {
+                            rule: validation.isNotUndefined,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotNull,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotEmpty,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isString,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
                         {
                             rule: validation.matchesRegex,
                             args: [/^[a-zA-Z0-9_\.~-]{43,128}$/],
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
                         },
                     ],
                 })
@@ -232,7 +492,39 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "code_challenge_method",
                     value: "secureAlgorithm",
-                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }, { rule: validation.isInList, args: [["S256"]] }],
+                    validations: [
+                        {
+                            rule: validation.isNotUndefined,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotNull,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotEmpty,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isString,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isInList,
+                            args: [["S256"]],
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                    ],
                 })
                 .returns("someValue");
 
@@ -250,7 +542,39 @@ describe("Auth code grant validator", () => {
                 .withArgs({
                     fieldName: "code_challenge_method",
                     value: "algorithm",
-                    validations: [{ rule: validation.isNotUndefined }, { rule: validation.isNotNull }, { rule: validation.isNotEmpty }, { rule: validation.isString }, { rule: validation.isInList, args: [["S256"]] }],
+                    validations: [
+                        {
+                            rule: validation.isNotUndefined,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotNull,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isNotEmpty,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isString,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                        {
+                            rule: validation.isInList,
+                            args: [["S256"]],
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                        },
+                    ],
                 })
                 .throws(expectedError);
 
