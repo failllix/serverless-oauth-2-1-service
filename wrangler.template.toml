@@ -7,10 +7,10 @@ ENVIRONMENT="local"
 
 [env.local]
 kv_namespaces = [
-{ binding = "USERS", id = "local", preview_id = "local" },
-{ binding = "CODES", id = "local", preview_id = "local" },
-{ binding = "CLIENT", id = "local", preview_id = "local" },
-{ binding = "TOKENS", id = "local", preview_id = "local" }
+{ binding = "USERS", id = "local" },
+{ binding = "CODES", id = "local" },
+{ binding = "CLIENT", id = "local" },
+{ binding = "TOKENS", id = "local" }
 ]
 
 
