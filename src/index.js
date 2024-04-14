@@ -5,12 +5,6 @@ import storageManager from "./storage/manager.js";
 
 import { BAD_REQUEST, FORBIDDEN, NOT_FOUND, SUCCESS, UNAUTHORIZED } from "./responses.js";
 
-const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, HEAD, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-};
-
 async function getPrivateKey(privateJwk) {
     return await crypto.subtle.importKey(
         "jwk",
@@ -35,76 +29,6 @@ async function getPublicKey(publicJwk) {
         true,
         ["verify"],
     );
-}
-
-async function redirectWithCode(request, userKV, clientsKV, codesKV) {
-    const body = await request.json();
-    const returnType = body.return_type;
-    const redirectURI = body.redirect_uri;
-    const username = body.username;
-    const password = body.password;
-    const clientId = body.client_id;
-    const requestedScopes = body.scope;
-
-    if (redirectURI == null || redirectURI === "" || username == null || username === "" || password == null || password === "" || clientId == null || clientId === "" || requestedScopes == null || requestedScopes === "" || requestedScopes.length === 0) return BAD_REQUEST;
-
-    const client = JSON.parse(await clientsKV.get(clientId));
-    const user = JSON.parse(await userKV.get(username));
-
-    // Check if client and user exist
-    if (client == null || user == null) return UNAUTHORIZED;
-    const hashHex = await strToSha512HexString(password + user.salt);
-    // Verify password
-    if (user.pwdToken !== hashHex) return UNAUTHORIZED;
-
-    //Check if user has requested scopes
-    for (const scope of requestedScopes) {
-        if (!user.scope.includes(scope)) return FORBIDDEN;
-    }
-
-    //Check if redirect_uri is valid
-    if (!client.redirect_uris.includes(redirectURI)) return UNAUTHORIZED;
-
-    //generate random code
-    const code = crypto.randomUUID().replaceAll("-", "");
-
-    //Saving code as expiring key (10 mins) with client id its valid for.
-    await codesKV.put(
-        code,
-        JSON.stringify({
-            client_id: clientId,
-            scope: requestedScopes,
-            username,
-        }),
-        {
-            expirationTtl: 600,
-        },
-    );
-
-    const redirectURIWithCode = `${redirectURI}?code=${code}`;
-
-    if (returnType === "body") {
-        return new Response(
-            JSON.stringify({
-                redirect_uri: redirectURIWithCode,
-            }),
-            {
-                status: 200,
-                headers: {
-                    "content-type": "application/json",
-                    ...corsHeaders,
-                },
-            },
-        );
-    }
-
-    return new Response(null, {
-        status: 302,
-        headers: {
-            location: redirectURIWithCode,
-            ...corsHeaders,
-        },
-    });
 }
 
 async function exchangeCodeForToken(request, codesKV, clientKV, tokensKV, privateJwk) {
@@ -247,6 +171,15 @@ async function returnPublicKeys(publicJwk) {
     });
 }
 
+const enrichWithCorsHeadersInLocalEnvironment = (response, environment, corsHeaders) => {
+    if (environment.ENVIRONMENT === "local") {
+        for (const [key, value] of Object.entries(corsHeaders)) {
+            response.headers.set(key, value);
+        }
+    }
+    return response;
+};
+
 export default {
     async fetch(request, env, ctx) {
         storageManager.initializeStorage(env);
@@ -255,35 +188,45 @@ export default {
         const url = new URL(request.url);
         const pathname = url.pathname;
 
+        const localAuthorizeCorsHeaders = {
+            "Access-Control-Allow-Origin": "http://localhost:8788",
+            "Access-Control-Allow-Methods": "GET, POST",
+            "Access-Control-Allow-Headers": "Authorization, Content-Type",
+        };
+
         if (pathname === "/authorize") {
             if (method === "OPTIONS") {
-                return SUCCESS("", {
-                    "Access-Control-Allow-Origin": "http://localhost:8788",
-                    "Access-Control-Allow-Methods": "GET, POST",
-                    "Access-Control-Allow-Headers": "Authorization, Content-Type",
-                });
+                return enrichWithCorsHeadersInLocalEnvironment(SUCCESS(""), env, localAuthorizeCorsHeaders);
             }
             if (method === "POST" || method === "GET") {
-                return await authCodeGrantHandler.handleAuthCodeRequest(request);
-                // return redirectWithCode(request, env.USERS, env.CLIENTS, env.CODES);
+                return enrichWithCorsHeadersInLocalEnvironment(await authCodeGrantHandler.handleAuthCodeRequest(request), env, localAuthorizeCorsHeaders);
             }
         }
 
+        const localTokenCorsHeaders = {
+            "Access-Control-Allow-Origin": "http://localhost:8788",
+            "Access-Control-Allow-Methods": "POST",
+            "Access-Control-Allow-Headers": "Authorization, Content-Type",
+        };
+
         if (pathname === "/token") {
             if (method === "OPTIONS") {
-                return new Response(null, {
-                    headers: corsHeaders,
-                });
+                return enrichWithCorsHeadersInLocalEnvironment(SUCCESS(""), env, localTokenCorsHeaders);
             }
             if (method === "POST") {
-                //TODO
-                // return exchangeCodeForToken(
-                //     request,
-                //     env.CODES,
-                //     env.CLIENTS,
-                //     env.TOKENS,
-                //     env.SIGNING_KEY
-                //   );
+                return new Response(
+                    JSON.stringify({
+                        token_type: "JWT",
+                        expires_in: 100,
+                        scope: ["abc"],
+                        access_token: "abc",
+                        refresh_token: "def",
+                    }),
+                    {
+                        status: 200,
+                        headers: localTokenCorsHeaders,
+                    },
+                );
             }
         }
 

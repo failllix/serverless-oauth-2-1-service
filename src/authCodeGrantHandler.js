@@ -1,94 +1,109 @@
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from "./responses.js";
+import { FOUND } from "./responses.js";
 
+import clientAuthenticator from "./authentication/client.js";
+import userAuthenticator from "./authentication/user.js";
+import AuthenticationError from "./error/authenticationError.js";
+import basicAuthHelper from "./helper/basicAuth.js";
 import logger from "./logger.js";
+import codeStorage from "./storage/code.js";
+import util from "./util.js";
 import authCodeGrantValidator from "./validation/authCodeGrantValidator.js";
 
-const getValidatedParameters = (body) => {
-    try {
-        return {
-            redirectUri: authCodeGrantValidator.isValidRedirectUri(body.redirect_uri),
-            username: authCodeGrantValidator.isValidUsername(body.username),
-            password: authCodeGrantValidator.isValidPassword(body.password),
-            clientId: authCodeGrantValidator.isValidClientId(body.client_id),
-            scope: authCodeGrantValidator.isValidScope(body.scope),
-        };
-    } catch (error) {
-        logger.logError(error);
-        throw BAD_REQUEST(error.message);
+const getValidatedParameters = (parameters) => {
+    const validatedParameters = {
+        responseType: authCodeGrantValidator.isValidResponseType(parameters.response_type),
+        clientId: authCodeGrantValidator.isValidClientId(parameters.client_id),
+        redirectUri: authCodeGrantValidator.isValidRedirectUri(parameters.redirect_uri),
+        scope: authCodeGrantValidator.isValidScope(parameters.scope?.split(",")),
+        codeChallenge: authCodeGrantValidator.isValidCodeChallenge(parameters.code_challenge),
+        codeChallengeMethod: authCodeGrantValidator.isValidCodeChallengeTransformMethod(parameters.code_challenge_method),
+        state: parameters.state?.toString(),
+    };
+
+    logger.logObject("validated parameters", validatedParameters);
+    return validatedParameters;
+};
+
+const getParametersFromRequest = async ({ method, body, searchParams }) => {
+    if (method === "GET") {
+        return Object.fromEntries(searchParams);
     }
+
+    if (method === "POST") {
+        return body;
+    }
+
+    throw new Error(`Encountered unsupported '${method}' while trying to get parameters.`);
 };
 
 async function handleAuthCodeRequest(request) {
     try {
-        const body = await request.json();
-        const params = getValidatedParameters(body);
-    } catch (failure) {
-        if (failure instanceof Response) {
-            return failure;
+        const method = request.method;
+
+        const url = new URL(request.url);
+        const searchParams = url.searchParams;
+
+        const body = await request.json().catch(() => {
+            return {};
+        });
+
+        const parameters = await getParametersFromRequest({
+            method,
+            body,
+            searchParams,
+        });
+
+        const validatedParameters = getValidatedParameters(parameters);
+
+        await clientAuthenticator.authenticateClient(validatedParameters.clientId, validatedParameters.redirectUri);
+
+        const authHeader = request.headers.get("Authorization");
+        if (authHeader === null || authHeader === "") {
+            const loginUrl = new URL(url);
+            loginUrl.host = "localhost:8788";
+            loginUrl.pathname = "login";
+
+            logger.logMessage(`Redirecting user to login at: ${loginUrl.toString()}`);
+            return FOUND(loginUrl.toString());
         }
 
+        const { username, password } = basicAuthHelper.extractUserInfoFromBasicAuthHeader(authHeader);
+
+        await userAuthenticator.authenticateUser({
+            username,
+            password,
+            scope: validatedParameters.scope,
+        });
+
+        const accessCode = await util.generateRandomSha256HexString();
+
+        await codeStorage.saveAccessCode({
+            code: accessCode,
+            clientId: validatedParameters.clientId,
+            codeChallenge: validatedParameters.codeChallenge,
+            codeChallengeMethod: validatedParameters.codeChallengeMethod,
+        });
+
+        const redirectUrl = new URL(validatedParameters.redirectUri);
+        redirectUrl.searchParams.set("code", accessCode);
+        if (validatedParameters.state !== undefined) {
+            redirectUrl.searchParams.set("state", validatedParameters.state);
+        }
+
+        logger.logMessage(`User authentication successful, redirecting to: ${redirectUrl}`);
+
+        return FOUND(redirectUrl);
+    } catch (failure) {
         logger.logError(failure);
+        if (failure instanceof AuthenticationError) {
+            return failure.toResponse();
+        }
 
-        return INTERNAL_SERVER_ERROR("Encountered unexpected error.");
+        return new AuthenticationError({
+            errorCategory: AuthenticationError.errrorCategories.SERVER_ERROR,
+            errorDescription: failure.message,
+        }).toResponse("http://localhost:8788/login");
     }
-
-    //   const client = JSON.parse(await clientsKV.get(clientId));
-    //   const usber = JSON.parse(await userKV.get(username));
-
-    //   // Check if client and user exist
-    //   if (client == null || user == null) return UNAUTHORIZED;
-    //   const hashHex = await strToSha512HexString(password + user.salt);
-    //   // Verify password
-    //   if (user.pwdToken != hashHex) return UNAUTHORIZED;
-
-    //   //Check if user has requested scopes
-    //   for (const scope of requestedScopes) {
-    //     if (!user.scope.includes(scope)) return FORBIDDEN;
-    //   }
-
-    //   //Check if redirect_uri is valid
-    //   if (!client.redirect_uris.includes(redirectURI)) return UNAUTHORIZED;
-
-    //   //generate random code
-    //   const code = crypto.randomUUID().replaceAll("-", "");
-
-    //   //Saving code as expiring key (10 mins) with client id its valid for.
-    //   await codesKV.put(
-    //     code,
-    //     JSON.stringify({
-    //       client_id: clientId,
-    //       scope: requestedScopes,
-    //       username,
-    //     }),
-    //     {
-    //       expirationTtl: 600,
-    //     }
-    //   );
-
-    //   const redirectURIWithCode = redirectURI + "?code=" + code;
-
-    //   if (returnType === "body") {
-    //     return new Response(
-    //       JSON.stringify({
-    //         redirect_uri: redirectURIWithCode,
-    //       }),
-    //       {
-    //         status: 200,
-    //         headers: {
-    //           "content-type": "application/json",
-    //           ...corsHeaders,
-    //         },
-    //       }
-    //     );
-    //   }
-
-    //   return new Response(null, {
-    //     status: 302,
-    //     headers: {
-    //       location: redirectURIWithCode,
-    //       ...corsHeaders,
-    //     },
-    //   });
 }
 
 export default { handleAuthCodeRequest };
