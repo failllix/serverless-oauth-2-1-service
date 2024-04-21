@@ -12,7 +12,7 @@
     "mocha": "10.2.0",
     "prompt-sync": "4.2.0",
     "sinon": "17.0.1",
-    "wrangler": "3.26.0"
+    "wrangler": "3.51.2"
   },
   "private": true,
   "scripts": {
