@@ -21,7 +21,10 @@ const getValidatedParameters = (parameters) => {
         state: parameters.state?.toString(),
     };
 
-    logger.logObject("validated parameters", validatedParameters);
+    logger.logObject({
+        label: "validated parameters",
+        object: validatedParameters,
+    });
     return validatedParameters;
 };
 
