@@ -30,7 +30,7 @@ describe("Logger", () => {
             const expectedObject = Object.freeze({ nested: true });
             logger.logObject({ label: "someLabel", object: expectedObject });
 
-            sinon.assert.calledOnceWithExactly(console.log, "someLabel", JSON.stringify(expectedObject));
+            sinon.assert.calledOnceWithExactly(console.log, "someLabel:", JSON.stringify(expectedObject, null, 2));
         });
     });
 });

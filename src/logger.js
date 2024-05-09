@@ -7,7 +7,7 @@ const logMessage = (message) => {
 };
 
 const logObject = ({ label, object }) => {
-    console.log(label, JSON.stringify(object));
+    console.log(`${label}:`, JSON.stringify(object, null, 2));
 };
 
 export default { logError, logMessage, logObject };
