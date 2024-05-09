@@ -4,26 +4,29 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Oauth2 Login</title>
-    <style>
-      .hidden{
-        display: none;
-      }
-    </style>
+    <link rel="stylesheet" href="./login.css" />
   </head>
 
   <body>
-    <h1>Login</h1>
-    <form id="login-form">
-      <input id="username" type="text" placeholder="username" />
-      <input id="password" type="password" placeholder="password" />
-      <button type="submit" id="login">Login</button>
-    </form>
+    <main>
+      <div id="login-wrapper" class="container">
+        <h1>Login</h1>
+        <form id="login-form">
+          <input id="username" type="text" placeholder="Username" />
+          <input id="password" type="password" placeholder="Password" />
+          <button class="primary" type="submit" id="login">Login</button>
+        </form>
+      </div>
 
-    <div id="error-container">
-      <h3>Error</h3>
-      <p>Category: <span id="error-category"></span></p>
-      <p>Details: <span id="error-details"></span></p>
-    </div>
+      <div id="error-container" class="container">
+        <div id="error-details-container">
+          <h2>Error</h2>
+          <p><b>Category:</b> <span id="error-category"></span></p>
+          <p><b>Details:</b> <span id="error-details"></span></p>
+        </div>
+        <button class="primary" id="try-again">Try again</button>
+      </div>
+    </main>
   </body>
 
   <script>
@@ -38,6 +41,7 @@
       errorDetails.innerHTML = url.searchParams.get("error_description");
       loginForm.classList.add("hidden");
     } else {
+      console.log(errorContainer);
       errorContainer.classList.add("hidden");
     }
 
@@ -67,6 +71,12 @@
       });
 
       window.location = response.url;
+    });
+
+    const tryAgainButton = document.getElementById("try-again");
+    tryAgainButton.addEventListener("click", () => {
+      console.log("test");
+      history.back();
     });
   </script>
 </html>
