@@ -8,6 +8,7 @@
   <script>
     const clientId =
       "2a3af50d2da12999c7344da5c4aed0d065824ce3b329ec05f05bdaf3ccdee5cb";
+    const scope = "access";
     const redirectUri = "http://localhost:8788/app";
     const tokenUrl = "http://localhost:8787/token";
 
@@ -41,14 +42,29 @@
         clientId
       )}&redirect_uri=${encodeURIComponent(
         redirectUri
-      )}&scope=access&code_challenge=${base64UrlEncodedCodeChallenge}&code_challenge_method=S256`;
+      )}&scope=${scope}&code_challenge=${base64UrlEncodedCodeChallenge}&code_challenge_method=S256`;
 
       window.location = loginUrl;
     };
 
     const getToken = async () => {
+      const storage = window.sessionStorage;
+      const codeVerifier = storage.getItem("code_verifier");
+      storage.clear();
+
       const tokenResponse = await fetch(tokenUrl, {
         method: "POST",
+        body: new URLSearchParams({
+          grant_type: "authorization_code",
+          client_id: clientId,
+          redirect_uri: redirectUri,
+          code_verifier: codeVerifier,
+          scope,
+          code,
+        }),
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
       });
 
       if (tokenResponse.status !== 200) {
