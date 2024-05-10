@@ -94,6 +94,13 @@ const isValidScope = (scope) => {
                     errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
                 }),
             },
+            {
+                rule: validation.arrayContainsOnlyValidEntries,
+                error: new AuthenticationError({
+                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                }),
+                args: [[validation.isNotNull, validation.isNotUndefined, validation.isNotEmpty, validation.isString]],
+            },
         ],
         fieldName: "scope",
         value: scope,

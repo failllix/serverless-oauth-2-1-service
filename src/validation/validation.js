@@ -106,6 +106,22 @@ const sequentiallyMatchAllValidations = ({ validations, fieldName, value }) => {
     return value;
 };
 
+const arrayContainsOnlyValidEntries = (fieldName, value, rules) => {
+    isArray(fieldName, value);
+
+    try {
+        for (const element of value) {
+            for (const rule of rules) {
+                rule(fieldName, element);
+            }
+        }
+    } catch (error) {
+        throw new Error(`Parameter '${fieldName}' contains invalid element. Reason: Value of ${error.message}`);
+    }
+
+    return true;
+};
+
 export default {
     isNotEmpty,
     isNotNull,
@@ -116,4 +132,5 @@ export default {
     isInList,
     matchesRegex,
     sequentiallyMatchAllValidations,
+    arrayContainsOnlyValidEntries,
 };

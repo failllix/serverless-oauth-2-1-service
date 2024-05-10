@@ -644,4 +644,40 @@ describe("Validation", () => {
             }
         });
     });
+
+    describe("arrayContainsOnlyValidEntries", () => {
+        it("passes when array contains only valid elements", () => {
+            const result = validation.arrayContainsOnlyValidEntries("test", ["someValue", "someOtherValue"], [(el) => ["someValue", "someOtherValue"].includes(el), (el) => el.startsWith("s")]);
+            assert.isTrue(result);
+        });
+
+        for (const value of ["someValue", { someValue: true }, 100, true, false]) {
+            it(`throws when value is no array (${JSON.stringify(value)})`, () => {
+                try {
+                    validation.arrayContainsOnlyValidEntries("test", value, [(el) => ["someValue", "someOtherValue"].includes(el), (el) => el.startsWith("s")]);
+                    return Promise.reject(new Error("Function under test never threw Error."));
+                } catch (error) {
+                    assert.equal(error.message, "Parameter 'test' must be an array.");
+                }
+            });
+        }
+
+        it("throws wrapped error of failing validation rule", () => {
+            const expectedError = Object.freeze(new Error("parameter 'abc' must not be invalid"));
+            try {
+                validation.arrayContainsOnlyValidEntries(
+                    "test",
+                    ["something"],
+                    [
+                        () => {
+                            throw expectedError;
+                        },
+                    ],
+                );
+                return Promise.reject(new Error("Function under test never threw Error."));
+            } catch (error) {
+                assert.equal(error.message, "Parameter 'test' contains invalid element. Reason: Value of parameter 'abc' must not be invalid");
+            }
+        });
+    });
 });

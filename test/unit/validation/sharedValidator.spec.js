@@ -219,6 +219,13 @@ describe("Shared validator", () => {
                                 errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
                             }),
                         },
+                        {
+                            rule: validation.arrayContainsOnlyValidEntries,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                            args: [[validation.isNotNull, validation.isNotUndefined, validation.isNotEmpty, validation.isString]],
+                        },
                     ],
                 })
                 .returns("someValue");
@@ -261,6 +268,13 @@ describe("Shared validator", () => {
                             error: new AuthenticationError({
                                 errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
                             }),
+                        },
+                        {
+                            rule: validation.arrayContainsOnlyValidEntries,
+                            error: new AuthenticationError({
+                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                            }),
+                            args: [[validation.isNotNull, validation.isNotUndefined, validation.isNotEmpty, validation.isString]],
                         },
                     ],
                 })
