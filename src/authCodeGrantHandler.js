@@ -100,7 +100,7 @@ async function handleAuthCodeRequest(request) {
     } catch (failure) {
         logger.logError(failure);
         if (failure instanceof AuthenticationError) {
-            return failure.toResponse();
+            return failure.toResponse("http://localhost:8788/login");
         }
 
         return new AuthenticationError({
