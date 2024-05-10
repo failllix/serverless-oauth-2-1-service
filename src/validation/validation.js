@@ -1,7 +1,7 @@
 import AuthenticationError from "../error/authenticationError.js";
 
-const isNotEmpty = (fieldName, value) => {
-    const notEmptyError = new Error(`Parameter '${fieldName}' must not be empty.`);
+const isNotEmpty = (value) => {
+    const notEmptyError = new Error("Must not be empty.");
 
     const type = typeof value;
     switch (type) {
@@ -12,7 +12,7 @@ const isNotEmpty = (fieldName, value) => {
             throw notEmptyError;
         case "object":
             if (value === null) {
-                throw new Error(`Parameter '${fieldName}' must not be null or empty.`);
+                throw new Error("Must not be null or empty.");
             }
 
             if (Object.keys(value).length > 0) {
@@ -20,75 +20,75 @@ const isNotEmpty = (fieldName, value) => {
             }
             throw notEmptyError;
         default:
-            throw new Error(`Encountered unexpected type '${type}' while ensuring '${fieldName}' is not empty. Expected one of: 'string', 'object', 'array'.`);
+            throw new Error(`Encountered unexpected type '${type}' while ensuring the field is not empty. Expected one of: 'string', 'object', 'array'.`);
     }
 };
 
-const isNotNull = (fieldName, value) => {
+const isNotNull = (value) => {
     if (value !== null) {
         return true;
     }
 
-    throw new Error(`Parameter '${fieldName}' must not be null.`);
+    throw new Error("Must not be null.");
 };
 
-const isNotUndefined = (fieldName, value) => {
+const isNotUndefined = (value) => {
     if (value !== undefined) {
         return true;
     }
 
-    throw new Error(`Parameter '${fieldName}' must not be undefined.`);
+    throw new Error("Must not be undefined.");
 };
 
-const isObject = (fieldName, value) => {
+const isObject = (value) => {
     if (typeof value === "object" && !Array.isArray(value) && value !== null) {
         return true;
     }
 
-    throw new Error(`Parameter '${fieldName}' must be an object.`);
+    throw new Error("Must be an object.");
 };
 
-const isArray = (fieldName, value) => {
+const isArray = (value) => {
     if (Array.isArray(value)) {
         return true;
     }
 
-    throw new Error(`Parameter '${fieldName}' must be an array.`);
+    throw new Error("Must be an array.");
 };
 
-const isString = (fieldName, value) => {
+const isString = (value) => {
     if (typeof value === "string") {
         return true;
     }
 
-    throw new Error(`Parameter '${fieldName}' must be a String.`);
+    throw new Error("Must be a String.");
 };
 
-const isInList = (fieldName, value, list) => {
+const isInList = (value, list) => {
     if (list.includes(value)) {
         return true;
     }
 
     throw new Error(
-        `Parameter '${fieldName}' must be one of: ${Object.values(list)
+        `Must be one of: ${Object.values(list)
             .map((value) => `'${value}'`)
             .join(", ")}.`,
     );
 };
 
-const matchesRegex = (fieldName, value, regex) => {
+const matchesRegex = (value, regex) => {
     const matches = value.toString().match(regex);
     if (matches !== null) {
         return true;
     }
 
-    throw new Error(`Parameter '${fieldName}' did not match: ${regex}.`);
+    throw new Error(`Did not match: ${regex}.`);
 };
 
 const sequentiallyMatchAllValidations = ({ validations, fieldName, value }) => {
     for (const { rule, args = [], error: authenticationError } of validations) {
         try {
-            const result = rule.call(null, fieldName, value, ...args);
+            const result = rule.call(null, value, ...args);
             if (result !== true) {
                 throw new AuthenticationError({
                     errorCategory: AuthenticationError.errrorCategories.SERVER_ERROR,
@@ -99,24 +99,24 @@ const sequentiallyMatchAllValidations = ({ validations, fieldName, value }) => {
             if (validationError instanceof AuthenticationError) {
                 throw validationError;
             }
-            authenticationError.errorDescription = validationError.message;
+            authenticationError.errorDescription = `Value of parameter '${fieldName}' is not valid. Reason: ${validationError.message}`;
             throw authenticationError;
         }
     }
     return value;
 };
 
-const arrayContainsOnlyValidEntries = (fieldName, value, rules) => {
-    isArray(fieldName, value);
+const arrayContainsOnlyValidEntries = (value, rules) => {
+    isArray(value);
 
     try {
         for (const element of value) {
             for (const rule of rules) {
-                rule(fieldName, element);
+                rule(element);
             }
         }
     } catch (error) {
-        throw new Error(`Parameter '${fieldName}' contains invalid element. Reason: Value of ${error.message}`);
+        throw new Error(`Array contains invalid element. Reason for element: ${error.message}`);
     }
 
     return true;
