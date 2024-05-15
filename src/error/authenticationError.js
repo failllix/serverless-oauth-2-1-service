@@ -4,6 +4,7 @@ class AuthenticationError {
     static errrorCategories = {
         INVALID_REQUEST: "invalid_request",
         INVALID_GRANT: "invalid_grant",
+        UNSUPPORTED_GRANT_TYPE: "unsupported_grant_type",
         UNAUTHORIZED_CLIENT: "unauthorized_client",
         ACCESS_DENIED: "access_denied",
         UNSUPPORTED_RESPONSE_TYPE: "unsupported_response_type",
