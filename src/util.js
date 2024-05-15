@@ -56,6 +56,11 @@ async function strToSha512HexString(str) {
     return uint8ToHexString(new Uint8Array(hashBuffer));
 }
 
+async function calculateSha256FromString(str) {
+    const hashBuffer = await crypto.subtle.digest("SHA-256", strToUint8(str));
+    return new Uint8Array(hashBuffer);
+}
+
 async function generateRandomSha256HexString() {
     const randomValues = crypto.getRandomValues(new Uint8Array(64));
 
@@ -96,6 +101,7 @@ export default {
     strToUint8,
     uint8ToUrlBase64,
     strToSha512HexString,
+    calculateSha256FromString,
     getPBKDF2PasswordHash,
     urlBase64Touint8,
     generateRandomSha256HexString,
