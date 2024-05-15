@@ -83,6 +83,7 @@ async function handleAuthCodeRequest(request) {
 
         await codeStorage.saveAccessCode({
             code: accessCode,
+            scope: validatedParameters.scope,
             clientId: validatedParameters.clientId,
             codeChallenge: validatedParameters.codeChallenge,
             codeChallengeMethod: validatedParameters.codeChallengeMethod,

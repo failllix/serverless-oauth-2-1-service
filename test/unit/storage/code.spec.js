@@ -30,12 +30,13 @@ describe("Code storage", () => {
 
             await codeStorage.saveAccessCode({
                 code: "myCode",
+                scope: ["test"],
                 clientId: "test",
                 codeChallenge: "abc",
                 codeChallengeMethod: "def",
             });
 
-            sinon.assert.calledOnceWithExactly(keyValuePutStub, "myCode", '{"clientId":"test","codeChallenge":"abc","codeChallengeMethod":"def"}', { expirationTtl: 120 });
+            sinon.assert.calledOnceWithExactly(keyValuePutStub, "myCode", '{"scope":["test"],"clientId":"test","codeChallenge":"abc","codeChallengeMethod":"def"}', { expirationTtl: 120 });
         });
     });
 });
