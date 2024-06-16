@@ -28,13 +28,13 @@ const getValidatedParameters = (parameters) => {
     return validatedParameters;
 };
 
-const getParametersFromRequest = async ({ method, body, searchParams }) => {
+const getParametersFromRequest = async ({ method, url, request }) => {
     if (method === "GET") {
-        return Object.fromEntries(searchParams);
+        return Object.fromEntries(url.searchParams);
     }
 
     if (method === "POST") {
-        return body;
+        return await request.json();
     }
 
     throw new Error(`Encountered unsupported '${method}' while trying to get parameters.`);
@@ -43,18 +43,12 @@ const getParametersFromRequest = async ({ method, body, searchParams }) => {
 async function handleAuthCodeRequest(request) {
     try {
         const method = request.method;
-
         const url = new URL(request.url);
-        const searchParams = url.searchParams;
-
-        const body = await request.json().catch(() => {
-            return {};
-        });
 
         const parameters = await getParametersFromRequest({
             method,
-            body,
-            searchParams,
+            url,
+            request,
         });
 
         const validatedParameters = getValidatedParameters(parameters);
@@ -87,6 +81,7 @@ async function handleAuthCodeRequest(request) {
             clientId: validatedParameters.clientId,
             codeChallenge: validatedParameters.codeChallenge,
             codeChallengeMethod: validatedParameters.codeChallengeMethod,
+            username,
         });
 
         const redirectUrl = new URL(validatedParameters.redirectUri);
