@@ -2,7 +2,7 @@
 
 After using various oAuth2 services, I was interested what it takes to implement one on my own.
 
-> ⛔⛔⛔ Important note: This project is not intended to be used in a productive manner or to protect any kind of services nor personal data.
+> ⛔⛔⛔ **Important note:** This project is not intended to be used in a productive manner or to protect any kind of services nor personal data.
 
 ## Configuration
 
