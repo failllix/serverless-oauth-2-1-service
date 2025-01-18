@@ -2,27 +2,27 @@ name = "oauth"
 main = "src/index.js"
 compatibility_date = "2023-02-04"
 
-[env.local.vars]
-ENVIRONMENT="local"
-
 [env.local]
 kv_namespaces = [
-{ binding = "USERS", id = "local" },
-{ binding = "CODES", id = "local" },
-{ binding = "CLIENT", id = "local" },
-{ binding = "TOKENS", id = "local" }
+    { binding = "USER", id = "local" },
+    { binding = "CODE", id = "local" },
+    { binding = "CLIENT", id = "local" },
+    { binding = "TOKEN", id = "local" },
 ]
 
-
-# Use 'npm run create:key-pair' to gain a valid key pair. Make sure to set the signing key as a secret using 'wrangler secert put SIGNING_KEY'. Never expose your private key!
-[env.production.vars]
-PUBLIC_KEY=""
-ENVIRONMENT="production"
+[env.local.vars]
+ENVIRONMENT = "local"
 
 [env.production]
+name = "oauth"
 kv_namespaces = [
-{ binding = "USERS", id = "SOME_KV_ID" },
-{ binding = "CODES", id = "SOME_KV_ID" },
-{ binding = "CLIENT", id = "SOME_KV_ID" },
-{ binding = "TOKENS", id = "SOME_KV_ID" }
+    { binding = "USER", id = "SOME_KV_ID" },
+    { binding = "CODE", id = "SOME_KV_ID" },
+    { binding = "CLIENT", id = "SOME_KV_ID" },
+    { binding = "TOKEN", id = "SOME_KV_ID" },
 ]
+
+# Use `npm run create:key-pair` to gain a valid key pair. Make sure to set the signing key as a secret using `wrangler secert put SIGNING_KEY`. Never expose your private key!
+[env.production.vars]
+PUBLIC_KEY = ""
+TOKEN_TIME_TO_LIVE = 3600
