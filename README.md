@@ -1,6 +1,6 @@
-# Basic oAuth2 server based on Cloudflare workers and KV storage
+# Serverless OAuth 2.1 Service
 
-After using various oAuth2 services, I was interested what it takes to implement one on my own.
+After using various OAuth 2 services, I was interested what it takes to implement one on my own.
 
 > ⛔⛔⛔ **Important note:** This project is not intended to be used in a productive manner.
 > It was built for educational purposes and likely contains critical security oversights.
