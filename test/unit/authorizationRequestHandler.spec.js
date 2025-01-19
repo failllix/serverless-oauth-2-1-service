@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { describe } from "mocha";
 import sinon from "sinon";
-import authCodeGrantHandler from "../../src/authCodeGrantHandler.js";
+import authorizationRequestHandler from "../../src/authorizationRequestHandler.js";
 
 import AuthenticationError from "../../src/error/authenticationError.js";
 import logger from "../../src/logger.js";
@@ -16,7 +16,7 @@ const getUrlWithSearchParams = (searchParams) => {
     return url.toString();
 };
 
-describe("The auth code request handler", () => {
+describe("The authorization request handler", () => {
     beforeEach(() => {
         sinon.stub(logger);
     });
@@ -28,7 +28,7 @@ describe("The auth code request handler", () => {
             const expectedError = new Error("Invalid JSON");
             jsonBodyStub.rejects(expectedError);
 
-            const response = await authCodeGrantHandler.handleAuthCodeRequest({
+            const response = await authorizationRequestHandler.handleAuthorizationRequest({
                 json: jsonBodyStub,
                 url: "http://localhost:8787",
                 method: "POST",
@@ -56,7 +56,7 @@ describe("The auth code request handler", () => {
 
                 authCodeGrantValidatorStub.isValidResponseType.withArgs("myResponseTypeUnderTest").throws(authentionErrorStub);
 
-                const response = await authCodeGrantHandler.handleAuthCodeRequest({
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
                     url: getUrlWithSearchParams({
                         response_type: "myResponseTypeUnderTest",
                     }),
@@ -73,7 +73,7 @@ describe("The auth code request handler", () => {
 
                 sharedValidator.isValidClientId.withArgs("myClientIdUnderTest").throws(authentionErrorStub);
 
-                const response = await authCodeGrantHandler.handleAuthCodeRequest({
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
                     url: getUrlWithSearchParams({
                         client_id: "myClientIdUnderTest",
                     }),
@@ -90,7 +90,7 @@ describe("The auth code request handler", () => {
 
                 sharedValidatorStub.isValidRedirectUri.withArgs("myUrlUnderTest").throws(authentionErrorStub);
 
-                const response = await authCodeGrantHandler.handleAuthCodeRequest({
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
                     url: getUrlWithSearchParams({
                         redirect_uri: "myUrlUnderTest",
                     }),
@@ -107,7 +107,7 @@ describe("The auth code request handler", () => {
 
                 sharedValidatorStub.isValidScope.withArgs(["myScopeUnderTest"]).throws(authentionErrorStub);
 
-                const response = await authCodeGrantHandler.handleAuthCodeRequest({
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
                     url: getUrlWithSearchParams({
                         scope: "myScopeUnderTest",
                     }),
@@ -124,7 +124,7 @@ describe("The auth code request handler", () => {
 
                 authCodeGrantValidatorStub.isValidCodeChallenge.withArgs("myCodeChallengeUnderTest").throws(authentionErrorStub);
 
-                const response = await authCodeGrantHandler.handleAuthCodeRequest({
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
                     url: getUrlWithSearchParams({
                         code_challenge: "myCodeChallengeUnderTest",
                     }),
@@ -141,7 +141,7 @@ describe("The auth code request handler", () => {
 
                 authCodeGrantValidatorStub.isValidCodeChallengeTransformMethod.withArgs("myCodeChallengeMethodUnderTest").throws(authentionErrorStub);
 
-                const response = await authCodeGrantHandler.handleAuthCodeRequest({
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
                     url: getUrlWithSearchParams({
                         code_challenge_method: "myCodeChallengeMethodUnderTest",
                     }),

@@ -40,7 +40,7 @@ const getParametersFromRequest = async ({ method, url, request }) => {
     throw new Error(`Encountered unsupported '${method}' while trying to get parameters.`);
 };
 
-async function handleAuthCodeRequest(request) {
+async function handleAuthorizationRequest(request) {
     try {
         const method = request.method;
         const url = new URL(request.url);
@@ -106,4 +106,4 @@ async function handleAuthCodeRequest(request) {
     }
 }
 
-export default { handleAuthCodeRequest };
+export default { handleAuthorizationRequest };
