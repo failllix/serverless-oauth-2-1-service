@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Oauth2 Login</title>
+    <title>OAuth2 Login</title>
     <link rel="stylesheet" href="./login.css" />
   </head>
 
@@ -41,7 +41,6 @@
       errorDetails.innerHTML = url.searchParams.get("error_description");
       loginForm.classList.add("hidden");
     } else {
-      console.log(errorContainer);
       errorContainer.classList.add("hidden");
     }
 

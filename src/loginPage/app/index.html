@@ -12,6 +12,14 @@
     const redirectUri = "http://localhost:8788/app";
     const tokenUrl = "http://localhost:8787/token";
 
+    base64UrlToString = (base64UrlStr) => {
+      const base64String = base64UrlStr
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+/g, "");
+      return atob(base64String);
+    };
+
     const base64UrlEncode = (uint8) => {
       return btoa(String.fromCharCode(...uint8))
         .replace(/\+/g, "-")
@@ -70,7 +78,40 @@
         authorize();
       }
 
-      console.log(await tokenResponse.json());
+      const token = await tokenResponse.json();
+
+      console.log("Received token response:", token);
+
+      document.getElementById("token").innerHTML = JSON.stringify(
+        token,
+        null,
+        2
+      );
+
+      const destructuredToken = token.access_token.split(".");
+
+      const [decodedHeader, decodedPayload] = destructuredToken
+        .slice(0, 2)
+        .map(base64UrlToString)
+        .map(JSON.parse);
+
+      console.log("decoded header:", decodedHeader);
+      console.log("decoded payload:", decodedPayload);
+
+      document.getElementById("destructured-token-header").innerHTML =
+        JSON.stringify(decodedHeader, null, 2);
+      document.getElementById("destructured-token-payload").innerHTML =
+        JSON.stringify(decodedPayload, null, 2);
+      document.getElementById("destructured-token-signature").innerHTML =
+        destructuredToken[2];
+
+      document.getElementById("issued-at").innerHTML = new Date(
+        decodedPayload.iat * 1000
+      ).toLocaleString();
+
+      document.getElementById("expires-at").innerHTML = new Date(
+        decodedPayload.exp * 1000
+      ).toLocaleString();
     };
 
     const url = new URL(window.location.href);
@@ -86,5 +127,34 @@
 
   <body>
     <h1>App</h1>
+    <h2>Token Response</h2>
+    <pre id="token" wrap="true"></pre>
+
+    <h2>Destructured Token</h2>
+    <h2>Meta</h2>
+    <p>
+      Issued at:
+      <span id="issued-at"></span>
+    </p>
+    <p>
+      Expires at:
+      <span id="expires-at"></span>
+    </p>
+    <h3>Header</h3>
+    <pre id="destructured-token-header" wrap="true"></pre>
+    <h3>Payload</h3>
+    <pre id="destructured-token-payload" wrap="true"></pre>
+    <h3>Signature</h3>
+    <pre id="destructured-token-signature" wrap="true"></pre>
   </body>
+
+  <style>
+    pre {
+      background-color: black;
+      color: white;
+      margin: 2rem;
+      padding: 1rem;
+      word-wrap: break-word;
+    }
+  </style>
 </html>
