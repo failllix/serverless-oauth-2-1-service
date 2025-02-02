@@ -72,4 +72,84 @@ describe("Storage Manager", () => {
             }
         });
     });
+
+    describe("Environment variable storage", () => {
+        it("should initialize the environment key-value storage to the values provided in the environment", () => {
+            storageManager.initializeStorage({
+                SIGNING_KEY: "secret",
+                PUBLIC_KEY: "notSecret",
+                TOKEN_TIME_TO_LIVE: "5",
+            });
+
+            const environmentKeyValueStorage = storageManager.getEnvironmentVariableStorage();
+
+            assert.deepEqual(environmentKeyValueStorage, {
+                signingKey: "secret",
+                publickey: "notSecret",
+                tokenTimeToLive: 5,
+            });
+        });
+
+        it("should throw an error if one tries to access the environment key-value storage before initialization", () => {
+            try {
+                storageManager.getEnvironmentVariableStorage();
+                return Promise.reject("Function under test never threw error");
+            } catch (error) {
+                assert.equal(error.message, "Environment variable storage was not initialized.");
+            }
+        });
+
+        it("should throw an error if signing key is missing", () => {
+            try {
+                storageManager.initializeStorage({
+                    PUBLIC_KEY: "notSecret",
+                    TOKEN_TIME_TO_LIVE: "5",
+                });
+                storageManager.getEnvironmentVariableStorage();
+                return Promise.reject("Function under test never threw error");
+            } catch (error) {
+                assert.equal(error.message, "Environment variable storage was not initialized.");
+            }
+        });
+
+        it("should throw an error if public key is missing", () => {
+            try {
+                storageManager.initializeStorage({
+                    SIGNING_KEY: "secret",
+                    TOKEN_TIME_TO_LIVE: "5",
+                });
+                storageManager.getEnvironmentVariableStorage();
+                return Promise.reject("Function under test never threw error");
+            } catch (error) {
+                assert.equal(error.message, "Environment variable storage was not initialized.");
+            }
+        });
+
+        it("should throw an error if time to live is missing", () => {
+            try {
+                storageManager.initializeStorage({
+                    SIGNING_KEY: "secret",
+                    PUBLIC_KEY: "notSecret",
+                });
+                storageManager.getEnvironmentVariableStorage();
+                return Promise.reject("Function under test never threw error");
+            } catch (error) {
+                assert.equal(error.message, "Environment variable storage was not initialized.");
+            }
+        });
+
+        it("should throw an error if time to live is no number", () => {
+            try {
+                storageManager.initializeStorage({
+                    SIGNING_KEY: "secret",
+                    PUBLIC_KEY: "notSecret",
+                    TOKEN_TIME_TO_LIVE: "notANumber",
+                });
+                storageManager.getEnvironmentVariableStorage();
+                return Promise.reject("Function under test never threw error");
+            } catch (error) {
+                assert.equal(error.message, "Environment variable storage was not initialized.");
+            }
+        });
+    });
 });

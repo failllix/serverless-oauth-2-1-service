@@ -33,9 +33,10 @@ const getCodeKeyValueStorage = () => {
 
 let environmentVariableStorage;
 const getEnvironmentVariableStorage = () => {
-    if (environmentVariableStorage === undefined) {
+    if (Object.values(environmentVariableStorage).some((value) => value === "" || value === undefined || (typeof value === "number" && Number.isNaN(value)))) {
         throw new Error("Environment variable storage was not initialized.");
     }
+
     return environmentVariableStorage;
 };
 

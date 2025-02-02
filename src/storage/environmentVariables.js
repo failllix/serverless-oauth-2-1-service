@@ -5,7 +5,7 @@ const getSigningKey = () => {
 };
 
 const getPublicKey = () => {
-    return storageManager.getEnvironmentVariableStorage().signingKey;
+    return storageManager.getEnvironmentVariableStorage().publicKey;
 };
 
 const getTokenTimeToLive = () => {
