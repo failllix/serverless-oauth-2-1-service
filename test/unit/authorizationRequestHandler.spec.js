@@ -1,10 +1,15 @@
 import { assert } from "chai";
-import { describe } from "mocha";
+import { beforeEach, describe } from "mocha";
 import sinon from "sinon";
 import authorizationRequestHandler from "../../src/authorizationRequestHandler.js";
 
+import clientAuthenticator from "../../src/authentication/client.js";
+import userAuthenticator from "../../src/authentication/user.js";
 import AuthenticationError from "../../src/error/authenticationError.js";
+import basicAuthHelper from "../../src/helper/basicAuth.js";
 import logger from "../../src/logger.js";
+import codeStorage from "../../src/storage/code.js";
+import util from "../../src/util.js";
 import authCodeGrantValidator from "../../src/validation/authCodeGrantValidator.js";
 import sharedValidator from "../../src/validation/sharedValidator.js";
 
@@ -22,26 +27,49 @@ describe("The authorization request handler", () => {
     });
 
     describe("error cases", () => {
-        it("should return HTTP code 302 and error message, when JSON parsing of body returns rejected Promise", async () => {
-            const jsonBodyStub = sinon.stub();
+        describe("pre validation", () => {
+            it("should redirect to app URL with error when method is not suported", async () => {
+                const jsonBodyStub = sinon.stub();
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                    json: jsonBodyStub,
+                    url: "http://localhost:8787",
+                    method: "UNSUPPORTED",
+                });
 
-            const expectedError = new Error("Invalid JSON");
-            jsonBodyStub.rejects(expectedError);
+                assert.equal(response.status, 302);
+                const url = new URL(response.headers.get("Location"));
+                assert.equal(url.searchParams.get("error"), "server_error");
+                assert.equal(url.searchParams.get("error_description"), "Encountered unsupported 'UNSUPPORTED' method while trying to get parameters.");
+                sinon.assert.calledOnce(logger.logError);
+                assert.equal(
+                    logger.logError.firstCall.args[0].message,
 
-            const response = await authorizationRequestHandler.handleAuthorizationRequest({
-                json: jsonBodyStub,
-                url: "http://localhost:8787",
-                method: "POST",
+                    "Encountered unsupported 'UNSUPPORTED' method while trying to get parameters.",
+                );
+                sinon.assert.notCalled(jsonBodyStub);
             });
 
-            assert.equal(response.status, 302);
-            const url = new URL(response.headers.get("Location"));
-            assert.equal(url.searchParams.get("error"), "server_error");
-            assert.equal(url.searchParams.get("error_description"), "Invalid JSON");
-            sinon.assert.calledOnceWithExactly(logger.logError, expectedError);
+            it("should redirect to app URL with error when JSON parsing of body returns rejected Promise", async () => {
+                const jsonBodyStub = sinon.stub();
+
+                const expectedError = new Error("Invalid JSON");
+                jsonBodyStub.rejects(expectedError);
+
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                    json: jsonBodyStub,
+                    url: "http://localhost:8787",
+                    method: "POST",
+                });
+
+                assert.equal(response.status, 302);
+                const url = new URL(response.headers.get("Location"));
+                assert.equal(url.searchParams.get("error"), "server_error");
+                assert.equal(url.searchParams.get("error_description"), "Invalid JSON");
+                sinon.assert.calledOnceWithExactly(logger.logError, expectedError);
+            });
         });
 
-        describe("validation", () => {
+        describe("validation errors", () => {
             let sharedValidatorStub;
             let authCodeGrantValidatorStub;
 
@@ -151,6 +179,401 @@ describe("The authorization request handler", () => {
                 assert.equal(response, "expectedErrorReturnValue");
                 sinon.assert.calledOnceWithExactly(logger.logError, authentionErrorStub);
             });
+        });
+
+        describe("post validation", () => {
+            const jsonBodyStub = sinon.stub();
+
+            beforeEach(() => {
+                sinon.stub(authCodeGrantValidator);
+                sinon.stub(sharedValidator);
+
+                jsonBodyStub.resolves({
+                    response_type: "testResponseType",
+                    client_id: "test",
+                    redirect_uri: "http://localhost:8787/fooUri",
+                    scope: "test,test2",
+                    code_challenge: "challenge",
+                    code_challenge_method: "challenge_method",
+                    state: "washington",
+                });
+
+                authCodeGrantValidator.isValidResponseType.withArgs("testResponseType").returns("testResponseType");
+                sharedValidator.isValidClientId.withArgs("test").returns("test");
+                sharedValidator.isValidRedirectUri.withArgs("http://localhost:8787/fooUri").returns("http://localhost:8787/fooUri");
+                sharedValidator.isValidScope.withArgs(["test", "test2"]).returns(["test", "test2"]);
+                authCodeGrantValidator.isValidCodeChallenge.withArgs("challenge").returns("challenge");
+                authCodeGrantValidator.isValidCodeChallengeTransformMethod.withArgs("challenge_method").returns("challenge_method");
+            });
+
+            it("should redirect to app URL with error when client authentication fails", async () => {
+                sinon.stub(clientAuthenticator);
+
+                const expectedError = new Error("Invalid client");
+                clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").rejects(expectedError);
+
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                    json: jsonBodyStub,
+                    url: "http://localhost:8787",
+                    method: "POST",
+                });
+
+                assert.equal(response.status, 302);
+                const url = new URL(response.headers.get("Location"));
+                assert.equal(url.searchParams.get("error"), "server_error");
+                assert.equal(url.searchParams.get("error_description"), "Invalid client");
+                sinon.assert.calledOnceWithExactly(logger.logError, expectedError);
+            });
+
+            it("should redirect to app URL with error when client authentication fails", async () => {
+                sinon.stub(clientAuthenticator);
+                sinon.stub(basicAuthHelper);
+                sinon.stub(userAuthenticator);
+
+                clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+
+                basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
+                    username: "dummy",
+                    password: "insecure",
+                });
+
+                const expectedError = new Error("Invalid user");
+                userAuthenticator.authenticateUser
+                    .withArgs({
+                        username: "dummy",
+                        password: "insecure",
+                        scope: ["test", "test2"],
+                    })
+                    .rejects(expectedError);
+
+                const headersGetStub = sinon.stub();
+                headersGetStub.returns("something:basic");
+
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                    json: jsonBodyStub,
+                    url: "http://localhost:8787",
+                    method: "POST",
+                    headers: {
+                        get: headersGetStub,
+                    },
+                });
+
+                assert.equal(response.status, 302);
+                const url = new URL(response.headers.get("Location"));
+                assert.equal(url.searchParams.get("error"), "server_error");
+                assert.equal(url.searchParams.get("error_description"), "Invalid user");
+                sinon.assert.calledOnceWithExactly(logger.logError, expectedError);
+            });
+
+            it("should redirect to app URL with error when user authentication fails", async () => {
+                sinon.stub(clientAuthenticator);
+                sinon.stub(basicAuthHelper);
+                sinon.stub(userAuthenticator);
+
+                clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+
+                basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
+                    username: "dummy",
+                    password: "insecure",
+                });
+
+                const expectedError = new Error("Invalid user");
+                userAuthenticator.authenticateUser
+                    .withArgs({
+                        username: "dummy",
+                        password: "insecure",
+                        scope: ["test", "test2"],
+                    })
+                    .rejects(expectedError);
+
+                const headersGetStub = sinon.stub();
+                headersGetStub.returns("something:basic");
+
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                    json: jsonBodyStub,
+                    url: "http://localhost:8787",
+                    method: "POST",
+                    headers: {
+                        get: headersGetStub,
+                    },
+                });
+
+                assert.equal(response.status, 302);
+                const url = new URL(response.headers.get("Location"));
+                assert.equal(url.searchParams.get("error"), "server_error");
+                assert.equal(url.searchParams.get("error_description"), "Invalid user");
+                sinon.assert.calledOnceWithExactly(logger.logError, expectedError);
+            });
+
+            it("should redirect to app URL with error when generating access code fails", async () => {
+                sinon.stub(clientAuthenticator);
+                sinon.stub(basicAuthHelper);
+                sinon.stub(userAuthenticator);
+                sinon.stub(util);
+
+                clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+
+                basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
+                    username: "dummy",
+                    password: "insecure",
+                });
+
+                userAuthenticator.authenticateUser
+                    .withArgs({
+                        username: "dummy",
+                        password: "insecure",
+                        scope: ["test", "test2"],
+                    })
+                    .resolves();
+
+                const expectedError = new Error("RNG is broken");
+
+                util.generateRandomSha256HexString.rejects(expectedError);
+
+                const headersGetStub = sinon.stub();
+                headersGetStub.returns("something:basic");
+
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                    json: jsonBodyStub,
+                    url: "http://localhost:8787",
+                    method: "POST",
+                    headers: {
+                        get: headersGetStub,
+                    },
+                });
+
+                assert.equal(response.status, 302);
+                const url = new URL(response.headers.get("Location"));
+                assert.equal(url.searchParams.get("error"), "server_error");
+                assert.equal(url.searchParams.get("error_description"), "RNG is broken");
+                sinon.assert.calledOnceWithExactly(logger.logError, expectedError);
+            });
+
+            it("should redirect to app URL with error when generating access code fails", async () => {
+                sinon.stub(clientAuthenticator);
+                sinon.stub(basicAuthHelper);
+                sinon.stub(userAuthenticator);
+                sinon.stub(util);
+
+                clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+
+                basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
+                    username: "dummy",
+                    password: "insecure",
+                });
+
+                userAuthenticator.authenticateUser
+                    .withArgs({
+                        username: "dummy",
+                        password: "insecure",
+                        scope: ["test", "test2"],
+                    })
+                    .resolves();
+
+                const expectedError = new Error("RNG is broken");
+
+                util.generateRandomSha256HexString.rejects(expectedError);
+
+                const headersGetStub = sinon.stub();
+                headersGetStub.returns("something:basic");
+
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                    json: jsonBodyStub,
+                    url: "http://localhost:8787",
+                    method: "POST",
+                    headers: {
+                        get: headersGetStub,
+                    },
+                });
+
+                assert.equal(response.status, 302);
+                const url = new URL(response.headers.get("Location"));
+                assert.equal(url.searchParams.get("error"), "server_error");
+                assert.equal(url.searchParams.get("error_description"), "RNG is broken");
+                sinon.assert.calledOnceWithExactly(logger.logError, expectedError);
+            });
+
+            it("should redirect to app URL with error when saving access code fails", async () => {
+                sinon.stub(clientAuthenticator);
+                sinon.stub(basicAuthHelper);
+                sinon.stub(userAuthenticator);
+                sinon.stub(util);
+                sinon.stub(codeStorage);
+
+                clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+
+                basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
+                    username: "dummy",
+                    password: "insecure",
+                });
+
+                userAuthenticator.authenticateUser
+                    .withArgs({
+                        username: "dummy",
+                        password: "insecure",
+                        scope: ["test", "test2"],
+                    })
+                    .resolves();
+
+                util.generateRandomSha256HexString.resolves("sha256");
+
+                const expectedError = new Error("No more boxes found for storage");
+
+                codeStorage.saveAccessCode
+                    .withArgs({
+                        code: "sha256",
+                        scope: ["test", "test2"],
+                        clientId: "test",
+                        codeChallenge: "challenge",
+                        codeChallengeMethod: "challenge_method",
+                        username: "dummy",
+                    })
+                    .rejects(expectedError);
+
+                const headersGetStub = sinon.stub();
+                headersGetStub.returns("something:basic");
+
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                    json: jsonBodyStub,
+                    url: "http://localhost:8787",
+                    method: "POST",
+                    headers: {
+                        get: headersGetStub,
+                    },
+                });
+
+                assert.equal(response.status, 302);
+                const url = new URL(response.headers.get("Location"));
+                assert.equal(url.searchParams.get("error"), "server_error");
+                assert.equal(url.searchParams.get("error_description"), "No more boxes found for storage");
+                sinon.assert.calledOnceWithExactly(logger.logError, expectedError);
+            });
+        });
+    });
+
+    describe("success cases", () => {
+        const jsonBodyStub = sinon.stub();
+
+        beforeEach(() => {
+            sinon.stub(authCodeGrantValidator);
+            sinon.stub(sharedValidator);
+
+            jsonBodyStub.resolves({
+                response_type: "testResponseType",
+                client_id: "test",
+                redirect_uri: "http://localhost:8787/fooUri",
+                scope: "test,test2",
+                code_challenge: "challenge",
+                code_challenge_method: "challenge_method",
+                state: "washington",
+            });
+
+            authCodeGrantValidator.isValidResponseType.withArgs("testResponseType").returns("testResponseType");
+            sharedValidator.isValidClientId.withArgs("test").returns("test");
+            sharedValidator.isValidRedirectUri.withArgs("http://localhost:8787/fooUri").returns("http://localhost:8787/fooUri");
+            sharedValidator.isValidScope.withArgs(["test", "test2"]).returns(["test", "test2"]);
+            authCodeGrantValidator.isValidCodeChallenge.withArgs("challenge").returns("challenge");
+            authCodeGrantValidator.isValidCodeChallengeTransformMethod.withArgs("challenge_method").returns("challenge_method");
+        });
+
+        it("should redirect to login URL when authorization header is missing", async () => {
+            sinon.stub(clientAuthenticator);
+
+            clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+
+            const headersGetStub = sinon.stub();
+            headersGetStub.returns(null);
+
+            const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                json: jsonBodyStub,
+                url: "http://localhost:8787",
+                method: "POST",
+                headers: {
+                    get: headersGetStub,
+                },
+            });
+
+            assert.equal(response.status, 302);
+            const url = response.headers.get("Location");
+            assert.equal(url, "http://localhost:8788/login");
+            sinon.assert.calledOnceWithExactly(logger.logMessage, "Redirecting user to login at: http://localhost:8788/login");
+            sinon.assert.calledWithExactly(headersGetStub, "Authorization");
+        });
+
+        it("should redirect to login URL when authorization header is empty", async () => {
+            sinon.stub(clientAuthenticator);
+
+            clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+
+            const headersGetStub = sinon.stub();
+            headersGetStub.returns("");
+
+            const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                json: jsonBodyStub,
+                url: "http://localhost:8787",
+                method: "POST",
+                headers: {
+                    get: headersGetStub,
+                },
+            });
+
+            assert.equal(response.status, 302);
+            const url = response.headers.get("Location");
+            assert.equal(url, "http://localhost:8788/login");
+            sinon.assert.calledOnceWithExactly(logger.logMessage, "Redirecting user to login at: http://localhost:8788/login");
+            sinon.assert.calledWithExactly(headersGetStub, "Authorization");
+        });
+
+        it("should redirect to app URL when everthing is fine", async () => {
+            sinon.stub(clientAuthenticator);
+            sinon.stub(basicAuthHelper);
+            sinon.stub(userAuthenticator);
+            sinon.stub(util);
+            sinon.stub(codeStorage);
+
+            clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+
+            basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
+                username: "dummy",
+                password: "insecure",
+            });
+
+            userAuthenticator.authenticateUser
+                .withArgs({
+                    username: "dummy",
+                    password: "insecure",
+                    scope: ["test", "test2"],
+                })
+                .resolves();
+
+            util.generateRandomSha256HexString.resolves("sha256");
+
+            codeStorage.saveAccessCode
+                .withArgs({
+                    code: "sha256",
+                    scope: ["test", "test2"],
+                    clientId: "test",
+                    codeChallenge: "challenge",
+                    codeChallengeMethod: "challenge_method",
+                    username: "dummy",
+                })
+                .resolves();
+
+            const headersGetStub = sinon.stub();
+            headersGetStub.returns("something:basic");
+
+            const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                json: jsonBodyStub,
+                url: "http://localhost:8787",
+                method: "POST",
+                headers: {
+                    get: headersGetStub,
+                },
+            });
+
+            assert.equal(response.status, 302);
+            assert.equal(response.headers.get("Location"), "http://localhost:8787/fooUri?code=sha256&state=washington");
+            sinon.assert.calledOnceWithExactly(logger.logMessage, "User authentication successful, redirecting to: http://localhost:8787/fooUri?code=sha256&state=washington");
         });
     });
 });

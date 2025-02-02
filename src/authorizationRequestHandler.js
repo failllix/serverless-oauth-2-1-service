@@ -37,7 +37,7 @@ const getParametersFromRequest = async ({ method, url, request }) => {
         return await request.json();
     }
 
-    throw new Error(`Encountered unsupported '${method}' while trying to get parameters.`);
+    throw new Error(`Encountered unsupported '${method}' method while trying to get parameters.`);
 };
 
 async function handleAuthorizationRequest(request) {
