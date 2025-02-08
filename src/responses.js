@@ -26,6 +26,6 @@ const UNAUTHORIZED = new Response(null, {
     status: 401,
 });
 
-const NOT_IMPLEMENTED = () => new Response(null, { status: 501 });
+const NOT_IMPLEMENTED = new Response(null, { status: 501 });
 
 export { SUCCESS, FOUND, BAD_REQUEST, NOT_FOUND, FORBIDDEN, UNAUTHORIZED, INTERNAL_SERVER_ERROR, NOT_IMPLEMENTED };

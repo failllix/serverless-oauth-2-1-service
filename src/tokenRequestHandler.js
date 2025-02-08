@@ -15,7 +15,7 @@ async function handleTokenRequest(request) {
             return await authCodeTokenFlow.exchangeAccessCodeForToken(formData);
         }
 
-        return NOT_IMPLEMENTED();
+        return NOT_IMPLEMENTED;
     } catch (failure) {
         logger.logError(failure);
 
