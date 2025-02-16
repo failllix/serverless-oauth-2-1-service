@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>App</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   </head>
   <script>
     const clientId =
@@ -12,7 +17,7 @@
     const redirectUri = "http://localhost:8788/app";
     const tokenUrl = "http://localhost:8787/token";
 
-    base64UrlToString = (base64UrlStr) => {
+    const base64UrlToString = (base64UrlStr) => {
       const base64String = base64UrlStr
         .replace(/\+/g, "-")
         .replace(/\//g, "_")
@@ -54,7 +59,69 @@
       window.location = loginUrl;
     };
 
-    const getToken = async () => {
+    const updateToken = (tokenResponseJson) => {
+      console.log("Received token response:", tokenResponseJson);
+
+      document.getElementById("token").innerHTML = JSON.stringify(
+        tokenResponseJson,
+        null,
+        2
+      );
+
+      localStorage.setItem("refresh_token", tokenResponseJson.refresh_token);
+
+      const destructuredToken = tokenResponseJson.access_token.split(".");
+
+      const [decodedHeader, decodedPayload] = destructuredToken
+        .slice(0, 2)
+        .map(base64UrlToString)
+        .map(JSON.parse);
+
+      console.log("decoded header:", decodedHeader);
+      console.log("decoded payload:", decodedPayload);
+
+      document.getElementById("access-token-header").innerHTML = JSON.stringify(
+        decodedHeader,
+        null,
+        2
+      );
+      document.getElementById("access-token-payload").innerHTML =
+        JSON.stringify(decodedPayload, null, 2);
+      document.getElementById("access-token-signature").innerHTML =
+        destructuredToken[2];
+
+      document.getElementById("access-token-issued-at").innerHTML = new Date(
+        decodedPayload.iat * 1000
+      ).toLocaleString();
+
+      document.getElementById("access-token-expires-at").innerHTML = new Date(
+        decodedPayload.exp * 1000
+      ).toLocaleString();
+
+      const destructuredRefreshToken =
+        tokenResponseJson.refresh_token.split(".");
+
+      const decodedRefreshTokenPayload = JSON.parse(
+        base64UrlToString(destructuredRefreshToken[0])
+      );
+
+      document.getElementById("refresh-token-payload").innerHTML =
+        JSON.stringify(decodedRefreshTokenPayload, null, 2);
+      document.getElementById("refresh-token-signature").innerHTML =
+        destructuredRefreshToken[1];
+
+      document.getElementById("refresh-token-issued-at").innerHTML = new Date(
+        decodedRefreshTokenPayload.iat * 1000
+      ).toLocaleString();
+
+      document.getElementById("refresh-token-expires-at").innerHTML = new Date(
+        decodedRefreshTokenPayload.exp * 1000
+      ).toLocaleString();
+
+      hljs.highlightAll();
+    };
+
+    const getTokenUsingAuthCode = async (code) => {
       const storage = window.sessionStorage;
       const codeVerifier = storage.getItem("code_verifier");
       storage.clear();
@@ -80,46 +147,44 @@
 
       const token = await tokenResponse.json();
 
-      console.log("Received token response:", token);
+      updateToken(token);
+    };
 
-      document.getElementById("token").innerHTML = JSON.stringify(
-        token,
-        null,
-        2
-      );
+    const getTokenUsingRefreshToken = async (refreshToken) => {
+      localStorage.removeItem("refresh_token");
 
-      const destructuredToken = token.access_token.split(".");
+      const tokenResponse = await fetch(tokenUrl, {
+        method: "POST",
+        body: new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: refreshToken,
+          scope,
+          client_id: clientId,
+        }),
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      });
 
-      const [decodedHeader, decodedPayload] = destructuredToken
-        .slice(0, 2)
-        .map(base64UrlToString)
-        .map(JSON.parse);
+      if (tokenResponse.status !== 200) {
+        authorize();
+      }
 
-      console.log("decoded header:", decodedHeader);
-      console.log("decoded payload:", decodedPayload);
+      const token = await tokenResponse.json();
 
-      document.getElementById("destructured-token-header").innerHTML =
-        JSON.stringify(decodedHeader, null, 2);
-      document.getElementById("destructured-token-payload").innerHTML =
-        JSON.stringify(decodedPayload, null, 2);
-      document.getElementById("destructured-token-signature").innerHTML =
-        destructuredToken[2];
-
-      document.getElementById("issued-at").innerHTML = new Date(
-        decodedPayload.iat * 1000
-      ).toLocaleString();
-
-      document.getElementById("expires-at").innerHTML = new Date(
-        decodedPayload.exp * 1000
-      ).toLocaleString();
+      updateToken(token);
     };
 
     const url = new URL(window.location.href);
     const searchParams = Object.fromEntries(url.searchParams);
     const code = searchParams.code;
 
-    if (code) {
-      getToken();
+    const refreshToken = localStorage.getItem("refresh_token");
+
+    if (refreshToken) {
+      getTokenUsingRefreshToken(refreshToken);
+    } else if (code) {
+      getTokenUsingAuthCode(code);
     } else {
       authorize();
     }
@@ -128,33 +193,85 @@
   <body>
     <h1>App</h1>
     <h2>Token Response</h2>
-    <pre id="token" wrap="true"></pre>
+    <pre>
+      <code class="language-json" id="token" wrap="true">
+      </code>
+    </pre>
 
-    <h2>Destructured Token</h2>
-    <h2>Meta</h2>
-    <p>
-      Issued at:
-      <span id="issued-at"></span>
-    </p>
-    <p>
-      Expires at:
-      <span id="expires-at"></span>
-    </p>
-    <h3>Header</h3>
-    <pre id="destructured-token-header" wrap="true"></pre>
-    <h3>Payload</h3>
-    <pre id="destructured-token-payload" wrap="true"></pre>
-    <h3>Signature</h3>
-    <pre id="destructured-token-signature" wrap="true"></pre>
+    <h2>Details</h2>
+
+    <div id="token-details-container">
+      <div>
+        <h3>Access Token</h3>
+        <p>
+          Issued at:
+          <span id="access-token-issued-at"></span>
+        </p>
+        <p>
+          Expires at:
+          <span id="access-token-expires-at"></span>
+        </p>
+        <h4>Header</h4>
+        <pre>
+          <code class="language-json" id="access-token-header" wrap="true">
+          </code>
+        </pre>
+        <h4>Payload</h4>
+        <pre>
+          <code class="language-json" id="access-token-payload" wrap="true">
+          </code>
+        </pre>
+
+        <pre></pre>
+        <h4>Signature</h4>
+        <pre>
+          <code class="language-plaintext" id="access-token-signature" wrap="true">
+          </code>
+        </pre>
+      </div>
+
+      <div>
+        <h3>Refresh Token</h3>
+        <p>
+          Issued at:
+          <span id="refresh-token-issued-at"></span>
+        </p>
+        <p>
+          Expires at:
+          <span id="refresh-token-expires-at"></span>
+        </p>
+        <h4>Payload</h4>
+        <pre>
+          <code class="language-json" id="refresh-token-payload" wrap="true">
+          </code>
+        </pre>
+        <h4>Signature</h4>
+        <pre>
+          <code class="language-plaintext" id="refresh-token-signature" wrap="true">
+          </code>
+        </pre>
+      </div>
+    </div>
   </body>
 
   <style>
-    pre {
-      background-color: black;
-      color: white;
-      margin: 2rem;
-      padding: 1rem;
-      word-wrap: break-word;
+    * {
+      font-family: sans-serif;
+    }
+
+    body {
+      margin: 0 2rem;
+    }
+
+    #token-details-container {
+      display: flex;
+      gap: 2rem;
+      max-width: 100%;
+    }
+
+    #token-details-container > div {
+      flex: 1 1 0;
+      min-width: 0;
     }
   </style>
 </html>

@@ -114,42 +114,8 @@ const isValidCodeVerifier = (codeVerifier) => {
     });
 };
 
-const isValidRefreshToken = (refreshToken) => {
-    return validation.sequentiallyMatchAllValidations({
-        validations: [
-            {
-                rule: validation.isNotUndefined,
-                error: new AuthenticationError({
-                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                }),
-            },
-            {
-                rule: validation.isNotNull,
-                error: new AuthenticationError({
-                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                }),
-            },
-            {
-                rule: validation.isNotEmpty,
-                error: new AuthenticationError({
-                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                }),
-            },
-            {
-                rule: validation.isString,
-                error: new AuthenticationError({
-                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                }),
-            },
-        ],
-        fieldName: "refresh_token",
-        value: refreshToken,
-    });
-};
-
 export default {
     isValidAccessCode,
     isValidGrantType,
     isValidCodeVerifier,
-    isValidRefreshToken,
 };

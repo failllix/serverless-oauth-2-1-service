@@ -6,6 +6,7 @@ import AuthenticationError from "./error/authenticationError.js";
 import basicAuthHelper from "./helper/basicAuth.js";
 import logger from "./logger.js";
 import codeStorage from "./storage/code.js";
+import grantStorage from "./storage/grant.js";
 import util from "./util.js";
 import authCodeGrantValidator from "./validation/authCodeGrantValidator.js";
 import sharedValidator from "./validation/sharedValidator.js";
@@ -75,6 +76,8 @@ async function handleAuthorizationRequest(request) {
 
         const accessCode = await util.generateRandomSha256HexString();
 
+        const grantId = util.getRandomUUID();
+
         await codeStorage.saveAccessCode({
             code: accessCode,
             scope: validatedParameters.scope,
@@ -82,7 +85,10 @@ async function handleAuthorizationRequest(request) {
             codeChallenge: validatedParameters.codeChallenge,
             codeChallengeMethod: validatedParameters.codeChallengeMethod,
             username,
+            grantId,
         });
+
+        await grantStorage.saveGrant({ grantId, clientId: validatedParameters.clientId, scope: validatedParameters.scope, username });
 
         const redirectUrl = new URL(validatedParameters.redirectUri);
         redirectUrl.searchParams.set("code", accessCode);

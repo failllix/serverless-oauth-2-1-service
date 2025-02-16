@@ -2,6 +2,7 @@ import AuthenticationError from "./error/authenticationError.js";
 import logger from "./logger.js";
 import { INTERNAL_SERVER_ERROR, NOT_IMPLEMENTED } from "./responses.js";
 import authCodeTokenFlow from "./tokenFlows/authCodeTokenFlow.js";
+import refreshTokenFlow from "./tokenFlows/refreshTokenFlow.js";
 import tokenExchangeValidator from "./validation/tokenExchangeValidator.js";
 
 async function handleTokenRequest(request) {
@@ -11,11 +12,14 @@ async function handleTokenRequest(request) {
 
         logger.logMessage(`Grant type: ${validatedGrantType}`);
 
-        if (validatedGrantType === "authorization_code") {
-            return await authCodeTokenFlow.exchangeAccessCodeForToken(formData);
+        switch (validatedGrantType) {
+            case "authorization_code":
+                return await authCodeTokenFlow.exchangeAccessCodeForToken(formData);
+            case "refresh_token":
+                return await refreshTokenFlow.exchangeRefreshTokenForAccessToken(formData);
+            default:
+                return NOT_IMPLEMENTED;
         }
-
-        return NOT_IMPLEMENTED;
     } catch (failure) {
         logger.logError(failure);
 

@@ -3,8 +3,8 @@ import sinon from "sinon";
 import AuthenticationError from "../../../src/error/authenticationError.js";
 import logger from "../../../src/logger.js";
 import codeStorage from "../../../src/storage/code.js";
-import environmentVariables from "../../../src/storage/environmentVariables.js";
 import authCodeTokenFlow from "../../../src/tokenFlows/authCodeTokenFlow.js";
+import tokenCreator from "../../../src/tokenFlows/tokenCreator.js";
 import util from "../../../src/util.js";
 import sharedValidator from "../../../src/validation/sharedValidator.js";
 import tokenExchangeValidator from "../../../src/validation/tokenExchangeValidator.js";
@@ -159,13 +159,9 @@ describe("Auth code token flow", () => {
     });
 
     describe("post validation", () => {
-        let clock;
-
         beforeEach(() => {
             sinon.stub(sharedValidator);
             sinon.stub(tokenExchangeValidator);
-
-            clock = sinon.useFakeTimers();
 
             sharedValidator.isValidClientId.returns("someClientId");
             sharedValidator.isValidRedirectUri.returns("someRedirectUri");
@@ -370,171 +366,42 @@ describe("Auth code token flow", () => {
                     sinon.assert.calledWithExactly(util.uint8ToUrlBase64, "someCodeVerifierSha256Hash");
                 }
             });
-
-            it("should throw if importing private key rejects", async () => {
-                sinon.stub(codeStorage);
-                sinon.stub(util);
-                sinon.stub(crypto.subtle);
-                sinon.stub(environmentVariables);
-
-                codeStorage.getAccessCode.resolves({
-                    clientId: "someClientId",
-                    codeChallengeMethod: "S256",
-                    codeChallenge: "someCodeVerifierSha256HashBase64",
-                    scope: ["someScope1", "someScope2"],
-                });
-
-                util.calculateSha256FromString.resolves("someCodeVerifierSha256Hash");
-                util.uint8ToUrlBase64.withArgs("someCodeVerifierSha256Hash").returns("someCodeVerifierSha256HashBase64");
-                environmentVariables.getSigningKey.returns('{"fooKey":true}');
-
-                const expectedError = new Error("Private key is malformed");
-                crypto.subtle.importKey.rejects(expectedError);
-
-                try {
-                    await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
-                    throw new Error("Function under test was expected to throw error");
-                } catch (error) {
-                    assert.equal(error, expectedError);
-
-                    sinon.assert.calledWithExactly(codeStorage.getAccessCode, "someAccessCode");
-
-                    sinon.assert.calledWithExactly(util.calculateSha256FromString, "someCodeVerifier");
-                    sinon.assert.calledWithExactly(util.uint8ToUrlBase64, "someCodeVerifierSha256Hash");
-                    sinon.assert.calledWithExactly(environmentVariables.getSigningKey);
-                    sinon.assert.calledOnceWithExactly(
-                        crypto.subtle.importKey,
-                        "jwk",
-                        { fooKey: true },
-                        {
-                            name: "ECDSA",
-                            namedCurve: "P-521",
-                        },
-                        true,
-                        ["sign"],
-                    );
-                }
-            });
-
-            it("should throw if signing token rejects", async () => {
-                sinon.stub(codeStorage);
-                sinon.stub(util);
-                sinon.stub(crypto.subtle);
-                sinon.stub(environmentVariables);
-
-                codeStorage.getAccessCode.resolves({
-                    clientId: "someClientId",
-                    codeChallengeMethod: "S256",
-                    codeChallenge: "someCodeVerifierSha256HashBase64",
-                    scope: ["someScope1", "someScope2"],
-                });
-
-                util.calculateSha256FromString.resolves("someCodeVerifierSha256Hash");
-                util.uint8ToUrlBase64.withArgs("someCodeVerifierSha256Hash").returns("someCodeVerifierSha256HashBase64");
-                environmentVariables.getSigningKey.returns('{"fooKey":true}');
-                environmentVariables.getTokenTimeToLive.returns(10);
-
-                clock.tick(1000);
-
-                crypto.subtle.importKey.resolves("importedPrivateKey");
-
-                util.strToUrlBase64.withArgs('{"alg":"ES512","typ":"JWT"}').returns("tokenHeader");
-                util.strToUrlBase64.withArgs('{"aud":"abc","iss":"abc","exp":11,"iat":1,"scope":["someScope1","someScope2"]}').returns("tokenPayload");
-                util.strToUint8.withArgs("tokenHeader.tokenPayload").returns("tokenBody");
-
-                const expectedError = new Error("I forgot my signature");
-                crypto.subtle.sign.rejects(expectedError);
-
-                try {
-                    await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
-                    throw new Error("Function under test was expected to throw error");
-                } catch (error) {
-                    assert.equal(error, expectedError);
-
-                    sinon.assert.calledWithExactly(codeStorage.getAccessCode, "someAccessCode");
-
-                    sinon.assert.calledWithExactly(util.calculateSha256FromString, "someCodeVerifier");
-                    sinon.assert.calledWithExactly(util.uint8ToUrlBase64, "someCodeVerifierSha256Hash");
-                    sinon.assert.calledWithExactly(environmentVariables.getSigningKey);
-                    sinon.assert.calledOnceWithExactly(
-                        crypto.subtle.importKey,
-                        "jwk",
-                        { fooKey: true },
-                        {
-                            name: "ECDSA",
-                            namedCurve: "P-521",
-                        },
-                        true,
-                        ["sign"],
-                    );
-
-                    sinon.assert.calledOnceWithExactly(crypto.subtle.sign, { name: "ECDSA", hash: "SHA-512" }, "importedPrivateKey", "tokenBody");
-                }
-            });
         });
 
         describe("success cases", () => {
             it("should return token response", async () => {
                 sinon.stub(codeStorage);
                 sinon.stub(util);
-                sinon.stub(crypto.subtle);
-                sinon.stub(environmentVariables);
+                sinon.stub(tokenCreator);
 
                 codeStorage.getAccessCode.resolves({
                     clientId: "someClientId",
                     codeChallengeMethod: "S256",
                     codeChallenge: "someCodeVerifierSha256HashBase64",
                     scope: ["someScope1", "someScope2"],
+                    grantId: "someGrantId",
+                    username: "dummy",
                 });
 
                 util.calculateSha256FromString.resolves("someCodeVerifierSha256Hash");
                 util.uint8ToUrlBase64.withArgs("someCodeVerifierSha256Hash").returns("someCodeVerifierSha256HashBase64");
-                environmentVariables.getSigningKey.returns('{"fooKey":true}');
-                environmentVariables.getTokenTimeToLive.returns(10);
 
-                clock.tick(1000);
-
-                crypto.subtle.importKey.resolves("importedPrivateKey");
-
-                util.strToUrlBase64.withArgs('{"alg":"ES512","typ":"JWT"}').returns("tokenHeader");
-                util.strToUrlBase64.withArgs('{"aud":"abc","iss":"abc","exp":11,"iat":1,"scope":["someScope1","someScope2"]}').returns("tokenPayload");
-                util.strToUint8.withArgs("tokenHeader.tokenPayload").returns("tokenBody");
-
-                crypto.subtle.sign.resolves("tokenSignature");
-
-                util.uint8ToUrlBase64.returns("tokenSignatureBase64");
+                tokenCreator.getAccessTokenResponse.resolves("tokenResponse");
 
                 const response = await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
 
-                assert.equal(response.status, 200);
-                assert.deepEqual(await response.json(), {
-                    access_token: "tokenHeader.tokenPayload.tokenSignatureBase64",
-                    refresh_token: "token",
-                    token_type: "JWT",
-                    expires_in: 10,
-                    scope: ["someScope1", "someScope2"],
-                });
+                assert.equal(response, "tokenResponse");
 
                 sinon.assert.calledWithExactly(codeStorage.getAccessCode, "someAccessCode");
 
                 sinon.assert.calledWithExactly(util.calculateSha256FromString, "someCodeVerifier");
                 sinon.assert.calledWithExactly(util.uint8ToUrlBase64, "someCodeVerifierSha256Hash");
-                sinon.assert.calledWithExactly(environmentVariables.getSigningKey);
-                sinon.assert.calledOnceWithExactly(
-                    crypto.subtle.importKey,
-                    "jwk",
-                    { fooKey: true },
-                    {
-                        name: "ECDSA",
-                        namedCurve: "P-521",
-                    },
-                    true,
-                    ["sign"],
-                );
-
-                sinon.assert.calledOnceWithExactly(crypto.subtle.sign, { name: "ECDSA", hash: "SHA-512" }, "importedPrivateKey", "tokenBody");
-
-                sinon.assert.calledWith(util.uint8ToUrlBase64, new Uint8Array("tokenSignature"));
+                sinon.assert.calledWithExactly(tokenCreator.getAccessTokenResponse, {
+                    clientId: "someClientId",
+                    grantId: "someGrantId",
+                    scope: ["someScope1", "someScope2"],
+                    username: "dummy",
+                });
             });
         });
     });

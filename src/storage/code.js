@@ -6,7 +6,7 @@ const getAccessCode = async (code) => {
     return JSON.parse(await storageManager.getCodeKeyValueStorage().get(code));
 };
 
-const saveAccessCode = async ({ code, scope = [], clientId, codeChallenge, codeChallengeMethod, username }) => {
+const saveAccessCode = async ({ code, scope = [], clientId, codeChallenge, codeChallengeMethod, username, grantId }) => {
     await storageManager.getCodeKeyValueStorage().put(
         code,
         JSON.stringify({
@@ -15,6 +15,7 @@ const saveAccessCode = async ({ code, scope = [], clientId, codeChallenge, codeC
             codeChallenge,
             codeChallengeMethod,
             username,
+            grantId,
         }),
         { expirationTtl: expirationTimeToLiveSeconds },
     );

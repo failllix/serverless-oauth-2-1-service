@@ -12,4 +12,8 @@ const getTokenTimeToLive = () => {
     return storageManager.getEnvironmentVariableStorage().tokenTimeToLive;
 };
 
-export default { getSigningKey, getPublicKey, getTokenTimeToLive };
+const getRefreshTokenTimeToLive = () => {
+    return storageManager.getEnvironmentVariableStorage().refreshTokenTimeToLive;
+};
+
+export default { getSigningKey, getPublicKey, getTokenTimeToLive, getRefreshTokenTimeToLive };

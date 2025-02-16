@@ -35,9 +35,10 @@ describe("Code storage", () => {
                 codeChallenge: "abc",
                 codeChallengeMethod: "def",
                 username: "test",
+                grantId: "someGrantId",
             });
 
-            sinon.assert.calledOnceWithExactly(keyValuePutStub, "myCode", '{"scope":["test"],"clientId":"test","codeChallenge":"abc","codeChallengeMethod":"def","username":"test"}', { expirationTtl: 120 });
+            sinon.assert.calledOnceWithExactly(keyValuePutStub, "myCode", '{"scope":["test"],"clientId":"test","codeChallenge":"abc","codeChallengeMethod":"def","username":"test","grantId":"someGrantId"}', { expirationTtl: 120 });
         });
     });
 });

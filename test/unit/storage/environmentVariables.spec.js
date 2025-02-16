@@ -45,4 +45,18 @@ describe("Environment Variables", () => {
             assert.equal(timeToLive, 100);
         });
     });
+
+    describe("getRefreshTokenTimeToLive", () => {
+        it("should return value from storage manager", () => {
+            sinon.stub(storageManager);
+
+            storageManager.getEnvironmentVariableStorage.returns({
+                refreshTokenTimeToLive: 600,
+            });
+
+            const timeToLive = environmentVariables.getRefreshTokenTimeToLive();
+
+            assert.equal(timeToLive, 600);
+        });
+    });
 });

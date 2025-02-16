@@ -73,19 +73,63 @@ describe("Storage Manager", () => {
         });
     });
 
+    describe("Grant key-value storage", () => {
+        it("should initialize the grant key-value storage to the value provided in the environment", () => {
+            storageManager.initializeStorage({
+                GRANT: "grant_KV",
+            });
+
+            const clientKeyValueStorage = storageManager.getGrantKeyValueStorage();
+
+            assert.equal(clientKeyValueStorage, "grant_KV");
+        });
+
+        it("should throw an error if one tries to access the grant key-value storage before initialization", () => {
+            try {
+                storageManager.getGrantKeyValueStorage();
+                return Promise.reject("Function under test never threw error");
+            } catch (error) {
+                assert.equal(error.message, "Grant key-value storage was not initialized.");
+            }
+        });
+    });
+
+    describe("Refresh token key-value storage", () => {
+        it("should initialize the code key-value storage to the value provided in the environment", () => {
+            storageManager.initializeStorage({
+                REFRESH_TOKEN: "refresh_token_KV",
+            });
+
+            const clientKeyValueStorage = storageManager.getRefreshTokenKeyValueStorage();
+
+            assert.equal(clientKeyValueStorage, "refresh_token_KV");
+        });
+
+        it("should throw an error if one tries to access the code key-value storage before initialization", () => {
+            try {
+                storageManager.getRefreshTokenKeyValueStorage();
+                return Promise.reject("Function under test never threw error");
+            } catch (error) {
+                assert.equal(error.message, "Refresh token key-value storage was not initialized.");
+            }
+        });
+    });
+
     describe("Environment variable storage", () => {
         it("should initialize the environment key-value storage to the values provided in the environment", () => {
             storageManager.initializeStorage({
                 SIGNING_KEY: "secret",
                 PUBLIC_KEY: "notSecret",
                 TOKEN_TIME_TO_LIVE: "5",
+                REFRESH_TOKEN_TIME_TO_LIVE: "500",
             });
 
             const environmentKeyValueStorage = storageManager.getEnvironmentVariableStorage();
 
             assert.deepEqual(environmentKeyValueStorage, {
                 signingKey: "secret",
-                publickey: "notSecret",
+                publicKey: "notSecret",
+                refreshTokenTimeToLive: 500,
                 tokenTimeToLive: 5,
             });
         });
@@ -104,6 +148,7 @@ describe("Storage Manager", () => {
                 storageManager.initializeStorage({
                     PUBLIC_KEY: "notSecret",
                     TOKEN_TIME_TO_LIVE: "5",
+                    REFRESH_TOKEN_TIME_TO_LIVE: "10",
                 });
                 storageManager.getEnvironmentVariableStorage();
                 return Promise.reject("Function under test never threw error");
@@ -117,6 +162,7 @@ describe("Storage Manager", () => {
                 storageManager.initializeStorage({
                     SIGNING_KEY: "secret",
                     TOKEN_TIME_TO_LIVE: "5",
+                    REFRESH_TOKEN_TIME_TO_LIVE: "10",
                 });
                 storageManager.getEnvironmentVariableStorage();
                 return Promise.reject("Function under test never threw error");
@@ -125,11 +171,12 @@ describe("Storage Manager", () => {
             }
         });
 
-        it("should throw an error if time to live is missing", () => {
+        it("should throw an error if access token time to live is missing", () => {
             try {
                 storageManager.initializeStorage({
                     SIGNING_KEY: "secret",
                     PUBLIC_KEY: "notSecret",
+                    REFRESH_TOKEN_TIME_TO_LIVE: "10",
                 });
                 storageManager.getEnvironmentVariableStorage();
                 return Promise.reject("Function under test never threw error");
@@ -138,12 +185,42 @@ describe("Storage Manager", () => {
             }
         });
 
-        it("should throw an error if time to live is no number", () => {
+        it("should throw an error if access token time to live is not a number", () => {
             try {
                 storageManager.initializeStorage({
                     SIGNING_KEY: "secret",
                     PUBLIC_KEY: "notSecret",
                     TOKEN_TIME_TO_LIVE: "notANumber",
+                    REFRESH_TOKEN_TIME_TO_LIVE: "10",
+                });
+                storageManager.getEnvironmentVariableStorage();
+                return Promise.reject("Function under test never threw error");
+            } catch (error) {
+                assert.equal(error.message, "Environment variable storage was not initialized.");
+            }
+        });
+
+        it("should throw an error if refresh token time to live is missing", () => {
+            try {
+                storageManager.initializeStorage({
+                    SIGNING_KEY: "secret",
+                    PUBLIC_KEY: "notSecret",
+                    TOKEN_TIME_TO_LIVE: "10",
+                });
+                storageManager.getEnvironmentVariableStorage();
+                return Promise.reject("Function under test never threw error");
+            } catch (error) {
+                assert.equal(error.message, "Environment variable storage was not initialized.");
+            }
+        });
+
+        it("should throw an error if refresh token time to live is not a number", () => {
+            try {
+                storageManager.initializeStorage({
+                    SIGNING_KEY: "secret",
+                    PUBLIC_KEY: "notSecret",
+                    TOKEN_TIME_TO_LIVE: "10",
+                    REFRESH_TOKEN_TIME_TO_LIVE: "notANumber",
                 });
                 storageManager.getEnvironmentVariableStorage();
                 return Promise.reject("Function under test never threw error");

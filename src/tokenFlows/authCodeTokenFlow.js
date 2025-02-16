@@ -1,11 +1,10 @@
 import AuthenticationError from ".././error/authenticationError.js";
 import logger from ".././logger.js";
-import { SUCCESS } from ".././responses.js";
 import codeStorage from ".././storage/code.js";
-import environmentVariables from ".././storage/environmentVariables.js";
 import util from ".././util.js";
 import sharedValidator from ".././validation/sharedValidator.js";
 import tokenExchangeValidator from ".././validation/tokenExchangeValidator.js";
+import tokenCreator from "./tokenCreator.js";
 
 const getValidatedAuthorizationCodeExchangeParameters = (formData) => {
     const validatedParameters = {
@@ -22,19 +21,6 @@ const getValidatedAuthorizationCodeExchangeParameters = (formData) => {
     });
     return validatedParameters;
 };
-
-async function getPrivateKey() {
-    return await crypto.subtle.importKey(
-        "jwk",
-        JSON.parse(environmentVariables.getSigningKey()),
-        {
-            name: "ECDSA",
-            namedCurve: "P-521",
-        },
-        true,
-        ["sign"],
-    );
-}
 
 const exchangeAccessCodeForToken = async (formData) => {
     const validatedParameters = getValidatedAuthorizationCodeExchangeParameters(formData);
@@ -78,42 +64,11 @@ const exchangeAccessCodeForToken = async (formData) => {
         });
     }
 
-    const tokenHeader = {
-        alg: "ES512",
-        typ: "JWT",
-    };
-
-    const tokenTimeToLive = environmentVariables.getTokenTimeToLive();
-
-    const tokenPayload = {
-        aud: "abc",
-        iss: "abc",
-        sub: accessCodeDetails.username,
-        exp: Math.round(Date.now() / 1000) + tokenTimeToLive,
-        iat: Math.round(Date.now() / 1000),
+    return await tokenCreator.getAccessTokenResponse({
+        clientId: accessCodeDetails.clientId,
+        grantId: accessCodeDetails.grantId,
         scope: validatedParameters.scope,
-    };
-
-    const tokenHeaderBase64 = util.strToUrlBase64(JSON.stringify(tokenHeader));
-    const tokenPayloadBase64 = util.strToUrlBase64(JSON.stringify(tokenPayload));
-
-    const key = await getPrivateKey();
-
-    const tokenSignatureBase64 = util.uint8ToUrlBase64(new Uint8Array(await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-512" }, key, util.strToUint8(`${tokenHeaderBase64}.${tokenPayloadBase64}`))));
-
-    const token = [tokenHeaderBase64, tokenPayloadBase64, tokenSignatureBase64].join(".");
-
-    const tokenResponse = {
-        access_token: token,
-        refresh_token: "token",
-        token_type: "JWT",
-        expires_in: tokenTimeToLive,
-        scope: validatedParameters.scope,
-    };
-
-    return SUCCESS({
-        jsonResponse: tokenResponse,
-        headers: { "Cache-Control": "no-store" },
+        username: accessCodeDetails.username,
     });
 };
 
