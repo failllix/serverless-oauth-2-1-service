@@ -24,6 +24,11 @@ function strToUrlBase64(str) {
     return binToUrlBase64(utf8ToBinaryString(str));
 }
 
+function urlBase64ToStr(urlBase64String) {
+    const base64String = urlBase64ToBase64(urlBase64String);
+    return atob(base64String);
+}
+
 function urlBase64Touint8(urlBase64String) {
     const base64String = urlBase64ToBase64(urlBase64String);
     return Uint8Array.from(atob(base64String), (c) => c.charCodeAt(0));
@@ -71,6 +76,10 @@ async function generateRandomSha256HexString() {
         .join("");
 }
 
+function getRandomUUID() {
+    return crypto.randomUUID();
+}
+
 async function getPBKDF2PasswordHash(password, base64Salt) {
     try {
         const encodedPassword = new TextEncoder().encode(password);
@@ -98,6 +107,7 @@ async function getPBKDF2PasswordHash(password, base64Salt) {
 
 export default {
     strToUrlBase64,
+    urlBase64ToStr,
     strToUint8,
     uint8ToUrlBase64,
     strToSha512HexString,
@@ -105,4 +115,5 @@ export default {
     getPBKDF2PasswordHash,
     urlBase64Touint8,
     generateRandomSha256HexString,
+    getRandomUUID,
 };
