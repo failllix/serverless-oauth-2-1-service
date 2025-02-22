@@ -1,18 +1,218 @@
 import { assert } from "chai";
+import sinon from "sinon";
+import authorizationRequestHandler from "../../src/authorizationRequestHandler.js";
 import requestHandler from "../../src/index.js";
+import storageManager from "../../src/storage/manager.js";
+import tokenRequestHandler from "../../src/tokenRequestHandler.js";
 
-xdescribe("App entry point (request handler)", () => {
-    it("should return CORS headers for OPTIONS request", async () => {
+describe("App entry point", () => {
+    it("should return not found response when request does not match handled routes", async () => {
+        sinon.stub(storageManager);
+
         const dummyRequest = {
-            method: "OPTIONS",
-            url: "http://localhost:123",
+            method: "POST",
+            url: "http://localhost:123/unhandled",
         };
-        const response = await requestHandler.fetch(dummyRequest, null, null);
+        const dummyEnv = { someEnv: "something" };
 
-        assert.deepEqual(Object.fromEntries(response.headers), {
-            "access-control-allow-origin": "*",
-            "access-control-allow-methods": "GET, HEAD, POST, OPTIONS",
-            "access-control-allow-headers": "Content-Type",
+        const response = await requestHandler.fetch(dummyRequest, dummyEnv, null);
+
+        assert.equal(response.status, 404);
+        assert.equal(await response.text(), "");
+        assert.deepEqual(Object.fromEntries(response.headers), {});
+
+        sinon.assert.calledOnceWithExactly(storageManager.initializeStorage, dummyEnv);
+    });
+
+    describe("authorization endpoint", () => {
+        it("should return CORS headers for OPTIONS request when environment is 'local'", async () => {
+            sinon.stub(storageManager);
+            const dummyRequest = {
+                method: "OPTIONS",
+                url: "http://localhost:123/authorize",
+            };
+            const dummyEnv = { ENVIRONMENT: "local" };
+
+            const response = await requestHandler.fetch(dummyRequest, dummyEnv, null);
+
+            assert.equal(response.status, 200);
+            assert.equal(await response.text(), '""');
+            assert.deepEqual(Object.fromEntries(response.headers), {
+                "access-control-allow-origin": "http://localhost:8788",
+                "access-control-allow-methods": "GET, POST",
+                "access-control-allow-headers": "Authorization, Content-Type",
+                "content-type": "text/plain;charset=UTF-8",
+            });
+
+            sinon.assert.calledOnceWithExactly(storageManager.initializeStorage, dummyEnv);
+        });
+
+        it("should not return CORS headers for OPTIONS request when environment is not 'local'", async () => {
+            sinon.stub(storageManager);
+            const dummyRequest = {
+                method: "OPTIONS",
+                url: "http://localhost:123/authorize",
+            };
+            const dummyEnv = { ENVIRONMENT: "notLocal" };
+
+            const response = await requestHandler.fetch(dummyRequest, dummyEnv, null);
+
+            assert.equal(response.status, 200);
+            assert.equal(await response.text(), '""');
+            assert.deepEqual(Object.fromEntries(response.headers), {
+                "content-type": "text/plain;charset=UTF-8",
+            });
+
+            sinon.assert.calledOnceWithExactly(storageManager.initializeStorage, dummyEnv);
+        });
+
+        for (const method of ["GET", "POST"]) {
+            describe(`authorization request using ${method} method`, () => {
+                it("should return response from authorization request handler with CORS headers when environment is 'local'", async () => {
+                    sinon.stub(storageManager);
+                    sinon.stub(authorizationRequestHandler);
+
+                    const dummyRequest = {
+                        method,
+                        url: "http://localhost:123/authorize",
+                    };
+                    const dummyEnv = { ENVIRONMENT: "local" };
+
+                    const dummyResponse = new Response("fooo");
+                    authorizationRequestHandler.handleAuthorizationRequest.resolves(dummyResponse);
+
+                    const response = await requestHandler.fetch(dummyRequest, dummyEnv, null);
+
+                    assert.equal(response, dummyResponse);
+                    assert.deepEqual(Object.fromEntries(response.headers), {
+                        "access-control-allow-origin": "http://localhost:8788",
+                        "access-control-allow-methods": "GET, POST",
+                        "access-control-allow-headers": "Authorization, Content-Type",
+                        "content-type": "text/plain;charset=UTF-8",
+                    });
+
+                    sinon.assert.calledOnceWithExactly(authorizationRequestHandler.handleAuthorizationRequest, dummyRequest);
+                    sinon.assert.calledOnceWithExactly(storageManager.initializeStorage, dummyEnv);
+                });
+
+                it("should return response from authorization request handler without CORS headers when environment is not 'local'", async () => {
+                    sinon.stub(storageManager);
+                    sinon.stub(authorizationRequestHandler);
+
+                    const dummyRequest = {
+                        method,
+                        url: "http://localhost:123/authorize",
+                    };
+                    const dummyEnv = { ENVIRONMENT: "notLocal" };
+
+                    const dummyResponse = new Response("fooo");
+                    authorizationRequestHandler.handleAuthorizationRequest.resolves(dummyResponse);
+
+                    const response = await requestHandler.fetch(dummyRequest, dummyEnv, null);
+
+                    assert.equal(response, dummyResponse);
+                    assert.deepEqual(Object.fromEntries(response.headers), {
+                        "content-type": "text/plain;charset=UTF-8",
+                    });
+
+                    sinon.assert.calledOnceWithExactly(authorizationRequestHandler.handleAuthorizationRequest, dummyRequest);
+                    sinon.assert.calledOnceWithExactly(storageManager.initializeStorage, dummyEnv);
+                });
+            });
+        }
+    });
+
+    describe("token endpoint", () => {
+        it("should return CORS headers for OPTIONS request when environment is 'local'", async () => {
+            sinon.stub(storageManager);
+            const dummyRequest = {
+                method: "OPTIONS",
+                url: "http://localhost:123/token",
+            };
+            const dummyEnv = { ENVIRONMENT: "local" };
+
+            const response = await requestHandler.fetch(dummyRequest, dummyEnv, null);
+
+            assert.equal(response.status, 200);
+            assert.equal(await response.text(), '""');
+            assert.deepEqual(Object.fromEntries(response.headers), {
+                "access-control-allow-headers": "Authorization, Content-Type",
+                "access-control-allow-methods": "POST",
+                "access-control-allow-origin": "http://localhost:8788",
+                "content-type": "text/plain;charset=UTF-8",
+            });
+
+            sinon.assert.calledOnceWithExactly(storageManager.initializeStorage, dummyEnv);
+        });
+
+        it("should not return CORS headers for OPTIONS request when environment is not 'local'", async () => {
+            sinon.stub(storageManager);
+            const dummyRequest = {
+                method: "OPTIONS",
+                url: "http://localhost:123/token",
+            };
+            const dummyEnv = { ENVIRONMENT: "notLocal" };
+
+            const response = await requestHandler.fetch(dummyRequest, dummyEnv, null);
+
+            assert.equal(response.status, 200);
+            assert.equal(await response.text(), '""');
+            assert.deepEqual(Object.fromEntries(response.headers), {
+                "content-type": "text/plain;charset=UTF-8",
+            });
+
+            sinon.assert.calledOnceWithExactly(storageManager.initializeStorage, dummyEnv);
+        });
+
+        it("should return response from authorization request handler with CORS headers when environment is 'local'", async () => {
+            sinon.stub(storageManager);
+            sinon.stub(tokenRequestHandler);
+
+            const dummyRequest = {
+                method: "POST",
+                url: "http://localhost:123/token",
+            };
+            const dummyEnv = { ENVIRONMENT: "local" };
+
+            const dummyResponse = new Response("fooo");
+            tokenRequestHandler.handleTokenRequest.resolves(dummyResponse);
+
+            const response = await requestHandler.fetch(dummyRequest, dummyEnv, null);
+
+            assert.equal(response, dummyResponse);
+            assert.deepEqual(Object.fromEntries(response.headers), {
+                "access-control-allow-headers": "Authorization, Content-Type",
+                "access-control-allow-methods": "POST",
+                "access-control-allow-origin": "http://localhost:8788",
+                "content-type": "text/plain;charset=UTF-8",
+            });
+
+            sinon.assert.calledOnceWithExactly(tokenRequestHandler.handleTokenRequest, dummyRequest);
+            sinon.assert.calledOnceWithExactly(storageManager.initializeStorage, dummyEnv);
+        });
+
+        it("should return response from authorization request handler without CORS headers when environment is not 'local'", async () => {
+            sinon.stub(storageManager);
+            sinon.stub(tokenRequestHandler);
+
+            const dummyRequest = {
+                method: "POST",
+                url: "http://localhost:123/token",
+            };
+            const dummyEnv = { ENVIRONMENT: "notLocal" };
+
+            const dummyResponse = new Response("fooo");
+            tokenRequestHandler.handleTokenRequest.resolves(dummyResponse);
+
+            const response = await requestHandler.fetch(dummyRequest, dummyEnv, null);
+
+            assert.equal(response, dummyResponse);
+            assert.deepEqual(Object.fromEntries(response.headers), {
+                "content-type": "text/plain;charset=UTF-8",
+            });
+
+            sinon.assert.calledOnceWithExactly(tokenRequestHandler.handleTokenRequest, dummyRequest);
+            sinon.assert.calledOnceWithExactly(storageManager.initializeStorage, dummyEnv);
         });
     });
 });
