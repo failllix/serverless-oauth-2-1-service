@@ -39,7 +39,7 @@ describe("Auth code token flow", () => {
             sharedValidator.isValidClientId.throws(expectedError);
 
             try {
-                await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
+                await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
                 throw new Error("Function under test was expected to throw error");
             } catch (error) {
                 assert.equal(expectedError, error);
@@ -57,7 +57,7 @@ describe("Auth code token flow", () => {
             sharedValidator.isValidRedirectUri.throws(expectedError);
 
             try {
-                await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
+                await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
                 throw new Error("Function under test was expected to throw error");
             } catch (error) {
                 assert.equal(expectedError, error);
@@ -80,7 +80,7 @@ describe("Auth code token flow", () => {
             sharedValidator.isValidScope.throws(expectedError);
 
             try {
-                await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
+                await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
                 throw new Error("Function under test was expected to throw error");
             } catch (error) {
                 assert.equal(expectedError, error);
@@ -107,7 +107,7 @@ describe("Auth code token flow", () => {
             tokenExchangeValidator.isValidCodeVerifier.throws(expectedError);
 
             try {
-                await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
+                await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
                 throw new Error("Function under test was expected to throw error");
             } catch (error) {
                 assert.equal(expectedError, error);
@@ -137,7 +137,7 @@ describe("Auth code token flow", () => {
             tokenExchangeValidator.isValidAccessCode.throws(expectedError);
 
             try {
-                await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
+                await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
                 throw new Error("Function under test was expected to throw error");
             } catch (error) {
                 assert.equal(expectedError, error);
@@ -191,7 +191,7 @@ describe("Auth code token flow", () => {
                 codeStorage.getAccessCode.rejects(expectedError);
 
                 try {
-                    await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
+                    await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.equal(error, expectedError);
@@ -206,7 +206,7 @@ describe("Auth code token flow", () => {
                 codeStorage.getAccessCode.resolves(null);
 
                 try {
-                    await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
+                    await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.instanceOf(error, AuthenticationError);
@@ -225,7 +225,7 @@ describe("Auth code token flow", () => {
                 });
 
                 try {
-                    await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
+                    await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.instanceOf(error, AuthenticationError);
@@ -245,7 +245,7 @@ describe("Auth code token flow", () => {
                 });
 
                 try {
-                    await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
+                    await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.instanceOf(error, AuthenticationError);
@@ -269,7 +269,7 @@ describe("Auth code token flow", () => {
                 util.calculateSha256FromString.rejects(expectedError);
 
                 try {
-                    await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
+                    await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.equal(error, expectedError);
@@ -295,7 +295,7 @@ describe("Auth code token flow", () => {
                 util.uint8ToUrlBase64.withArgs("someCodeVerifierSha256Hash").returns("someCodeVerifierSha256HashBase64");
 
                 try {
-                    await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
+                    await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.instanceOf(error, AuthenticationError);
@@ -324,7 +324,7 @@ describe("Auth code token flow", () => {
                 util.uint8ToUrlBase64.withArgs("someCodeVerifierSha256Hash").returns("someCodeVerifierSha256HashBase64");
 
                 try {
-                    await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
+                    await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.instanceOf(error, AuthenticationError);
@@ -353,7 +353,7 @@ describe("Auth code token flow", () => {
                 util.uint8ToUrlBase64.withArgs("someCodeVerifierSha256Hash").returns("someCodeVerifierSha256HashBase64");
 
                 try {
-                    await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
+                    await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.instanceOf(error, AuthenticationError);
@@ -388,7 +388,7 @@ describe("Auth code token flow", () => {
 
                 tokenCreator.getAccessTokenResponse.resolves("tokenResponse");
 
-                const response = await authCodeTokenFlow.exchangeAccessCodeForToken(mockedFormData);
+                const response = await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
 
                 assert.equal(response, "tokenResponse");
 
@@ -401,6 +401,7 @@ describe("Auth code token flow", () => {
                     grantId: "someGrantId",
                     scope: ["someScope1", "someScope2"],
                     username: "dummy",
+                    issuer: "someHost",
                 });
             });
         });

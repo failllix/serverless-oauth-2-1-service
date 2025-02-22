@@ -35,7 +35,7 @@ const getValidatedRefreshTokenFlowParameters = (formData) => {
     return validatedParameters;
 };
 
-async function exchangeRefreshTokenForAccessToken(formData) {
+async function exchangeRefreshTokenForAccessToken({ formData, host }) {
     const validatedParameters = getValidatedRefreshTokenFlowParameters(formData);
 
     const refreshToken = validatedParameters.refreshToken;
@@ -110,6 +110,7 @@ async function exchangeRefreshTokenForAccessToken(formData) {
         clientId: validatedParameters.clientId,
         scope: validatedParameters.scope,
         username: grantDetails.username,
+        issuer: host,
     });
 }
 

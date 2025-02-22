@@ -10,13 +10,16 @@ async function handleTokenRequest(request) {
         const formData = await request.formData();
         const validatedGrantType = tokenExchangeValidator.isValidGrantType(formData.get("grant_type"));
 
+        const url = new URL(request.url);
+        const host = url.hostname;
+
         logger.logMessage(`Grant type: ${validatedGrantType}`);
 
         switch (validatedGrantType) {
             case "authorization_code":
-                return await authCodeTokenFlow.exchangeAccessCodeForToken(formData);
+                return await authCodeTokenFlow.exchangeAccessCodeForToken({ formData, host });
             case "refresh_token":
-                return await refreshTokenFlow.exchangeRefreshTokenForAccessToken(formData);
+                return await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData, host });
             default:
                 return NOT_IMPLEMENTED;
         }

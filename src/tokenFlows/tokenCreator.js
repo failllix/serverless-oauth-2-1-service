@@ -22,7 +22,7 @@ async function getUrlBase64EncodedSignature(content) {
     return util.uint8ToUrlBase64(new Uint8Array(await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-512" }, key, util.strToUint8(content))));
 }
 
-async function getSignedAccessToken({ scope, username, timeToLive }) {
+async function getSignedAccessToken({ scope, username, timeToLive, issuer }) {
     const tokenHeader = {
         alg: "ES512",
         typ: "JWT",
@@ -30,7 +30,7 @@ async function getSignedAccessToken({ scope, username, timeToLive }) {
 
     const tokenPayload = {
         aud: "abc",
-        iss: "abc",
+        iss: issuer,
         sub: username,
         exp: Math.round(Date.now() / 1000) + timeToLive,
         iat: Math.round(Date.now() / 1000),
@@ -68,7 +68,7 @@ async function getSignedRefreshToken({ clientId, grantId, scope, timeToLive }) {
     return refreshToken;
 }
 
-async function getAccessTokenResponse({ grantId, scope, username, clientId }) {
+async function getAccessTokenResponse({ grantId, scope, username, clientId, issuer }) {
     const accessTokenTimeToLive = environmentVariables.getTokenTimeToLive();
     const refreshTokenTimeToLive = environmentVariables.getRefreshTokenTimeToLive();
 
@@ -76,6 +76,7 @@ async function getAccessTokenResponse({ grantId, scope, username, clientId }) {
         scope,
         username,
         timeToLive: accessTokenTimeToLive,
+        issuer,
     });
 
     const refreshToken = await getSignedRefreshToken({

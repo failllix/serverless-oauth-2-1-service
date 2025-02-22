@@ -37,7 +37,7 @@ describe("Token creator", () => {
                 .withArgs(
                     JSON.stringify({
                         aud: "abc",
-                        iss: "abc",
+                        iss: "someHost",
                         sub: "dummy",
                         exp: 11,
                         iat: 1,
@@ -69,6 +69,7 @@ describe("Token creator", () => {
                     scope: ["test1", "test2"],
                     username: "dummy",
                     clientId: "someClientId",
+                    issuer: "someHost",
                 });
                 throw new Error("Function under test never threw error");
             } catch (error) {
@@ -101,7 +102,7 @@ describe("Token creator", () => {
                 .withArgs(
                     JSON.stringify({
                         aud: "abc",
-                        iss: "abc",
+                        iss: "someHost",
                         sub: "dummy",
                         exp: 11,
                         iat: 1,
@@ -137,6 +138,7 @@ describe("Token creator", () => {
                     scope: ["test1", "test2"],
                     username: "dummy",
                     clientId: "someClientId",
+                    issuer: "someHost",
                 });
                 throw new Error("Function under test never threw error");
             } catch (error) {
@@ -169,7 +171,7 @@ describe("Token creator", () => {
                 .withArgs(
                     JSON.stringify({
                         aud: "abc",
-                        iss: "abc",
+                        iss: "someHost",
                         sub: "dummy",
                         exp: 11,
                         iat: 1,
@@ -224,6 +226,7 @@ describe("Token creator", () => {
                     scope: ["test1", "test2"],
                     username: "dummy",
                     clientId: "someClientId",
+                    issuer: "someHost",
                 });
                 throw new Error("Function under test never threw error");
             } catch (error) {
@@ -256,7 +259,7 @@ describe("Token creator", () => {
                 .withArgs(
                     JSON.stringify({
                         aud: "abc",
-                        iss: "abc",
+                        iss: "someHost",
                         sub: "dummy",
                         exp: 11,
                         iat: 1,
@@ -315,6 +318,7 @@ describe("Token creator", () => {
                     scope: ["test1", "test2"],
                     username: "dummy",
                     clientId: "someClientId",
+                    issuer: "someHost",
                 });
                 throw new Error("Function under test never threw error");
             } catch (error) {
@@ -349,7 +353,7 @@ describe("Token creator", () => {
                 .withArgs(
                     JSON.stringify({
                         aud: "abc",
-                        iss: "abc",
+                        iss: "someHost",
                         sub: "dummy",
                         exp: 11,
                         iat: 1,
@@ -405,6 +409,7 @@ describe("Token creator", () => {
                 scope: ["test1", "test2"],
                 username: "dummy",
                 clientId: "someClientId",
+                issuer: "someHost",
             });
 
             assert.equal(response.status, 200);

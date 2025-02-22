@@ -22,7 +22,7 @@ const getValidatedAuthorizationCodeExchangeParameters = (formData) => {
     return validatedParameters;
 };
 
-const exchangeAccessCodeForToken = async (formData) => {
+const exchangeAccessCodeForToken = async ({ formData, host }) => {
     const validatedParameters = getValidatedAuthorizationCodeExchangeParameters(formData);
 
     const accessCodeDetails = await codeStorage.getAccessCode(validatedParameters.accessCode);
@@ -69,6 +69,7 @@ const exchangeAccessCodeForToken = async (formData) => {
         grantId: accessCodeDetails.grantId,
         scope: validatedParameters.scope,
         username: accessCodeDetails.username,
+        issuer: host,
     });
 };
 

@@ -22,6 +22,7 @@ describe("The token request handler", () => {
 
             const requestStub = {
                 formData: requestFormDataStub,
+                url: "http://localdomain.foo/token",
             };
 
             const formDataGetStub = sinon.stub();
@@ -42,7 +43,7 @@ describe("The token request handler", () => {
             sinon.assert.calledOnceWithExactly(formDataGetStub, "grant_type");
             sinon.assert.calledOnceWithExactly(tokenExchangeValidator.isValidGrantType, "someGrantType");
             sinon.assert.calledOnceWithExactly(logger.logMessage, "Grant type: authorization_code");
-            sinon.assert.calledOnceWithExactly(authCodeTokenFlow.exchangeAccessCodeForToken, formDataStub);
+            sinon.assert.calledOnceWithExactly(authCodeTokenFlow.exchangeAccessCodeForToken, { formData: formDataStub, host: "localdomain.foo" });
         });
 
         it("should return response of refresh token flow handler when 'grant_type' is 'refresh_token'", async () => {
@@ -52,6 +53,7 @@ describe("The token request handler", () => {
 
             const requestStub = {
                 formData: requestFormDataStub,
+                url: "http://localdomain.foo/token",
             };
 
             const formDataGetStub = sinon.stub();
@@ -72,18 +74,20 @@ describe("The token request handler", () => {
             sinon.assert.calledOnceWithExactly(formDataGetStub, "grant_type");
             sinon.assert.calledOnceWithExactly(tokenExchangeValidator.isValidGrantType, "someGrantType");
             sinon.assert.calledOnceWithExactly(logger.logMessage, "Grant type: refresh_token");
-            sinon.assert.calledOnceWithExactly(refreshTokenFlow.exchangeRefreshTokenForAccessToken, formDataStub);
+            sinon.assert.calledOnceWithExactly(refreshTokenFlow.exchangeRefreshTokenForAccessToken, { formData: formDataStub, host: "localdomain.foo" });
         });
     });
 
     describe("error cases", () => {
         it("should return 'NOT IMPLEMENTED' response when 'grant_type' does not match expected values", async () => {
             sinon.stub(authCodeTokenFlow);
+            sinon.stub(refreshTokenFlow);
             sinon.stub(tokenExchangeValidator);
             const requestFormDataStub = sinon.stub();
 
             const requestStub = {
                 formData: requestFormDataStub,
+                url: "http://localdomain.foo/token",
             };
 
             const formDataGetStub = sinon.stub();
@@ -104,7 +108,9 @@ describe("The token request handler", () => {
             sinon.assert.calledOnceWithExactly(tokenExchangeValidator.isValidGrantType, "someGrantType");
             sinon.assert.calledOnceWithExactly(logger.logMessage, "Grant type: somethingNotImplemented");
             sinon.assert.notCalled(authCodeTokenFlow.exchangeAccessCodeForToken);
+            sinon.assert.notCalled(refreshTokenFlow.exchangeRefreshTokenForAccessToken);
         });
+
         it("should log error and return internal server error when getting form data from request fails", async () => {
             sinon.stub(authCodeTokenFlow);
             sinon.stub(tokenExchangeValidator);
@@ -129,6 +135,7 @@ describe("The token request handler", () => {
             sinon.assert.notCalled(logger.logMessage);
             sinon.assert.notCalled(authCodeTokenFlow.exchangeAccessCodeForToken);
         });
+
         it("should log error and return internal server error with error description when validating 'grant_type' throws authentication error", async () => {
             sinon.stub(authCodeTokenFlow);
             sinon.stub(tokenExchangeValidator);

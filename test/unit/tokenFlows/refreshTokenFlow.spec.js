@@ -39,7 +39,7 @@ describe("Refresh token flow", () => {
             sharedValidator.isValidClientId.throws(expectedError);
 
             try {
-                await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                 throw new Error("Function under test was expected to throw error");
             } catch (error) {
                 assert.equal(expectedError, error);
@@ -57,7 +57,7 @@ describe("Refresh token flow", () => {
             sharedValidator.isValidScope.throws(expectedError);
 
             try {
-                await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                 throw new Error("Function under test was expected to throw error");
             } catch (error) {
                 assert.equal(expectedError, error);
@@ -81,7 +81,7 @@ describe("Refresh token flow", () => {
             refreshTokenExchangeValidator.isValidRefreshToken.throws(expectedError);
 
             try {
-                await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                 throw new Error("Function under test was expected to throw error");
             } catch (error) {
                 assert.equal(expectedError, error);
@@ -141,7 +141,7 @@ describe("Refresh token flow", () => {
                     .rejects(expectedError);
 
                 try {
-                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.equal(error, expectedError);
@@ -175,7 +175,7 @@ describe("Refresh token flow", () => {
                 crypto.subtle.verify.withArgs({ name: "ECDSA", hash: "SHA-512" }, "importedPublicKey", "refreshTokenSignatureUint8", "refreshTokenPayloadUint8").rejects(expectedError);
 
                 try {
-                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.equal(error, expectedError);
@@ -208,7 +208,7 @@ describe("Refresh token flow", () => {
                 crypto.subtle.verify.withArgs({ name: "ECDSA", hash: "SHA-512" }, "importedPublicKey", "refreshTokenSignatureUint8", "refreshTokenPayloadUint8").resolves(false);
 
                 try {
-                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.deepEqual(
@@ -265,7 +265,7 @@ describe("Refresh token flow", () => {
                 refreshTokenStorage.getRefreshToken.withArgs("someTokenId").rejects(expectedError);
 
                 try {
-                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.equal(error, expectedError);
@@ -315,7 +315,7 @@ describe("Refresh token flow", () => {
                 refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves(null);
 
                 try {
-                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.deepEqual(
@@ -372,7 +372,7 @@ describe("Refresh token flow", () => {
                 refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ active: false, grantId: "someGrantId" });
 
                 try {
-                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.deepEqual(
@@ -434,7 +434,7 @@ describe("Refresh token flow", () => {
                 grantStorage.getGrant.withArgs("someGrantId").rejects(expectedError);
 
                 try {
-                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.equal(error, expectedError);
@@ -487,7 +487,7 @@ describe("Refresh token flow", () => {
                 grantStorage.getGrant.withArgs("someGrantId").resolves(null);
 
                 try {
-                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.deepEqual(
@@ -546,7 +546,7 @@ describe("Refresh token flow", () => {
                 grantStorage.getGrant.withArgs("someGrantId").resolves({ scope: ["someScope1", "someScope2"], username: "dummy" });
 
                 try {
-                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.deepEqual(
@@ -605,7 +605,7 @@ describe("Refresh token flow", () => {
                 grantStorage.getGrant.withArgs("someGrantId").resolves({ scope: ["otherScope1", "otherScope1"], username: "dummy" });
 
                 try {
-                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.deepEqual(
@@ -664,7 +664,7 @@ describe("Refresh token flow", () => {
                 grantStorage.getGrant.withArgs("someGrantId").resolves({ scope: ["someScope1", "otherScope1"], username: "dummy" });
 
                 try {
-                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.deepEqual(
@@ -725,7 +725,7 @@ describe("Refresh token flow", () => {
                 refreshTokenStorage.deactivateRefreshToken.withArgs("someTokenId").rejects(expectedError);
 
                 try {
-                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.equal(error, expectedError);
@@ -787,11 +787,12 @@ describe("Refresh token flow", () => {
                         clientId: "someClientId",
                         scope: ["someScope1", "someScope2"],
                         username: "dummy",
+                        issuer: "someHost",
                     })
                     .rejects(expectedError);
 
                 try {
-                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                    await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
                     throw new Error("Function under test was expected to throw error");
                 } catch (error) {
                     assert.equal(error, expectedError);
@@ -853,10 +854,11 @@ describe("Refresh token flow", () => {
                         clientId: "someClientId",
                         scope: ["someScope1", "someScope2"],
                         username: "dummy",
+                        issuer: "someHost",
                     })
                     .resolves("tokenResponse");
 
-                const response = await refreshTokenFlow.exchangeRefreshTokenForAccessToken(mockedFormData);
+                const response = await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
 
                 assert.equal(response, "tokenResponse");
             });
