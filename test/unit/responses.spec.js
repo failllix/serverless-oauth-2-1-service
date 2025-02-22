@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { BAD_REQUEST, FORBIDDEN, FOUND, INTERNAL_SERVER_ERROR, NOT_FOUND, NOT_IMPLEMENTED, SUCCESS, UNAUTHORIZED } from "../../src/responses.js";
+import { BAD_REQUEST, FORBIDDEN, FOUND, INTERNAL_SERVER_ERROR, NOT_FOUND, NOT_IMPLEMENTED, SUCCESS, UNAUTHORIZED } from "../../src/helper/responses.js";
 
 describe("Responses", () => {
     describe("Success", () => {

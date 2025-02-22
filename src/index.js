@@ -2,7 +2,7 @@ import authorizationRequestHandler from "./authorizationRequestHandler.js";
 import storageManager from "./storage/manager.js";
 import tokenRequestHandler from "./tokenRequestHandler.js";
 
-import { NOT_FOUND, SUCCESS } from "./responses.js";
+import { NOT_FOUND, SUCCESS } from "./helper/responses.js";
 
 const enrichWithCorsHeadersInLocalEnvironment = (response, environment, corsHeaders) => {
     if (environment.ENVIRONMENT === "local") {

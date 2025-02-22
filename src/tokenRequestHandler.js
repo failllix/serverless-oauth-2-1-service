@@ -1,6 +1,6 @@
 import AuthenticationError from "./error/authenticationError.js";
+import { INTERNAL_SERVER_ERROR, NOT_IMPLEMENTED } from "./helper/responses.js";
 import logger from "./logger.js";
-import { INTERNAL_SERVER_ERROR, NOT_IMPLEMENTED } from "./responses.js";
 import authCodeTokenFlow from "./tokenFlows/authCodeTokenFlow.js";
 import refreshTokenFlow from "./tokenFlows/refreshTokenFlow.js";
 import tokenExchangeValidator from "./validation/tokenExchangeValidator.js";

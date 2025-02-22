@@ -1,4 +1,4 @@
-import { FOUND } from "./responses.js";
+import { FOUND } from "./helper/responses.js";
 
 import clientAuthenticator from "./authentication/client.js";
 import userAuthenticator from "./authentication/user.js";

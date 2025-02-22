@@ -1,4 +1,4 @@
-import { FOUND } from "../responses.js";
+import { FOUND } from "../helper/responses.js";
 
 class AuthenticationError {
     static errrorCategories = {

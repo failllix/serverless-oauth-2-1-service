@@ -1,5 +1,5 @@
+import { SUCCESS } from "../helper/responses.js";
 import util from "../helper/util.js";
-import { SUCCESS } from "../responses.js";
 import environmentVariables from "../storage/environmentVariables.js";
 import refreshTokenStorage from "../storage/refreshToken.js";
 
