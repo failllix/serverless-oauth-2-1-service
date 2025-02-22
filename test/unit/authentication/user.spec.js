@@ -2,9 +2,9 @@ import sinon from "sinon";
 import userAuthenticator from "../../../src/authentication/user.js";
 
 import { assert } from "chai";
+import util from "../../../src/helper/util.js";
 import logger from "../../../src/logger.js";
 import userStorage from "../../../src/storage/user.js";
-import util from "../../../src/util.js";
 
 describe("User authentication", () => {
     describe("authenticateUser", () => {

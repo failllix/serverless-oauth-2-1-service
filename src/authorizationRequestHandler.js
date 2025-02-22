@@ -4,10 +4,10 @@ import clientAuthenticator from "./authentication/client.js";
 import userAuthenticator from "./authentication/user.js";
 import AuthenticationError from "./error/authenticationError.js";
 import basicAuthHelper from "./helper/basicAuth.js";
+import util from "./helper/util.js";
 import logger from "./logger.js";
 import codeStorage from "./storage/code.js";
 import grantStorage from "./storage/grant.js";
-import util from "./util.js";
 import authCodeGrantValidator from "./validation/authCodeGrantValidator.js";
 import sharedValidator from "./validation/sharedValidator.js";
 

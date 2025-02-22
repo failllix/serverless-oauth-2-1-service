@@ -1,7 +1,7 @@
+import util from "../helper/util.js";
 import { SUCCESS } from "../responses.js";
 import environmentVariables from "../storage/environmentVariables.js";
 import refreshTokenStorage from "../storage/refreshToken.js";
-import util from "../util.js";
 
 async function getPrivateKey() {
     return await crypto.subtle.importKey(

@@ -1,9 +1,9 @@
 import { assert } from "chai";
 import sinon from "sinon";
+import util from "../../../src/helper/util.js";
 import environmentVariables from "../../../src/storage/environmentVariables.js";
 import refreshTokenStorage from "../../../src/storage/refreshToken.js";
 import tokenCreator from "../../../src/tokenFlows/tokenCreator.js";
-import util from "../../../src/util.js";
 
 describe("Token creator", () => {
     let clock;

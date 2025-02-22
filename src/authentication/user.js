@@ -1,6 +1,6 @@
+import util from "../helper/util.js";
 import logger from "../logger.js";
 import userStorage from "../storage/user.js";
-import util from "../util.js";
 
 const getValidatedUser = async ({ username, password }) => {
     try {

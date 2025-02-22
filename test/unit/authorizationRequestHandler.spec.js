@@ -7,10 +7,10 @@ import clientAuthenticator from "../../src/authentication/client.js";
 import userAuthenticator from "../../src/authentication/user.js";
 import AuthenticationError from "../../src/error/authenticationError.js";
 import basicAuthHelper from "../../src/helper/basicAuth.js";
+import util from "../../src/helper/util.js";
 import logger from "../../src/logger.js";
 import codeStorage from "../../src/storage/code.js";
 import grantStorage from "../../src/storage/grant.js";
-import util from "../../src/util.js";
 import authCodeGrantValidator from "../../src/validation/authCodeGrantValidator.js";
 import sharedValidator from "../../src/validation/sharedValidator.js";
 

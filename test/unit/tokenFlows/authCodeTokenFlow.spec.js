@@ -1,11 +1,11 @@
 import { assert } from "chai";
 import sinon from "sinon";
 import AuthenticationError from "../../../src/error/authenticationError.js";
+import util from "../../../src/helper/util.js";
 import logger from "../../../src/logger.js";
 import codeStorage from "../../../src/storage/code.js";
 import authCodeTokenFlow from "../../../src/tokenFlows/authCodeTokenFlow.js";
 import tokenCreator from "../../../src/tokenFlows/tokenCreator.js";
-import util from "../../../src/util.js";
 import sharedValidator from "../../../src/validation/sharedValidator.js";
 import tokenExchangeValidator from "../../../src/validation/tokenExchangeValidator.js";
 

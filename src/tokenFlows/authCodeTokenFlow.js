@@ -1,9 +1,9 @@
 import AuthenticationError from ".././error/authenticationError.js";
 import logger from ".././logger.js";
 import codeStorage from ".././storage/code.js";
-import util from ".././util.js";
 import sharedValidator from ".././validation/sharedValidator.js";
 import tokenExchangeValidator from ".././validation/tokenExchangeValidator.js";
+import util from "../helper/util.js";
 import tokenCreator from "./tokenCreator.js";
 
 const getValidatedAuthorizationCodeExchangeParameters = (formData) => {

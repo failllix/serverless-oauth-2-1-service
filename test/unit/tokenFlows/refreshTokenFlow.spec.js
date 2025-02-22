@@ -1,13 +1,13 @@
 import { assert } from "chai";
 import sinon from "sinon";
 import AuthenticationError from "../../../src/error/authenticationError.js";
+import util from "../../../src/helper/util.js";
 import logger from "../../../src/logger.js";
 import environmentVariables from "../../../src/storage/environmentVariables.js";
 import grantStorage from "../../../src/storage/grant.js";
 import refreshTokenStorage from "../../../src/storage/refreshToken.js";
 import refreshTokenFlow from "../../../src/tokenFlows/refreshTokenFlow.js";
 import tokenCreator from "../../../src/tokenFlows/tokenCreator.js";
-import util from "../../../src/util.js";
 import refreshTokenExchangeValidator from "../../../src/validation/refreshTokenExchangeValidator.js";
 import sharedValidator from "../../../src/validation/sharedValidator.js";
 
