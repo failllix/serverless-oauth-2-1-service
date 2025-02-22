@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { describe } from "mocha";
 import sinon from "sinon";
+import environmentVariables from "../../../src/storage/environmentVariables.js";
 import storageManager from "../../../src/storage/manager.js";
 import refreshTokenStorage from "../../../src/storage/refreshToken.js";
 
@@ -22,6 +23,10 @@ describe("Refresh token storage", () => {
 
     describe("saveRefreshToken", () => {
         it("should save stringified refresh token information to key-value storage", async () => {
+            sinon.stub(environmentVariables);
+
+            environmentVariables.getRefreshTokenTimeToLive.returns("fooo");
+
             const keyValuePutStub = sinon.stub();
 
             sinon.stub(storageManager);
@@ -30,7 +35,7 @@ describe("Refresh token storage", () => {
             await refreshTokenStorage.saveRefreshToken({ refreshTokenId: "myTokenId", scope: ["something"], clientId: "fooClient", grantId: "myGrantId" });
 
             sinon.assert.calledOnceWithExactly(storageManager.getRefreshTokenKeyValueStorage);
-            sinon.assert.calledOnceWithExactly(keyValuePutStub, "myTokenId", '{"clientId":"fooClient","scope":["something"],"grantId":"myGrantId","active":true}');
+            sinon.assert.calledOnceWithExactly(keyValuePutStub, "myTokenId", '{"clientId":"fooClient","scope":["something"],"grantId":"myGrantId","active":true}', { expirationTtl: "fooo" });
         });
     });
 

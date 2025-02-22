@@ -1,3 +1,4 @@
+import environmentVariables from "./environmentVariables.js";
 import storageManager from "./manager.js";
 
 const getRefreshToken = async (refreshTokenId) => {
@@ -5,6 +6,8 @@ const getRefreshToken = async (refreshTokenId) => {
 };
 
 const saveRefreshToken = async ({ refreshTokenId, scope = [], clientId, grantId }) => {
+    const refreshTokenTimeToLive = environmentVariables.getRefreshTokenTimeToLive();
+
     await storageManager.getRefreshTokenKeyValueStorage().put(
         refreshTokenId,
         JSON.stringify({
@@ -13,6 +16,7 @@ const saveRefreshToken = async ({ refreshTokenId, scope = [], clientId, grantId 
             grantId,
             active: true,
         }),
+        { expirationTtl: refreshTokenTimeToLive },
     );
 };
 
