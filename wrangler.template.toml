@@ -4,12 +4,12 @@ compatibility_date = "2023-02-04"
 
 [env.local]
 kv_namespaces = [
-    { binding = "USER", id = "local" },
-    { binding = "CODE", id = "local" },
-    { binding = "CLIENT", id = "local" },
-    { binding = "TOKEN", id = "local" },
-    { binding = "GRANT", id = "local" },
-    { binding = "REFRESH_TOKEN", id = "local" },
+    { binding = "USER", id = "local_users" },
+    { binding = "CODE", id = "local_codes" },
+    { binding = "CLIENT", id = "local_clients" },
+    { binding = "TOKEN", id = "local_tokens" },
+    { binding = "GRANT", id = "local_grants" },
+    { binding = "REFRESH_TOKEN", id = "local_refresh_tokens" },
 ]
 
 [env.local.vars]
