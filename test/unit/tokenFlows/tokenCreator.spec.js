@@ -421,7 +421,7 @@ describe("Token creator", () => {
                 scope: ["test1", "test2"],
             });
 
-            sinon.assert.calledWithExactly(refreshTokenStorage.saveRefreshToken, { refreshTokenId: "randomId", clientId: "someClientId", grantId: "someGrant", scope: ["test1", "test2"] });
+            sinon.assert.calledWithExactly(refreshTokenStorage.saveRefreshToken, { refreshTokenId: "randomId", clientId: "someClientId", grantId: "someGrant", scope: ["test1", "test2"], username: "dummy" });
             sinon.assert.calledTwice(crypto.subtle.importKey);
         });
     });

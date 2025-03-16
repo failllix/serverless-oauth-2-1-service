@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { describe } from "mocha";
 import sinon from "sinon";
+import keyValueHelper from "../../../src/helper/keyValueHelper.js";
 import grantStorage from "../../../src/storage/grant.js";
 import storageManager from "../../../src/storage/manager.js";
 
@@ -29,8 +30,12 @@ describe("Grant storage", () => {
 
             await grantStorage.saveGrant({ grantId: "myGrantId", clientId: "fooClient", scope: ["something"], username: "dummy" });
 
-            sinon.assert.calledOnceWithExactly(storageManager.getGrantKeyValueStorage);
-            sinon.assert.calledOnceWithExactly(keyValuePutStub, "myGrantId", '{"clientId":"fooClient","scope":["something"],"username":"dummy"}');
+            sinon.assert.calledTwice(storageManager.getGrantKeyValueStorage);
+            sinon.assert.calledWithExactly(storageManager.getGrantKeyValueStorage);
+
+            sinon.assert.calledTwice(keyValuePutStub);
+            sinon.assert.calledWithExactly(keyValuePutStub, "myGrantId", '{"clientId":"fooClient","scope":["something"],"username":"dummy"}');
+            sinon.assert.calledWithExactly(keyValuePutStub, "dummy:myGrantId", '{"clientId":"fooClient","scope":["something"],"username":"dummy"}');
         });
     });
 
@@ -41,10 +46,31 @@ describe("Grant storage", () => {
             sinon.stub(storageManager);
             storageManager.getGrantKeyValueStorage.returns({ delete: keyValueDeleteStub });
 
-            await grantStorage.deleteGrant("myGrantId");
+            await grantStorage.deleteGrant({ grantId: "myGrantId", username: "dummy" });
 
-            sinon.assert.calledOnceWithExactly(storageManager.getGrantKeyValueStorage);
-            sinon.assert.calledOnceWithExactly(keyValueDeleteStub, "myGrantId");
+            sinon.assert.calledTwice(storageManager.getGrantKeyValueStorage);
+            sinon.assert.calledWithExactly(storageManager.getGrantKeyValueStorage);
+
+            sinon.assert.calledTwice(keyValueDeleteStub);
+            sinon.assert.calledWithExactly(keyValueDeleteStub, "myGrantId");
+            sinon.assert.calledWithExactly(keyValueDeleteStub, "dummy:myGrantId");
+        });
+    });
+
+    describe("getGrantsByUsername", () => {
+        it("should return all grants by username", async () => {
+            sinon.stub(keyValueHelper);
+            sinon.stub(storageManager);
+
+            const grantKeyValueStub = sinon.stub();
+
+            storageManager.getGrantKeyValueStorage.returns(grantKeyValueStub);
+
+            keyValueHelper.getAllValuesForPrefix.withArgs({ keyValueStorage: grantKeyValueStub, keyPrefix: "dummy" }).resolves({ foo: "bar" });
+
+            const allGrants = await grantStorage.getGrantsByUsername("dummy");
+
+            assert.deepEqual(allGrants, { foo: "bar" });
         });
     });
 });

@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { describe } from "mocha";
 import sinon from "sinon";
+import keyValueHelper from "../../../src/helper/keyValueHelper.js";
 import codeStorage from "../../../src/storage/code.js";
 import storageManager from "../../../src/storage/manager.js";
 
@@ -38,7 +39,26 @@ describe("Code storage", () => {
                 grantId: "someGrantId",
             });
 
-            sinon.assert.calledOnceWithExactly(keyValuePutStub, "myCode", '{"scope":["test"],"clientId":"test","codeChallenge":"abc","codeChallengeMethod":"def","username":"test","grantId":"someGrantId"}', { expirationTtl: 120 });
+            sinon.assert.calledTwice(keyValuePutStub);
+            sinon.assert.calledWithExactly(keyValuePutStub, "myCode", '{"scope":["test"],"clientId":"test","codeChallenge":"abc","codeChallengeMethod":"def","username":"test","grantId":"someGrantId"}', { expirationTtl: 120 });
+            sinon.assert.calledWithExactly(keyValuePutStub, "test:myCode", '{"scope":["test"],"clientId":"test","codeChallenge":"abc","codeChallengeMethod":"def","username":"test","grantId":"someGrantId"}', { expirationTtl: 120 });
+        });
+    });
+
+    describe("getAccessCodesByUsername", () => {
+        it("should return all access codes by username", async () => {
+            sinon.stub(keyValueHelper);
+            sinon.stub(storageManager);
+
+            const codeKeyValueStub = sinon.stub();
+
+            storageManager.getCodeKeyValueStorage.returns(codeKeyValueStub);
+
+            keyValueHelper.getAllValuesForPrefix.withArgs({ keyValueStorage: codeKeyValueStub, keyPrefix: "dummy" }).resolves({ foo: "bar" });
+
+            const allCodes = await codeStorage.getAccessCodesByUsername("dummy");
+
+            assert.deepEqual(allCodes, { foo: "bar" });
         });
     });
 });

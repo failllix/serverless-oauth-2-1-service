@@ -47,7 +47,7 @@ async function getSignedAccessToken({ scope, username, timeToLive, issuer }) {
     return accessToken;
 }
 
-async function getSignedRefreshToken({ clientId, grantId, scope, timeToLive }) {
+async function getSignedRefreshToken({ clientId, grantId, scope, timeToLive, username }) {
     const refreshTokenId = util.getRandomUUID();
 
     const refreshTokenPayload = {
@@ -63,7 +63,7 @@ async function getSignedRefreshToken({ clientId, grantId, scope, timeToLive }) {
 
     const refreshToken = [refreshTokenPayloadBase64, refreshTokenSignatureBase64].join(".");
 
-    await refreshTokenStorage.saveRefreshToken({ refreshTokenId, clientId, scope, grantId });
+    await refreshTokenStorage.saveRefreshToken({ refreshTokenId, clientId, scope, grantId, username });
 
     return refreshToken;
 }
@@ -84,6 +84,7 @@ async function getAccessTokenResponse({ grantId, scope, username, clientId, issu
         clientId,
         scope,
         timeToLive: refreshTokenTimeToLive,
+        username,
     });
 
     const tokenResponse = {
