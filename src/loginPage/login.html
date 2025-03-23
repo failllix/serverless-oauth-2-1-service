@@ -47,7 +47,7 @@
       loginForm.classList.add("hidden");
     } else {
       const scopes = url.searchParams.get("scope").split(",");
-      scopeList.innerHTML = scopes.map((scope) => `<li>${scope}</li>`);
+      scopeList.innerHTML = scopes.map((scope) => `<li>${scope}</li>`).join("");
       errorContainer.classList.add("hidden");
     }
 
