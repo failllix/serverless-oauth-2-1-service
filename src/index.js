@@ -1,8 +1,9 @@
 import authorizationRequestHandler from "./authorizationRequestHandler.js";
 import storageManager from "./storage/manager.js";
 import tokenRequestHandler from "./tokenRequestHandler.js";
+import userInfoRequestHandler from "./userInfoRequestHandler.js";
 
-import { NOT_FOUND, SUCCESS } from "./helper/responses.js";
+import { NOT_IMPLEMENTED, SUCCESS } from "./helper/responses.js";
 
 const enrichWithCorsHeadersInLocalEnvironment = (response, environment, corsHeaders) => {
     if (environment.ENVIRONMENT === "local") {
@@ -51,9 +52,27 @@ export default {
             }
         }
 
+        if (pathname === "/me") {
+            if (method === "GET") {
+                return await userInfoRequestHandler.handleGetUserInfoRequest(request);
+            }
+        }
+
+        if (pathname.startsWith("/me/grants")) {
+            if (method === "DELETE") {
+                return await userInfoRequestHandler.handleGrantDeletionRequest(request);
+            }
+        }
+
+        if (pathname.startsWith("/me/refreshTokens")) {
+            if (method === "DELETE") {
+                return await userInfoRequestHandler.handleRefreshTokenDeletionRequest(request);
+            }
+        }
+
         // if (url.pathname === "/.well-known/jwks.json")
         //   return getPublicKeys();
 
-        return NOT_FOUND;
+        return NOT_IMPLEMENTED;
     },
 };

@@ -4,9 +4,10 @@ import authorizationRequestHandler from "../../src/authorizationRequestHandler.j
 import requestHandler from "../../src/index.js";
 import storageManager from "../../src/storage/manager.js";
 import tokenRequestHandler from "../../src/tokenRequestHandler.js";
+import userInfoRequestHandler from "../../src/userInfoRequestHandler.js";
 
 describe("App entry point", () => {
-    it("should return not found response when request does not match handled routes", async () => {
+    it("should return not implemented response when request does not match handled routes", async () => {
         sinon.stub(storageManager);
 
         const dummyRequest = {
@@ -17,7 +18,7 @@ describe("App entry point", () => {
 
         const response = await requestHandler.fetch(dummyRequest, dummyEnv, null);
 
-        assert.equal(response.status, 404);
+        assert.equal(response.status, 501);
         assert.equal(await response.text(), "");
         assert.deepEqual(Object.fromEntries(response.headers), {});
 
@@ -212,6 +213,68 @@ describe("App entry point", () => {
             });
 
             sinon.assert.calledOnceWithExactly(tokenRequestHandler.handleTokenRequest, dummyRequest);
+            sinon.assert.calledOnceWithExactly(storageManager.initializeStorage, dummyEnv);
+        });
+    });
+
+    describe("user info endpoint", () => {
+        it("should return result of user info request handler when getting info about user", async () => {
+            sinon.stub(storageManager);
+            sinon.stub(userInfoRequestHandler);
+
+            const dummyRequest = {
+                method: "GET",
+                url: "http://localhost:123/me",
+            };
+
+            const dummyResponse = new Response("fooo");
+            const dummyEnv = { ENVIRONMENT: "local" };
+
+            userInfoRequestHandler.handleGetUserInfoRequest.resolves(dummyResponse);
+
+            const response = await requestHandler.fetch(dummyRequest, dummyEnv, null);
+
+            assert.equal(response, dummyResponse);
+            sinon.assert.calledOnceWithExactly(storageManager.initializeStorage, dummyEnv);
+        });
+
+        it("should return result of user info request handler when deleting grnat", async () => {
+            sinon.stub(storageManager);
+            sinon.stub(userInfoRequestHandler);
+
+            const dummyRequest = {
+                method: "DELETE",
+                url: "http://localhost:123/me/grants",
+            };
+
+            const dummyResponse = new Response("fooo");
+            const dummyEnv = { ENVIRONMENT: "local" };
+
+            userInfoRequestHandler.handleGrantDeletionRequest.resolves(dummyResponse);
+
+            const response = await requestHandler.fetch(dummyRequest, dummyEnv, null);
+
+            assert.equal(response, dummyResponse);
+            sinon.assert.calledOnceWithExactly(storageManager.initializeStorage, dummyEnv);
+        });
+
+        it("should return result of user info request handler when deleting refresh token", async () => {
+            sinon.stub(storageManager);
+            sinon.stub(userInfoRequestHandler);
+
+            const dummyRequest = {
+                method: "DELETE",
+                url: "http://localhost:123/me/refreshTokens",
+            };
+
+            const dummyResponse = new Response("fooo");
+            const dummyEnv = { ENVIRONMENT: "local" };
+
+            userInfoRequestHandler.handleRefreshTokenDeletionRequest.resolves(dummyResponse);
+
+            const response = await requestHandler.fetch(dummyRequest, dummyEnv, null);
+
+            assert.equal(response, dummyResponse);
             sinon.assert.calledOnceWithExactly(storageManager.initializeStorage, dummyEnv);
         });
     });
