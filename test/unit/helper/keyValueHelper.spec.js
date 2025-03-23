@@ -10,7 +10,7 @@ describe("Key Value Helper", () => {
 
             const keyValueStoreMock = { list: keyValueStoreListMock, get: keyValueStoreGetMock };
 
-            keyValueStoreListMock.withArgs({ prefix: "foo", cursor: undefined }).resolves({
+            keyValueStoreListMock.withArgs({ prefix: "foo:", cursor: undefined }).resolves({
                 keys: [{ name: "foo:key1" }, { name: "foo:key2" }],
                 cursor: "abc",
                 list_complete: true,
@@ -35,13 +35,13 @@ describe("Key Value Helper", () => {
 
             const keyValueStoreMock = { list: keyValueStoreListMock, get: keyValueStoreGetMock };
 
-            keyValueStoreListMock.withArgs({ prefix: "foo", cursor: undefined }).resolves({
+            keyValueStoreListMock.withArgs({ prefix: "foo:", cursor: undefined }).resolves({
                 keys: [{ name: "foo:key1" }, { name: "foo:key2" }],
                 cursor: "abc",
                 list_complete: false,
             });
 
-            keyValueStoreListMock.withArgs({ prefix: "foo", cursor: "abc" }).resolves({
+            keyValueStoreListMock.withArgs({ prefix: "foo:", cursor: "abc" }).resolves({
                 keys: [{ name: "foo:key3" }, { name: "foo:key4" }],
                 cursor: "def",
                 list_complete: true,

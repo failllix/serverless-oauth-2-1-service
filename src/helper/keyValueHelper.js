@@ -4,7 +4,7 @@ async function getAllValuesForPrefix({ keyValueStorage, keyPrefix }) {
     let keyValueResponse;
     let cursor;
     do {
-        keyValueResponse = await keyValueStorage.list({ prefix: keyPrefix, cursor });
+        keyValueResponse = await keyValueStorage.list({ prefix: `${keyPrefix}:`, cursor });
 
         keys.push(...keyValueResponse.keys.map((key) => key.name));
         cursor = keyValueResponse.cursor;
