@@ -134,7 +134,7 @@ describe("The authorization request handler", () => {
                 const authentionErrorStub = sinon.createStubInstance(AuthenticationError);
                 authentionErrorStub.toResponse.withArgs("http://localhost:8788/login").returns("expectedErrorReturnValue");
 
-                sharedValidatorStub.isValidScope.withArgs(["myScopeUnderTest"]).throws(authentionErrorStub);
+                authCodeGrantValidatorStub.isValidScope.withArgs(["myScopeUnderTest"]).throws(authentionErrorStub);
 
                 const response = await authorizationRequestHandler.handleAuthorizationRequest({
                     url: getUrlWithSearchParams({
@@ -202,7 +202,7 @@ describe("The authorization request handler", () => {
                 authCodeGrantValidator.isValidResponseType.withArgs("testResponseType").returns("testResponseType");
                 sharedValidator.isValidClientId.withArgs("test").returns("test");
                 sharedValidator.isValidRedirectUri.withArgs("http://localhost:8787/fooUri").returns("http://localhost:8787/fooUri");
-                sharedValidator.isValidScope.withArgs(["test", "test2"]).returns(["test", "test2"]);
+                authCodeGrantValidator.isValidScope.withArgs(["test", "test2"]).returns(["test", "test2"]);
                 authCodeGrantValidator.isValidCodeChallenge.withArgs("challenge").returns("challenge");
                 authCodeGrantValidator.isValidCodeChallengeTransformMethod.withArgs("challenge_method").returns("challenge_method");
             });
@@ -542,7 +542,7 @@ describe("The authorization request handler", () => {
             authCodeGrantValidator.isValidResponseType.withArgs("testResponseType").returns("testResponseType");
             sharedValidator.isValidClientId.withArgs("test").returns("test");
             sharedValidator.isValidRedirectUri.withArgs("http://localhost:8787/fooUri").returns("http://localhost:8787/fooUri");
-            sharedValidator.isValidScope.withArgs(["test", "test2"]).returns(["test", "test2"]);
+            authCodeGrantValidator.isValidScope.withArgs(["test", "test2"]).returns(["test", "test2"]);
             authCodeGrantValidator.isValidCodeChallenge.withArgs("challenge").returns("challenge");
             authCodeGrantValidator.isValidCodeChallengeTransformMethod.withArgs("challenge_method").returns("challenge_method");
         });

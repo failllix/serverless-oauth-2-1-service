@@ -10,7 +10,7 @@ const getValidatedAuthorizationCodeExchangeParameters = (formData) => {
     const validatedParameters = {
         clientId: sharedValidator.isValidClientId(formData.get("client_id")),
         redirectUri: sharedValidator.isValidRedirectUri(formData.get("redirect_uri")),
-        scope: sharedValidator.isValidScope(formData.get("scope")?.split(",")),
+        scope: sharedValidator.isValidOptionalScope(formData.get("scope")?.split(",") || []),
         codeVerifier: tokenExchangeValidator.isValidCodeVerifier(formData.get("code_verifier")),
         accessCode: tokenExchangeValidator.isValidAccessCode(formData.get("code")),
     };
@@ -67,7 +67,7 @@ const exchangeAccessCodeForToken = async ({ formData, host }) => {
     return await tokenCreator.getAccessTokenResponse({
         clientId: accessCodeDetails.clientId,
         grantId: accessCodeDetails.grantId,
-        scope: validatedParameters.scope,
+        scope: validatedParameters.scope.length === 0 ? accessCodeDetails.scope : validatedParameters.scope,
         username: accessCodeDetails.username,
         issuer: host,
     });

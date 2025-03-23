@@ -16,7 +16,7 @@ const getValidatedParameters = (parameters) => {
         responseType: authCodeGrantValidator.isValidResponseType(parameters.response_type),
         clientId: sharedValidator.isValidClientId(parameters.client_id),
         redirectUri: sharedValidator.isValidRedirectUri(parameters.redirect_uri),
-        scope: sharedValidator.isValidScope(parameters.scope?.split(",")),
+        scope: authCodeGrantValidator.isValidScope(parameters.scope?.split(",")),
         codeChallenge: authCodeGrantValidator.isValidCodeChallenge(parameters.code_challenge),
         codeChallengeMethod: authCodeGrantValidator.isValidCodeChallengeTransformMethod(parameters.code_challenge_method),
         state: parameters.state?.toString(),

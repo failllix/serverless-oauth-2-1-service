@@ -121,8 +121,49 @@ const isValidCodeChallengeTransformMethod = (codeChallengeMethod) => {
     });
 };
 
+const isValidScope = (scope) => {
+    return validation.sequentiallyMatchAllValidations({
+        validations: [
+            {
+                rule: validation.isNotUndefined,
+                error: new AuthenticationError({
+                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                }),
+            },
+            {
+                rule: validation.isNotNull,
+                error: new AuthenticationError({
+                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                }),
+            },
+            {
+                rule: validation.isNotEmpty,
+                error: new AuthenticationError({
+                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                }),
+            },
+            {
+                rule: validation.isArray,
+                error: new AuthenticationError({
+                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                }),
+            },
+            {
+                rule: validation.arrayContainsOnlyValidEntries,
+                error: new AuthenticationError({
+                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                }),
+                args: [[validation.isNotNull, validation.isNotUndefined, validation.isNotEmpty, validation.isString]],
+            },
+        ],
+        fieldName: "scope",
+        value: scope,
+    });
+};
+
 export default {
     isValidResponseType,
     isValidCodeChallenge,
     isValidCodeChallengeTransformMethod,
+    isValidScope,
 };

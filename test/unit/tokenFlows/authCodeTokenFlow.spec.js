@@ -19,7 +19,6 @@ describe("Auth code token flow", () => {
         formDataGetStub = sinon.stub();
         formDataGetStub.withArgs("client_id").returns("someClientId");
         formDataGetStub.withArgs("redirect_uri").returns("someRedirectUri");
-        formDataGetStub.withArgs("scope").returns("someScope1,someScope2");
         formDataGetStub.withArgs("code_verifier").returns("someCodeVerifier");
         formDataGetStub.withArgs("code").returns("someAccessCode");
         mockedFormData = {
@@ -28,6 +27,10 @@ describe("Auth code token flow", () => {
     });
 
     describe("validation failures", () => {
+        beforeEach(() => {
+            formDataGetStub.withArgs("scope").returns("someScope1,someScope2");
+        });
+
         afterEach(() => {
             sinon.assert.notCalled(logger.logObject);
         });
@@ -77,7 +80,7 @@ describe("Auth code token flow", () => {
             const expectedError = new Error("Invalid scopes");
             sharedValidator.isValidClientId.returns("someClientId");
             sharedValidator.isValidRedirectUri.returns("someRedirectUri");
-            sharedValidator.isValidScope.throws(expectedError);
+            sharedValidator.isValidOptionalScope.throws(expectedError);
 
             try {
                 await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
@@ -87,7 +90,7 @@ describe("Auth code token flow", () => {
 
                 sinon.assert.calledOnceWithExactly(sharedValidator.isValidClientId, "someClientId");
                 sinon.assert.calledOnceWithExactly(sharedValidator.isValidRedirectUri, "someRedirectUri");
-                sinon.assert.calledOnceWithExactly(sharedValidator.isValidScope, ["someScope1", "someScope2"]);
+                sinon.assert.calledOnceWithExactly(sharedValidator.isValidOptionalScope, ["someScope1", "someScope2"]);
 
                 sinon.assert.calledWith(formDataGetStub, "client_id");
                 sinon.assert.calledWith(formDataGetStub, "redirect_uri");
@@ -103,7 +106,7 @@ describe("Auth code token flow", () => {
             const expectedError = new Error("Invalid code verifier");
             sharedValidator.isValidClientId.returns("someClientId");
             sharedValidator.isValidRedirectUri.returns("someRedirectUri");
-            sharedValidator.isValidScope.returns(["someScope1", "someScope2"]);
+            sharedValidator.isValidOptionalScope.returns(["someScope1", "someScope2"]);
             tokenExchangeValidator.isValidCodeVerifier.throws(expectedError);
 
             try {
@@ -114,7 +117,7 @@ describe("Auth code token flow", () => {
 
                 sinon.assert.calledOnceWithExactly(sharedValidator.isValidClientId, "someClientId");
                 sinon.assert.calledOnceWithExactly(sharedValidator.isValidRedirectUri, "someRedirectUri");
-                sinon.assert.calledOnceWithExactly(sharedValidator.isValidScope, ["someScope1", "someScope2"]);
+                sinon.assert.calledOnceWithExactly(sharedValidator.isValidOptionalScope, ["someScope1", "someScope2"]);
                 sinon.assert.calledOnceWithExactly(tokenExchangeValidator.isValidCodeVerifier, "someCodeVerifier");
 
                 sinon.assert.calledWith(formDataGetStub, "client_id");
@@ -132,7 +135,7 @@ describe("Auth code token flow", () => {
             const expectedError = new Error("Invalid access code");
             sharedValidator.isValidClientId.returns("someClientId");
             sharedValidator.isValidRedirectUri.returns("someRedirectUri");
-            sharedValidator.isValidScope.returns(["someScope1", "someScope2"]);
+            sharedValidator.isValidOptionalScope.returns(["someScope1", "someScope2"]);
             tokenExchangeValidator.isValidCodeVerifier.returns("someCodeVerifier");
             tokenExchangeValidator.isValidAccessCode.throws(expectedError);
 
@@ -144,7 +147,7 @@ describe("Auth code token flow", () => {
 
                 sinon.assert.calledOnceWithExactly(sharedValidator.isValidClientId, "someClientId");
                 sinon.assert.calledOnceWithExactly(sharedValidator.isValidRedirectUri, "someRedirectUri");
-                sinon.assert.calledOnceWithExactly(sharedValidator.isValidScope, ["someScope1", "someScope2"]);
+                sinon.assert.calledOnceWithExactly(sharedValidator.isValidOptionalScope, ["someScope1", "someScope2"]);
                 sinon.assert.calledOnceWithExactly(tokenExchangeValidator.isValidCodeVerifier, "someCodeVerifier");
                 sinon.assert.calledOnceWithExactly(tokenExchangeValidator.isValidAccessCode, "someAccessCode");
 
@@ -165,25 +168,29 @@ describe("Auth code token flow", () => {
 
             sharedValidator.isValidClientId.returns("someClientId");
             sharedValidator.isValidRedirectUri.returns("someRedirectUri");
-            sharedValidator.isValidScope.returns(["someScope1", "someScope2"]);
             tokenExchangeValidator.isValidCodeVerifier.returns("someCodeVerifier");
             tokenExchangeValidator.isValidAccessCode.returns("someAccessCode");
         });
 
-        afterEach(() => {
-            sinon.assert.calledOnceWithExactly(logger.logObject, {
-                label: "validated token request parameters",
-                object: {
-                    clientId: "someClientId",
-                    redirectUri: "someRedirectUri",
-                    scope: ["someScope1", "someScope2"],
-                    codeVerifier: "someCodeVerifier",
-                    accessCode: "someAccessCode",
-                },
-            });
-        });
-
         describe("error cases", () => {
+            beforeEach(() => {
+                formDataGetStub.withArgs("scope").returns("someScope1,someScope2");
+                sharedValidator.isValidOptionalScope.returns(["someScope1", "someScope2"]);
+            });
+
+            afterEach(() => {
+                sinon.assert.calledOnceWithExactly(logger.logObject, {
+                    label: "validated token request parameters",
+                    object: {
+                        clientId: "someClientId",
+                        redirectUri: "someRedirectUri",
+                        scope: ["someScope1", "someScope2"],
+                        codeVerifier: "someCodeVerifier",
+                        accessCode: "someAccessCode",
+                    },
+                });
+            });
+
             it("should throw saving access code rejects", async () => {
                 sinon.stub(codeStorage);
 
@@ -369,10 +376,63 @@ describe("Auth code token flow", () => {
         });
 
         describe("success cases", () => {
-            it("should return token response", async () => {
+            it("should return token response with requested scopes (subset of granted scopes)", async () => {
                 sinon.stub(codeStorage);
                 sinon.stub(util);
                 sinon.stub(tokenCreator);
+
+                formDataGetStub.withArgs("scope").returns("someScope2");
+                sharedValidator.isValidOptionalScope.withArgs(["someScope2"]).returns(["someScope2"]);
+
+                codeStorage.getAccessCode.resolves({
+                    clientId: "someClientId",
+                    codeChallengeMethod: "S256",
+                    codeChallenge: "someCodeVerifierSha256HashBase64",
+                    scope: ["someScope1", "someScope2"],
+                    grantId: "someGrantId",
+                    username: "dummy",
+                });
+
+                util.calculateSha256FromString.resolves("someCodeVerifierSha256Hash");
+                util.uint8ToUrlBase64.withArgs("someCodeVerifierSha256Hash").returns("someCodeVerifierSha256HashBase64");
+
+                tokenCreator.getAccessTokenResponse.resolves("tokenResponse");
+
+                const response = await authCodeTokenFlow.exchangeAccessCodeForToken({ formData: mockedFormData, host: "someHost" });
+
+                assert.equal(response, "tokenResponse");
+
+                sinon.assert.calledWithExactly(codeStorage.getAccessCode, "someAccessCode");
+
+                sinon.assert.calledWithExactly(util.calculateSha256FromString, "someCodeVerifier");
+                sinon.assert.calledWithExactly(util.uint8ToUrlBase64, "someCodeVerifierSha256Hash");
+                sinon.assert.calledWithExactly(tokenCreator.getAccessTokenResponse, {
+                    clientId: "someClientId",
+                    grantId: "someGrantId",
+                    scope: ["someScope2"],
+                    username: "dummy",
+                    issuer: "someHost",
+                });
+
+                sinon.assert.calledOnceWithExactly(logger.logObject, {
+                    label: "validated token request parameters",
+                    object: {
+                        clientId: "someClientId",
+                        redirectUri: "someRedirectUri",
+                        scope: ["someScope2"],
+                        codeVerifier: "someCodeVerifier",
+                        accessCode: "someAccessCode",
+                    },
+                });
+            });
+
+            it("should return token response with all scopes of access code if no specific scopes are requested", async () => {
+                sinon.stub(codeStorage);
+                sinon.stub(util);
+                sinon.stub(tokenCreator);
+
+                formDataGetStub.withArgs("scope").returns(undefined);
+                sharedValidator.isValidOptionalScope.withArgs([]).returns([]);
 
                 codeStorage.getAccessCode.resolves({
                     clientId: "someClientId",
@@ -402,6 +462,17 @@ describe("Auth code token flow", () => {
                     scope: ["someScope1", "someScope2"],
                     username: "dummy",
                     issuer: "someHost",
+                });
+
+                sinon.assert.calledOnceWithExactly(logger.logObject, {
+                    label: "validated token request parameters",
+                    object: {
+                        clientId: "someClientId",
+                        redirectUri: "someRedirectUri",
+                        scope: [],
+                        codeVerifier: "someCodeVerifier",
+                        accessCode: "someAccessCode",
+                    },
                 });
             });
         });

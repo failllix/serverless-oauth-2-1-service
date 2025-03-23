@@ -67,27 +67,9 @@ const isValidClientId = (clientId) => {
     });
 };
 
-const isValidScope = (scope) => {
+const isValidOptionalScope = (scope) => {
     return validation.sequentiallyMatchAllValidations({
         validations: [
-            {
-                rule: validation.isNotUndefined,
-                error: new AuthenticationError({
-                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                }),
-            },
-            {
-                rule: validation.isNotNull,
-                error: new AuthenticationError({
-                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                }),
-            },
-            {
-                rule: validation.isNotEmpty,
-                error: new AuthenticationError({
-                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                }),
-            },
             {
                 rule: validation.isArray,
                 error: new AuthenticationError({
@@ -110,5 +92,5 @@ const isValidScope = (scope) => {
 export default {
     isValidClientId,
     isValidRedirectUri,
-    isValidScope,
+    isValidOptionalScope,
 };

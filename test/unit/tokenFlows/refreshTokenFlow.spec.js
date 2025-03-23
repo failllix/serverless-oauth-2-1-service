@@ -21,7 +21,6 @@ describe("Refresh token flow", () => {
 
         formDataGetStub = sinon.stub();
         formDataGetStub.withArgs("client_id").returns("someClientId");
-        formDataGetStub.withArgs("scope").returns("someScope1,someScope2");
         formDataGetStub.withArgs("refresh_token").returns("someRefreshTokenPayloadBase64.someRefreshTokenSignatureBase64");
         mockedFormData = {
             get: formDataGetStub,
@@ -29,6 +28,10 @@ describe("Refresh token flow", () => {
     });
 
     describe("validation failures", () => {
+        beforeEach(() => {
+            formDataGetStub.withArgs("scope").returns("someScope1,someScope2");
+        });
+
         afterEach(() => {
             sinon.assert.notCalled(logger.logObject);
         });
@@ -55,7 +58,7 @@ describe("Refresh token flow", () => {
 
             const expectedError = new Error("Invalid scopes");
             sharedValidator.isValidClientId.returns("someClientId");
-            sharedValidator.isValidScope.throws(expectedError);
+            sharedValidator.isValidOptionalScope.throws(expectedError);
 
             try {
                 await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
@@ -64,7 +67,7 @@ describe("Refresh token flow", () => {
                 assert.equal(expectedError, error);
 
                 sinon.assert.calledOnceWithExactly(sharedValidator.isValidClientId, "someClientId");
-                sinon.assert.calledOnceWithExactly(sharedValidator.isValidScope, ["someScope1", "someScope2"]);
+                sinon.assert.calledOnceWithExactly(sharedValidator.isValidOptionalScope, ["someScope1", "someScope2"]);
 
                 sinon.assert.calledWith(formDataGetStub, "client_id");
                 sinon.assert.calledWith(formDataGetStub, "scope");
@@ -78,7 +81,7 @@ describe("Refresh token flow", () => {
 
             const expectedError = new Error("Invalid access code");
             sharedValidator.isValidClientId.returns("someClientId");
-            sharedValidator.isValidScope.returns(["someScope1", "someScope2"]);
+            sharedValidator.isValidOptionalScope.returns(["someScope1", "someScope2"]);
             refreshTokenExchangeValidator.isValidRefreshToken.throws(expectedError);
 
             try {
@@ -88,7 +91,7 @@ describe("Refresh token flow", () => {
                 assert.equal(expectedError, error);
 
                 sinon.assert.calledOnceWithExactly(sharedValidator.isValidClientId, "someClientId");
-                sinon.assert.calledOnceWithExactly(sharedValidator.isValidScope, ["someScope1", "someScope2"]);
+                sinon.assert.calledOnceWithExactly(sharedValidator.isValidOptionalScope, ["someScope1", "someScope2"]);
                 sinon.assert.calledOnceWithExactly(refreshTokenExchangeValidator.isValidRefreshToken, "someRefreshTokenPayloadBase64.someRefreshTokenSignatureBase64");
 
                 sinon.assert.calledWith(formDataGetStub, "client_id");
@@ -105,22 +108,26 @@ describe("Refresh token flow", () => {
             sinon.stub(refreshTokenExchangeValidator);
 
             sharedValidator.isValidClientId.returns("someClientId");
-            sharedValidator.isValidScope.returns(["someScope1", "someScope2"]);
             refreshTokenExchangeValidator.isValidRefreshToken.returns("someRefreshTokenPayloadBase64.someRefreshTokenSignatureBase64");
         });
 
-        afterEach(() => {
-            sinon.assert.calledWithExactly(logger.logObject, {
-                label: "validated refresh token request parameters",
-                object: {
-                    clientId: "someClientId",
-                    scope: ["someScope1", "someScope2"],
-                    refreshToken: "someRefreshTokenPayloadBase64.someRefreshTokenSignatureBase64",
-                },
-            });
-        });
-
         describe("error cases", () => {
+            beforeEach(() => {
+                formDataGetStub.withArgs("scope").returns("someScope1,someScope2");
+                sharedValidator.isValidOptionalScope.withArgs(["someScope1", "someScope2"]).returns(["someScope1", "someScope2"]);
+            });
+
+            afterEach(() => {
+                sinon.assert.calledWithExactly(logger.logObject, {
+                    label: "validated refresh token request parameters",
+                    object: {
+                        clientId: "someClientId",
+                        scope: ["someScope1", "someScope2"],
+                        refreshToken: "someRefreshTokenPayloadBase64.someRefreshTokenSignatureBase64",
+                    },
+                });
+            });
+
             it("should throw when verifying refresh token payload rejects", async () => {
                 sinon.stub(keyHelper);
                 sinon.stub(environmentVariables);
@@ -648,12 +655,78 @@ describe("Refresh token flow", () => {
         });
 
         describe("success cases", () => {
-            it("should return token response", async () => {
+            it("should return token response with requested scopes (subset of granted scopes)", async () => {
                 sinon.stub(keyHelper);
                 sinon.stub(util);
                 sinon.stub(refreshTokenStorage);
                 sinon.stub(grantStorage);
                 sinon.stub(tokenCreator);
+
+                formDataGetStub.withArgs("scope").returns("someScope2");
+                sharedValidator.isValidOptionalScope.withArgs(["someScope2"]).returns(["someScope2"]);
+
+                util.urlBase64Touint8.withArgs("someRefreshTokenSignatureBase64").returns("refreshTokenSignatureUint8");
+                util.strToUint8.withArgs("someRefreshTokenPayloadBase64").returns("refreshTokenPayloadUint8");
+
+                keyHelper.verifyToken
+                    .withArgs({
+                        uint8Signature: "refreshTokenSignatureUint8",
+                        uint8TokenContent: "refreshTokenPayloadUint8",
+                    })
+                    .resolves(true);
+
+                util.urlBase64ToStr.withArgs("someRefreshTokenPayloadBase64").returns(
+                    JSON.stringify({
+                        token_id: "someTokenId",
+                        grant_id: "someGrantId",
+                    }),
+                );
+
+                util.urlBase64ToStr.withArgs("someRefreshTokenPayloadBase64").returns(
+                    JSON.stringify({
+                        token_id: "someTokenId",
+                        grant_id: "someGrantId",
+                    }),
+                );
+
+                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ active: true, clientId: "someClientId", grantId: "someGrantId", username: "dummy" });
+                grantStorage.getGrant.withArgs("someGrantId").resolves({ scope: ["someScope1", "someScope2"], username: "dummy" });
+
+                refreshTokenStorage.deactivateRefreshToken.withArgs("someTokenId").resolves();
+
+                tokenCreator.getAccessTokenResponse
+                    .withArgs({
+                        grantId: "someGrantId",
+                        clientId: "someClientId",
+                        scope: ["someScope2"],
+                        username: "dummy",
+                        issuer: "someHost",
+                    })
+                    .resolves("tokenResponse");
+
+                const response = await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
+
+                assert.equal(response, "tokenResponse");
+
+                sinon.assert.calledWithExactly(logger.logObject, {
+                    label: "validated refresh token request parameters",
+                    object: {
+                        clientId: "someClientId",
+                        scope: ["someScope2"],
+                        refreshToken: "someRefreshTokenPayloadBase64.someRefreshTokenSignatureBase64",
+                    },
+                });
+            });
+
+            it("should return token response with all scopes of grant if no specific scopes are requested", async () => {
+                sinon.stub(keyHelper);
+                sinon.stub(util);
+                sinon.stub(refreshTokenStorage);
+                sinon.stub(grantStorage);
+                sinon.stub(tokenCreator);
+
+                formDataGetStub.withArgs("scope").returns(undefined);
+                sharedValidator.isValidOptionalScope.withArgs([]).returns([]);
 
                 util.urlBase64Touint8.withArgs("someRefreshTokenSignatureBase64").returns("refreshTokenSignatureUint8");
                 util.strToUint8.withArgs("someRefreshTokenPayloadBase64").returns("refreshTokenPayloadUint8");
@@ -697,6 +770,15 @@ describe("Refresh token flow", () => {
                 const response = await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
 
                 assert.equal(response, "tokenResponse");
+
+                sinon.assert.calledWithExactly(logger.logObject, {
+                    label: "validated refresh token request parameters",
+                    object: {
+                        clientId: "someClientId",
+                        scope: [],
+                        refreshToken: "someRefreshTokenPayloadBase64.someRefreshTokenSignatureBase64",
+                    },
+                });
             });
         });
     });

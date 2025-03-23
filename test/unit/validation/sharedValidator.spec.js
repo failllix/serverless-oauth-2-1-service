@@ -186,7 +186,7 @@ describe("Shared validator", () => {
         });
     });
 
-    describe("isValidScope", () => {
+    describe("isValidOptionalScope", () => {
         it("returns value, if sequentially asserted validations pass", () => {
             const sequentiallyMatchAllValidationsStub = sinon.stub(validation, "sequentiallyMatchAllValidations");
 
@@ -195,24 +195,6 @@ describe("Shared validator", () => {
                     fieldName: "scope",
                     value: ["superpowers"],
                     validations: [
-                        {
-                            rule: validation.isNotUndefined,
-                            error: new AuthenticationError({
-                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                            }),
-                        },
-                        {
-                            rule: validation.isNotNull,
-                            error: new AuthenticationError({
-                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                            }),
-                        },
-                        {
-                            rule: validation.isNotEmpty,
-                            error: new AuthenticationError({
-                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                            }),
-                        },
                         {
                             rule: validation.isArray,
                             error: new AuthenticationError({
@@ -230,7 +212,7 @@ describe("Shared validator", () => {
                 })
                 .returns("someValue");
 
-            const result = sharedValidator.isValidScope(["superpowers"]);
+            const result = sharedValidator.isValidOptionalScope(["superpowers"]);
 
             assert.equal(result, "someValue");
             sinon.assert.calledOnce(sequentiallyMatchAllValidationsStub);
@@ -245,24 +227,6 @@ describe("Shared validator", () => {
                     fieldName: "scope",
                     value: ["superpowers"],
                     validations: [
-                        {
-                            rule: validation.isNotUndefined,
-                            error: new AuthenticationError({
-                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                            }),
-                        },
-                        {
-                            rule: validation.isNotNull,
-                            error: new AuthenticationError({
-                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                            }),
-                        },
-                        {
-                            rule: validation.isNotEmpty,
-                            error: new AuthenticationError({
-                                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
-                            }),
-                        },
                         {
                             rule: validation.isArray,
                             error: new AuthenticationError({
@@ -281,7 +245,7 @@ describe("Shared validator", () => {
                 .throws(expectedError);
 
             try {
-                sharedValidator.isValidScope(["superpowers"]);
+                sharedValidator.isValidOptionalScope(["superpowers"]);
                 return Promise.reject("Function under test never threw an error");
             } catch (error) {
                 assert.equal(error, expectedError);

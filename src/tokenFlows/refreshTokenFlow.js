@@ -11,7 +11,7 @@ import tokenCreator from "./tokenCreator.js";
 const getValidatedRefreshTokenFlowParameters = (formData) => {
     const validatedParameters = {
         clientId: sharedValidator.isValidClientId(formData.get("client_id")),
-        scope: sharedValidator.isValidScope(formData.get("scope")?.split(",")),
+        scope: sharedValidator.isValidOptionalScope(formData.get("scope")?.split(",") || []),
         refreshToken: refreshTokenExchangeValidator.isValidRefreshToken(formData.get("refresh_token")),
     };
 
@@ -94,7 +94,7 @@ async function exchangeRefreshTokenForAccessToken({ formData, host }) {
     return await tokenCreator.getAccessTokenResponse({
         grantId: verifiedRefreshTokenPayload.grant_id,
         clientId: validatedParameters.clientId,
-        scope: validatedParameters.scope,
+        scope: validatedParameters.scope.length === 0 ? grantDetails.scope : validatedParameters.scope,
         username,
         issuer: host,
     });
