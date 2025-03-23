@@ -10,11 +10,13 @@ import userInfoRequestHandler from "../../src/userInfoRequestHandler.js";
 
 describe("User info request handler", () => {
     let requestGetStub;
+    let clock;
 
     beforeEach(() => {
         sinon.stub(logger);
 
         requestGetStub = sinon.stub();
+        clock = sinon.useFakeTimers();
     });
 
     describe("pre token verification", () => {
@@ -24,7 +26,6 @@ describe("User info request handler", () => {
                     requestGetStub.withArgs("Authorization").returns(null);
 
                     const response = await endpointHandler.call(null, {
-                        url: "http://localhost/me/grants/grantId",
                         headers: {
                             get: requestGetStub,
                         },
@@ -39,7 +40,6 @@ describe("User info request handler", () => {
                     requestGetStub.withArgs("Authorization").returns("tokenWithoutBearerPrefix");
 
                     const response = await endpointHandler.call(null, {
-                        url: "http://localhost/me/grants/grantId",
                         headers: {
                             get: requestGetStub,
                         },
@@ -63,7 +63,6 @@ describe("User info request handler", () => {
                     keyHelper.verifyToken.withArgs({ uint8Signature: "verificationSignatureUint8", uint8TokenContent: "verificationPayloadUint8" }).rejects(expectedError);
 
                     const response = await endpointHandler.call(null, {
-                        url: "http://localhost/me/grants/grantId",
                         headers: {
                             get: requestGetStub,
                         },
@@ -88,7 +87,6 @@ describe("User info request handler", () => {
                     keyHelper.verifyToken.withArgs({ uint8Signature: "verificationSignatureUint8", uint8TokenContent: "verificationPayloadUint8" }).resolves(false);
 
                     const response = await endpointHandler.call(null, {
-                        url: "http://localhost/me/grants/grantId",
                         headers: {
                             get: requestGetStub,
                         },
@@ -98,6 +96,92 @@ describe("User info request handler", () => {
                     const responseText = await response.text();
                     assert.equal(responseText, "Could not verify signature of provided access token");
                 });
+
+                it("should return bad request if audience of verified token does not match server URL", async () => {
+                    sinon.stub(keyHelper);
+                    sinon.stub(util);
+
+                    requestGetStub.withArgs("Authorization").returns("Bearer header.payload.signature");
+
+                    util.urlBase64Touint8.withArgs("signature").returns("verificationSignatureUint8");
+                    util.strToUint8.withArgs("header.payload").returns("verificationPayloadUint8");
+
+                    keyHelper.verifyToken.withArgs({ uint8Signature: "verificationSignatureUint8", uint8TokenContent: "verificationPayloadUint8" }).resolves(true);
+
+                    const dummyTokenPayload = {
+                        aud: "def",
+                    };
+                    util.urlBase64ToStr.withArgs("payload").returns(JSON.stringify(dummyTokenPayload));
+
+                    const response = await endpointHandler.call(null, {
+                        headers: {
+                            get: requestGetStub,
+                        },
+                    });
+
+                    assert.equal(response.status, 400);
+                    const responseText = await response.text();
+                    assert.equal(responseText, "Audience of token does not match server URL");
+                });
+
+                it("should return bad request if scopes do not include 'userInfo'", async () => {
+                    sinon.stub(keyHelper);
+                    sinon.stub(util);
+
+                    requestGetStub.withArgs("Authorization").returns("Bearer header.payload.signature");
+
+                    util.urlBase64Touint8.withArgs("signature").returns("verificationSignatureUint8");
+                    util.strToUint8.withArgs("header.payload").returns("verificationPayloadUint8");
+
+                    keyHelper.verifyToken.withArgs({ uint8Signature: "verificationSignatureUint8", uint8TokenContent: "verificationPayloadUint8" }).resolves(true);
+
+                    const dummyTokenPayload = {
+                        aud: "abc",
+                        scope: ["notUserInfo"],
+                    };
+                    util.urlBase64ToStr.withArgs("payload").returns(JSON.stringify(dummyTokenPayload));
+
+                    const response = await endpointHandler.call(null, {
+                        headers: {
+                            get: requestGetStub,
+                        },
+                    });
+
+                    assert.equal(response.status, 400);
+                    const responseText = await response.text();
+                    assert.equal(responseText, "Missing 'userInfo' scope in authorization token");
+                });
+
+                it("should return bad request if token is expired", async () => {
+                    sinon.stub(keyHelper);
+                    sinon.stub(util);
+
+                    requestGetStub.withArgs("Authorization").returns("Bearer header.payload.signature");
+
+                    util.urlBase64Touint8.withArgs("signature").returns("verificationSignatureUint8");
+                    util.strToUint8.withArgs("header.payload").returns("verificationPayloadUint8");
+
+                    keyHelper.verifyToken.withArgs({ uint8Signature: "verificationSignatureUint8", uint8TokenContent: "verificationPayloadUint8" }).resolves(true);
+
+                    clock.tick(20_000);
+
+                    const dummyTokenPayload = {
+                        aud: "abc",
+                        scope: ["userInfo"],
+                        exp: 19,
+                    };
+                    util.urlBase64ToStr.withArgs("payload").returns(JSON.stringify(dummyTokenPayload));
+
+                    const response = await endpointHandler.call(null, {
+                        headers: {
+                            get: requestGetStub,
+                        },
+                    });
+
+                    assert.equal(response.status, 400);
+                    const responseText = await response.text();
+                    assert.equal(responseText, "Token is expired");
+                });
             });
         }
     });
@@ -105,6 +189,8 @@ describe("User info request handler", () => {
     describe("post token verification", () => {
         const dummyTokenPayload = {
             sub: "dummy",
+            aud: "abc",
+            scope: ["userInfo"],
         };
 
         beforeEach(() => {

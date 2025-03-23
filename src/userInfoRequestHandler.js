@@ -1,5 +1,5 @@
 import keyHelper from "./helper/keyHelper.js";
-import { BAD_REQUEST, FOUND, INTERNAL_SERVER_ERROR, NOT_FOUND, SUCCESS } from "./helper/responses.js";
+import { BAD_REQUEST, FOUND, INTERNAL_SERVER_ERROR, NOT_FOUND, SUCCESS, UNAUTHORIZED } from "./helper/responses.js";
 import util from "./helper/util.js";
 import logger from "./logger.js";
 import codeStorage from "./storage/code.js";
@@ -26,13 +26,22 @@ async function getVerifiedToken(request) {
         throw BAD_REQUEST("Could not verify signature of provided access token");
     }
 
-    //TODO check if token contains expected scope
-    //TODO check if audience is correct
-    //TODO check if token has not expired
-
     const tokenPayload = JSON.parse(util.urlBase64ToStr(accessTokenPayloadUrlBase64));
 
     logger.logObject({ label: "Verified token payload", object: tokenPayload });
+
+    // TODO adjust after adding proper audience handling
+    if (tokenPayload.aud !== "abc") {
+        throw BAD_REQUEST("Audience of token does not match server URL");
+    }
+
+    if (!tokenPayload.scope.includes("userInfo")) {
+        throw BAD_REQUEST("Missing 'userInfo' scope in authorization token");
+    }
+
+    if (Date.now() > tokenPayload.exp * 1000) {
+        throw BAD_REQUEST("Token is expired");
+    }
 
     return tokenPayload;
 }
