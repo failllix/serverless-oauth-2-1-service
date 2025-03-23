@@ -11,6 +11,8 @@
     <main>
       <div id="login-wrapper" class="container">
         <h1>Login</h1>
+        <h2>Requested Scopes</h2>
+        <ul id="scope-list"></ul>
         <form id="login-form">
           <input id="username" type="text" placeholder="Username" />
           <input id="password" type="password" placeholder="Password" />
@@ -32,6 +34,9 @@
   <script>
     const url = new URL(window.location.href);
     const loginForm = document.getElementById("login-form");
+
+    const scopeList = document.getElementById("scope-list");
+
     const errorContainer = document.getElementById("error-container");
     const errorCategory = document.getElementById("error-category");
     const errorDetails = document.getElementById("error-details");
@@ -41,6 +46,8 @@
       errorDetails.innerHTML = url.searchParams.get("error_description");
       loginForm.classList.add("hidden");
     } else {
+      const scopes = url.searchParams.get("scope").split(",");
+      scopeList.innerHTML = scopes.map((scope) => `<li>${scope}</li>`);
       errorContainer.classList.add("hidden");
     }
 
