@@ -128,7 +128,7 @@ describe("User authentication", () => {
                 });
                 return Promise.reject("Function under test never threw error");
             } catch (error) {
-                assert.equal(error.message, "User has inussificent scopes.");
+                assert.equal(error.message, "User has insufficient scopes.");
             }
         });
 
@@ -147,7 +147,7 @@ describe("User authentication", () => {
                 });
                 return Promise.reject("Function under test never threw error");
             } catch (error) {
-                assert.equal(error.message, "User has inussificent scopes.");
+                assert.equal(error.message, "User has insufficient scopes.");
             }
         });
     });

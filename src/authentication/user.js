@@ -27,7 +27,7 @@ const authenticateUser = async ({ username, password, scope }) => {
     const user = await getValidatedUser({ username, password });
 
     if (!scope.every((scope) => user.scope?.includes(scope))) {
-        throw new Error("User has inussificent scopes.");
+        throw new Error("User has insufficient scopes.");
     }
 };
 
