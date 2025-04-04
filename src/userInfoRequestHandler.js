@@ -56,18 +56,8 @@ async function handleGetUserInfoRequest(request) {
         const grants = await grantStorage.getGrantsByUsername(username);
         const refreshTokens = await refreshTokenStorage.getRefreshTokensByUsername(username);
 
-        const activeRefreshTokens = Object.entries(refreshTokens).reduce((acc, [key, value]) => {
-            if (value.active) {
-                acc[key] = value;
-            }
-            return acc;
-        }, {});
-        const inactiveRefreshTokens = Object.entries(refreshTokens).reduce((acc, [key, value]) => {
-            if (!value.active) {
-                acc[key] = value;
-            }
-            return acc;
-        }, {});
+        const activeRefreshTokens = refreshTokens.filter((refreshToken) => refreshToken.Active);
+        const inactiveRefreshTokens = refreshTokens.filter((refreshToken) => !refreshToken.Active);
 
         return SUCCESS({ jsonResponse: { accessCodes, grants, activeRefreshTokens, inactiveRefreshTokens }, headers: {} });
     } catch (failure) {
@@ -94,13 +84,11 @@ async function handleGrantDeletionRequest(request) {
 
         logger.logMessage(`Attempting to delete grant with id '${grantId}' of user '${username}'.`);
 
-        const grant = await grantStorage.getGrant(`${username}:${grantId}`);
-
-        if (grant === null) {
+        const result = await grantStorage.deleteGrant({ grantId, username });
+        if (!result) {
             return NOT_FOUND;
         }
 
-        await grantStorage.deleteGrant({ grantId, username });
         return SUCCESS({ jsonResponse: "", headers: {} });
     } catch (failure) {
         if (failure instanceof Response) {
@@ -126,13 +114,12 @@ async function handleRefreshTokenDeletionRequest(request) {
 
         logger.logMessage(`Attempting to deactivate refresh token with id '${refreshTokenId}' of user '${username}'.`);
 
-        const refreshToken = await refreshTokenStorage.getRefreshToken(`${username}:${refreshTokenId}`);
+        const result = await refreshTokenStorage.deactivateRefreshToken({ refreshTokenId, username });
 
-        if (refreshToken === null) {
+        if (!result) {
             return NOT_FOUND;
         }
 
-        await refreshTokenStorage.deactivateRefreshToken({ refreshTokenId, username });
         return SUCCESS({ jsonResponse: "", headers: {} });
     } catch (failure) {
         if (failure instanceof Response) {

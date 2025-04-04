@@ -11,7 +11,7 @@ describe("Client authentication", () => {
         it("does not throw, if client was found and supplied redirect uri matches", async () => {
             const getClientStub = sinon.stub(clientStorage, "getClient");
             getClientStub.withArgs("someClient").resolves({
-                redirectUri: "http://localhost/valid",
+                RedirectUri: "http://localhost/valid",
             });
 
             await clientAuthenticator.authenticateClient("someClient", "http://localhost/valid");
@@ -55,7 +55,7 @@ describe("Client authentication", () => {
         it("throws if redirect uris do not match", async () => {
             const getClientStub = sinon.stub(clientStorage, "getClient");
             getClientStub.withArgs("dummyClient").resolves({
-                redirectUri: "http://localhost/valid",
+                RedirectUri: "http://localhost/valid",
             });
 
             try {

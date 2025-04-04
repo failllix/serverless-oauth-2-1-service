@@ -78,6 +78,8 @@ async function handleAuthorizationRequest(request) {
 
         const grantId = util.getRandomUUID();
 
+        await grantStorage.saveGrant({ grantId, clientId: validatedParameters.clientId, scope: validatedParameters.scope, username });
+
         await codeStorage.saveAccessCode({
             code: accessCode,
             scope: validatedParameters.scope,
@@ -87,8 +89,6 @@ async function handleAuthorizationRequest(request) {
             username,
             grantId,
         });
-
-        await grantStorage.saveGrant({ grantId, clientId: validatedParameters.clientId, scope: validatedParameters.scope, username });
 
         const redirectUrl = new URL(validatedParameters.redirectUri);
         redirectUrl.searchParams.set("code", accessCode);

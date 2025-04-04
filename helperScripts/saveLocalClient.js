@@ -12,24 +12,23 @@ const rawClientId = crypto.getRandomValues(new Uint8Array(32));
 const hashedClientIdBuffer = await crypto.subtle.digest("SHA-256", rawClientId);
 
 const clientId = Array.from(new Uint8Array(hashedClientIdBuffer))
-  .map((b) => b.toString(16).padStart(2, "0"))
-  .join("");
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 
 const client = {
-  name,
-  redirectUri,
+    clientId,
+    name,
+    redirectUri,
 };
 
-console.log("Generated user:");
+console.log("Generated client:");
 console.log(client);
 console.log();
-console.log(`Take note of your client id: ${clientId}`);
+console.log(`Take note of your generated client id: ${client.clientId}`);
 console.log();
 
-const stringifiedClient = JSON.stringify(client);
+const command = `wrangler d1 execute test-db --local --env local --command "INSERT INTO Clients (ClientId, Name, RedirectUri) VALUES ('${client.clientId}', '${client.name}', '${client.redirectUri}')"`;
 
-console.log(`Saving object with key '${clientId}': ${stringifiedClient}`);
+console.log(`\nRunning command: ${command}`);
 
-execSync(
-  `wrangler kv:key put --env local --binding CLIENT --local '${clientId}' '${stringifiedClient}'`
-);
+execSync(command);

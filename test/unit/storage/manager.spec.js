@@ -10,107 +10,23 @@ describe("Storage Manager", () => {
         storageManager.initializeStorage({});
     });
 
-    describe("Client key-value storage", () => {
-        it("should initialize the client key-value storage to the value provided in the environment", () => {
+    describe("Database", () => {
+        it("should initialize the database to the value provided in the environment", () => {
             storageManager.initializeStorage({
-                CLIENT: "client_KV",
+                DB: "database",
             });
 
-            const clientKeyValueStorage = storageManager.getClientKeyValueStorage();
+            const database = storageManager.getDatabase();
 
-            assert.equal(clientKeyValueStorage, "client_KV");
+            assert.equal(database, "database");
         });
 
-        it("should throw an error if one tries to access the client key-value storage before initialization", () => {
+        it("should throw an error if one tries to access the database before initialization", () => {
             try {
-                storageManager.getClientKeyValueStorage();
+                storageManager.getDatabase();
                 return Promise.reject("Function under test never threw error");
             } catch (error) {
-                assert.equal(error.message, "Client key-value storage was not initialized.");
-            }
-        });
-    });
-
-    describe("User key-value storage", () => {
-        it("should initialize the user key-value storage to the value provided in the environment", () => {
-            storageManager.initializeStorage({
-                USER: "user_KV",
-            });
-
-            const clientKeyValueStorage = storageManager.getUserKeyValueStorage();
-
-            assert.equal(clientKeyValueStorage, "user_KV");
-        });
-
-        it("should throw an error if one tries to access the user key-value storage before initialization", () => {
-            try {
-                storageManager.getUserKeyValueStorage();
-                return Promise.reject("Function under test never threw error");
-            } catch (error) {
-                assert.equal(error.message, "User key-value storage was not initialized.");
-            }
-        });
-    });
-
-    describe("Code key-value storage", () => {
-        it("should initialize the code key-value storage to the value provided in the environment", () => {
-            storageManager.initializeStorage({
-                CODE: "code_KV",
-            });
-
-            const clientKeyValueStorage = storageManager.getCodeKeyValueStorage();
-
-            assert.equal(clientKeyValueStorage, "code_KV");
-        });
-
-        it("should throw an error if one tries to access the code key-value storage before initialization", () => {
-            try {
-                storageManager.getCodeKeyValueStorage();
-                return Promise.reject("Function under test never threw error");
-            } catch (error) {
-                assert.equal(error.message, "Code key-value storage was not initialized.");
-            }
-        });
-    });
-
-    describe("Grant key-value storage", () => {
-        it("should initialize the grant key-value storage to the value provided in the environment", () => {
-            storageManager.initializeStorage({
-                GRANT: "grant_KV",
-            });
-
-            const clientKeyValueStorage = storageManager.getGrantKeyValueStorage();
-
-            assert.equal(clientKeyValueStorage, "grant_KV");
-        });
-
-        it("should throw an error if one tries to access the grant key-value storage before initialization", () => {
-            try {
-                storageManager.getGrantKeyValueStorage();
-                return Promise.reject("Function under test never threw error");
-            } catch (error) {
-                assert.equal(error.message, "Grant key-value storage was not initialized.");
-            }
-        });
-    });
-
-    describe("Refresh token key-value storage", () => {
-        it("should initialize the code key-value storage to the value provided in the environment", () => {
-            storageManager.initializeStorage({
-                REFRESH_TOKEN: "refresh_token_KV",
-            });
-
-            const clientKeyValueStorage = storageManager.getRefreshTokenKeyValueStorage();
-
-            assert.equal(clientKeyValueStorage, "refresh_token_KV");
-        });
-
-        it("should throw an error if one tries to access the code key-value storage before initialization", () => {
-            try {
-                storageManager.getRefreshTokenKeyValueStorage();
-                return Promise.reject("Function under test never threw error");
-            } catch (error) {
-                assert.equal(error.message, "Refresh token key-value storage was not initialized.");
+                assert.equal(error.message, "Database was not initialized.");
             }
         });
     });

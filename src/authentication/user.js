@@ -10,9 +10,9 @@ const getValidatedUser = async ({ username, password }) => {
             throw new Error(`User '${username}' was not found.`);
         }
 
-        const passwordHash = await util.getPBKDF2PasswordHash(password, user.salt);
+        const passwordHash = await util.getPBKDF2PasswordHash(password, user.Salt);
 
-        if (user.passwordToken !== passwordHash) {
+        if (user.PasswordHash !== passwordHash) {
             throw new Error("Wrong password.");
         }
 
@@ -26,7 +26,7 @@ const getValidatedUser = async ({ username, password }) => {
 const authenticateUser = async ({ username, password, scope }) => {
     const user = await getValidatedUser({ username, password });
 
-    if (!scope.every((scope) => user.scope?.includes(scope))) {
+    if (!scope.every((scope) => user.Scope?.includes(scope))) {
         throw new Error("User has insufficient scopes.");
     }
 };

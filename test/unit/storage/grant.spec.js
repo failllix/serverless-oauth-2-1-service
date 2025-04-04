@@ -1,76 +1,267 @@
 import { assert } from "chai";
 import { describe } from "mocha";
 import sinon from "sinon";
-import keyValueHelper from "../../../src/helper/keyValueHelper.js";
 import grantStorage from "../../../src/storage/grant.js";
 import storageManager from "../../../src/storage/manager.js";
 
 describe("Grant storage", () => {
+    let databaseStub;
+    let databasePrepareStub;
+
+    beforeEach(() => {
+        databasePrepareStub = sinon.stub();
+
+        databaseStub = {
+            prepare: databasePrepareStub,
+        };
+
+        sinon.stub(storageManager);
+
+        storageManager.getDatabase.returns(databaseStub);
+    });
+
     describe("getGrant", () => {
-        it("should get grant key-value storage from manager and return parsed grant information by grant id", async () => {
-            const keyValueGetStub = sinon.stub();
-            keyValueGetStub.withArgs("myGrantId").resolves(JSON.stringify({ grant: true }));
+        it("should throw if running database statement rejects", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
 
-            sinon.stub(storageManager);
-            storageManager.getGrantKeyValueStorage.returns({ get: keyValueGetStub });
+            databasePrepareStub.withArgs("SELECT * FROM Grants WHERE GrantId = ?").returns({
+                bind: statementBindStub,
+            });
 
-            const grantInfo = await grantStorage.getGrant("myGrantId");
+            statementBindStub.withArgs("grantId").returns({ run: statementRunStub });
 
-            assert.deepEqual(grantInfo, { grant: true });
-            sinon.assert.calledOnceWithExactly(storageManager.getGrantKeyValueStorage);
+            const expectedError = new Error("Database connection is broken");
+            statementRunStub.withArgs().rejects(expectedError);
+
+            try {
+                await grantStorage.getGrant("grantId");
+                throw new Error("Function under test never threw an error ");
+            } catch (error) {
+                assert.deepEqual(error, expectedError);
+            }
+        });
+
+        it("should throw if database returns more than one row for key", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
+
+            databasePrepareStub.withArgs("SELECT * FROM Grants WHERE GrantId = ?").returns({
+                bind: statementBindStub,
+            });
+
+            statementBindStub.withArgs("grantId").returns({ run: statementRunStub });
+
+            statementRunStub.withArgs().resolves({ results: [{ row: true }, { row: true, notExpected: true }] });
+
+            try {
+                await grantStorage.getGrant("grantId");
+                throw new Error("Function under test never threw an error ");
+            } catch (error) {
+                assert.deepEqual(error.message, "Expected to receive only one grant with id 'grantId'");
+            }
+        });
+
+        it("should get database and run prepared statement with refresh token and return result with expanded scopes", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
+
+            databasePrepareStub.withArgs("SELECT * FROM Grants WHERE GrantId = ?").returns({
+                bind: statementBindStub,
+            });
+
+            statementBindStub.withArgs("grantId").returns({ run: statementRunStub });
+
+            statementRunStub.withArgs().resolves({ results: [{ row: true, Scope: "a,b,c" }] });
+
+            const result = await grantStorage.getGrant("grantId");
+
+            assert.deepEqual(result, {
+                row: true,
+                Scope: ["a", "b", "c"],
+            });
+        });
+
+        it("should get database and run prepared statement and return null if empty array was returned", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
+
+            databasePrepareStub.withArgs("SELECT * FROM Grants WHERE GrantId = ?").returns({
+                bind: statementBindStub,
+            });
+
+            statementBindStub.withArgs("grantId").returns({ run: statementRunStub });
+
+            statementRunStub.withArgs().resolves({ results: [] });
+
+            const result = await grantStorage.getGrant("grantId");
+
+            assert.deepEqual(result, null);
         });
     });
 
-    describe("saveAccessCode", () => {
-        it("should save stringified grant information to key-value storage", async () => {
-            const keyValuePutStub = sinon.stub();
+    describe("saveGrant", () => {
+        it("should get database and run prepared statement", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
 
-            sinon.stub(storageManager);
-            storageManager.getGrantKeyValueStorage.returns({ put: keyValuePutStub });
+            databasePrepareStub.withArgs("INSERT INTO Grants (GrantId, ClientId, Username, Scope) VALUES (?, ?, ?, ?)").returns({
+                bind: statementBindStub,
+            });
 
-            await grantStorage.saveGrant({ grantId: "myGrantId", clientId: "fooClient", scope: ["something"], username: "dummy" });
+            statementBindStub.withArgs("someGrantId", "testClient", "testUser", "testScope1,testScope2").returns({ run: statementRunStub });
 
-            sinon.assert.calledTwice(storageManager.getGrantKeyValueStorage);
-            sinon.assert.calledWithExactly(storageManager.getGrantKeyValueStorage);
+            statementRunStub.resolves();
 
-            sinon.assert.calledTwice(keyValuePutStub);
-            sinon.assert.calledWithExactly(keyValuePutStub, "myGrantId", '{"clientId":"fooClient","scope":["something"],"username":"dummy"}');
-            sinon.assert.calledWithExactly(keyValuePutStub, "dummy:myGrantId", '{"clientId":"fooClient","scope":["something"],"username":"dummy"}');
+            await grantStorage.saveGrant({
+                grantId: "someGrantId",
+                scope: ["testScope1", "testScope2"],
+                clientId: "testClient",
+                username: "testUser",
+            });
+
+            sinon.assert.calledOnceWithExactly(statementRunStub);
+        });
+
+        it("should throw if running statement rejects", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
+
+            databasePrepareStub.withArgs("INSERT INTO Grants (GrantId, ClientId, Username, Scope) VALUES (?, ?, ?, ?)").returns({
+                bind: statementBindStub,
+            });
+
+            statementBindStub.withArgs("someGrantId", "testClient", "testUser", "testScope1,testScope2").returns({ run: statementRunStub });
+
+            const expectedError = new Error("Cannot insert");
+            statementRunStub.rejects(expectedError);
+
+            try {
+                await grantStorage.saveGrant({
+                    grantId: "someGrantId",
+                    scope: ["testScope1", "testScope2"],
+                    clientId: "testClient",
+                    username: "testUser",
+                });
+                throw new Error("Function under test never threw");
+            } catch (error) {
+                assert.equal(expectedError, error);
+                sinon.assert.calledOnceWithExactly(statementRunStub);
+            }
         });
     });
 
     describe("deleteGrant", () => {
-        it("should delete grant information from key-value storage using grant id", async () => {
-            const keyValueDeleteStub = sinon.stub();
+        it("should get database and run prepared statement and return if update changed database", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
 
-            sinon.stub(storageManager);
-            storageManager.getGrantKeyValueStorage.returns({ delete: keyValueDeleteStub });
+            databasePrepareStub.withArgs("DELETE FROM Grants WHERE GrantId = ? AND Username = ?").returns({
+                bind: statementBindStub,
+            });
 
-            await grantStorage.deleteGrant({ grantId: "myGrantId", username: "dummy" });
+            statementBindStub.withArgs("someGrantId", "testUser").returns({ run: statementRunStub });
 
-            sinon.assert.calledTwice(storageManager.getGrantKeyValueStorage);
-            sinon.assert.calledWithExactly(storageManager.getGrantKeyValueStorage);
+            statementRunStub.resolves({
+                meta: {
+                    changed_db: "db_status",
+                },
+            });
 
-            sinon.assert.calledTwice(keyValueDeleteStub);
-            sinon.assert.calledWithExactly(keyValueDeleteStub, "myGrantId");
-            sinon.assert.calledWithExactly(keyValueDeleteStub, "dummy:myGrantId");
+            const result = await grantStorage.deleteGrant({
+                grantId: "someGrantId",
+                username: "testUser",
+            });
+
+            assert.equal(result, "db_status");
+            sinon.assert.calledOnceWithExactly(statementRunStub);
+        });
+
+        it("should throw if running statement rejects", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
+
+            databasePrepareStub.withArgs("DELETE FROM Grants WHERE GrantId = ? AND Username = ?").returns({
+                bind: statementBindStub,
+            });
+
+            statementBindStub.withArgs("someGrantId", "testUser").returns({ run: statementRunStub });
+
+            const expectedError = new Error("Cannot delete");
+            statementRunStub.rejects(expectedError);
+
+            try {
+                await grantStorage.deleteGrant({
+                    grantId: "someGrantId",
+                    username: "testUser",
+                });
+                throw new Error("Function under test never threw");
+            } catch (error) {
+                assert.equal(expectedError, error);
+                sinon.assert.calledOnceWithExactly(statementRunStub);
+            }
         });
     });
 
     describe("getGrantsByUsername", () => {
-        it("should return all grants by username", async () => {
-            sinon.stub(keyValueHelper);
-            sinon.stub(storageManager);
+        it("should get database and run prepared statement", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
 
-            const grantKeyValueStub = sinon.stub();
+            databasePrepareStub.withArgs("SELECT * FROM Grants WHERE Username = ?").returns({
+                bind: statementBindStub,
+            });
 
-            storageManager.getGrantKeyValueStorage.returns(grantKeyValueStub);
+            statementBindStub.withArgs("testUser").returns({ run: statementRunStub });
 
-            keyValueHelper.getAllValuesForPrefix.withArgs({ keyValueStorage: grantKeyValueStub, keyPrefix: "dummy" }).resolves({ foo: "bar" });
+            statementRunStub.resolves({
+                results: [
+                    {
+                        row: true,
+                        Scope: "a,b,c",
+                    },
+                    {
+                        row: true,
+                        Scope: "b",
+                    },
+                ],
+            });
 
-            const allGrants = await grantStorage.getGrantsByUsername("dummy");
+            const result = await grantStorage.getGrantsByUsername("testUser");
 
-            assert.deepEqual(allGrants, { foo: "bar" });
+            assert.deepEqual(result, [
+                {
+                    row: true,
+                    Scope: ["a", "b", "c"],
+                },
+                {
+                    row: true,
+                    Scope: ["b"],
+                },
+            ]);
+            sinon.assert.calledOnceWithExactly(statementRunStub);
+        });
+
+        it("should throw if running statement rejects", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
+
+            databasePrepareStub.withArgs("SELECT * FROM Grants WHERE Username = ?").returns({
+                bind: statementBindStub,
+            });
+
+            statementBindStub.withArgs("testUser").returns({ run: statementRunStub });
+
+            const expectedError = new Error("Cannot delete");
+            statementRunStub.rejects(expectedError);
+
+            try {
+                await grantStorage.getGrantsByUsername("testUser");
+                throw new Error("Function under test never threw");
+            } catch (error) {
+                assert.equal(expectedError, error);
+                sinon.assert.calledOnceWithExactly(statementRunStub);
+            }
         });
     });
 });

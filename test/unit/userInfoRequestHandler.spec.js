@@ -311,11 +311,11 @@ describe("User info request handler", () => {
                         grantKey2: "someValue",
                         grantKey3: "someValue",
                     });
-                    refreshTokenStorage.getRefreshTokensByUsername.withArgs("dummy").resolves({
-                        refreshTokenKey1: { active: true, value: "someValue" },
-                        refreshTokenKey2: { active: false, value: "someValue" },
-                        refreshTokenKey3: { active: true, value: "someValue" },
-                    });
+                    refreshTokenStorage.getRefreshTokensByUsername.withArgs("dummy").resolves([
+                        { Active: true, value: "someValue" },
+                        { Active: false, value: "someValue" },
+                        { Active: true, value: "someValue" },
+                    ]);
 
                     const response = await userInfoRequestHandler.handleGetUserInfoRequest({
                         headers: {
@@ -324,6 +324,7 @@ describe("User info request handler", () => {
                     });
 
                     assert.equal(response.status, 200);
+
                     const responseBody = await response.json();
 
                     assert.deepEqual(responseBody, {
@@ -337,13 +338,11 @@ describe("User info request handler", () => {
                             grantKey2: "someValue",
                             grantKey3: "someValue",
                         },
-                        activeRefreshTokens: {
-                            refreshTokenKey1: { active: true, value: "someValue" },
-                            refreshTokenKey3: { active: true, value: "someValue" },
-                        },
-                        inactiveRefreshTokens: {
-                            refreshTokenKey2: { active: false, value: "someValue" },
-                        },
+                        activeRefreshTokens: [
+                            { Active: true, value: "someValue" },
+                            { Active: true, value: "someValue" },
+                        ],
+                        inactiveRefreshTokens: [{ Active: false, value: "someValue" }],
                     });
                 });
             });
@@ -364,49 +363,8 @@ describe("User info request handler", () => {
                     assert.equal(responseText, "Could not extract grant id from path.");
                 });
 
-                it("should return internal server error if getting grant rejects", async () => {
+                it("should return internal server error if deleting grant rejects", async () => {
                     sinon.stub(grantStorage);
-
-                    const expectedError = new Error("Cannot find grant");
-                    grantStorage.getGrant.withArgs("dummy:grantId").rejects(expectedError);
-
-                    const response = await userInfoRequestHandler.handleGrantDeletionRequest({
-                        url: "http://localhost/me/grants/grantId",
-                        headers: {
-                            get: requestGetStub,
-                        },
-                    });
-
-                    assert.equal(response.status, 500);
-                    const responseText = await response.text();
-                    assert.equal(responseText, "Cannot find grant");
-
-                    sinon.assert.calledOnceWithExactly(logger.logMessage, "Attempting to delete grant with id 'grantId' of user 'dummy'.");
-                });
-
-                it("should return not found if getting grant returns null", async () => {
-                    sinon.stub(grantStorage);
-
-                    grantStorage.getGrant.withArgs("dummy:grantId").resolves(null);
-
-                    const response = await userInfoRequestHandler.handleGrantDeletionRequest({
-                        url: "http://localhost/me/grants/grantId",
-                        headers: {
-                            get: requestGetStub,
-                        },
-                    });
-
-                    assert.equal(response.status, 404);
-                    const responseText = await response.text();
-                    assert.equal(responseText, "");
-
-                    sinon.assert.calledOnceWithExactly(logger.logMessage, "Attempting to delete grant with id 'grantId' of user 'dummy'.");
-                });
-
-                it("should return internal server errro if deleting grant rejects", async () => {
-                    sinon.stub(grantStorage);
-
-                    grantStorage.getGrant.withArgs("dummy:grantId").resolves({ someGrant: "yes" });
 
                     const expectedError = new Error("Cannot delete grant");
                     grantStorage.deleteGrant
@@ -429,19 +387,42 @@ describe("User info request handler", () => {
 
                     sinon.assert.calledOnceWithExactly(logger.logMessage, "Attempting to delete grant with id 'grantId' of user 'dummy'.");
                 });
+
+                it("should return not found if deleting grant returns unsuccessful result", async () => {
+                    sinon.stub(grantStorage);
+
+                    grantStorage.deleteGrant
+                        .withArgs({
+                            grantId: "grantId",
+                            username: "dummy",
+                        })
+                        .resolves(false);
+
+                    const response = await userInfoRequestHandler.handleGrantDeletionRequest({
+                        url: "http://localhost/me/grants/grantId",
+                        headers: {
+                            get: requestGetStub,
+                        },
+                    });
+
+                    assert.equal(response.status, 404);
+                    const responseText = await response.text();
+                    assert.equal(responseText, "");
+
+                    sinon.assert.calledOnceWithExactly(logger.logMessage, "Attempting to delete grant with id 'grantId' of user 'dummy'.");
+                });
             });
 
             describe("success cases", () => {
                 it("should delete grant", async () => {
                     sinon.stub(grantStorage);
 
-                    grantStorage.getGrant.withArgs("dummy:grantId").resolves({ someGrant: "yes" });
                     grantStorage.deleteGrant
                         .withArgs({
                             grantId: "grantId",
                             username: "dummy",
                         })
-                        .resolves();
+                        .resolves(true);
 
                     const response = await userInfoRequestHandler.handleGrantDeletionRequest({
                         url: "http://localhost/me/grants/grantId",
@@ -474,46 +455,7 @@ describe("User info request handler", () => {
                     assert.equal(responseText, "Could not extract refresh token id from path.");
                 });
 
-                it("should return internal server error if getting refresh token rejects", async () => {
-                    sinon.stub(refreshTokenStorage);
-                    const expectedError = new Error("Cannot refresh token");
-
-                    refreshTokenStorage.getRefreshToken.withArgs("dummy:refreshTokenId").rejects(expectedError);
-
-                    const response = await userInfoRequestHandler.handleRefreshTokenDeletionRequest({
-                        url: "http://localhost/me/refreshTokens/refreshTokenId",
-                        headers: {
-                            get: requestGetStub,
-                        },
-                    });
-
-                    assert.equal(response.status, 500);
-                    const responseText = await response.text();
-                    assert.equal(responseText, "Cannot refresh token");
-
-                    sinon.assert.calledOnceWithExactly(logger.logMessage, "Attempting to deactivate refresh token with id 'refreshTokenId' of user 'dummy'.");
-                });
-
-                it("should return not found if getting refresh token returns null", async () => {
-                    sinon.stub(refreshTokenStorage);
-
-                    refreshTokenStorage.getRefreshToken.withArgs("dummy:refreshTokenId").resolves(null);
-
-                    const response = await userInfoRequestHandler.handleRefreshTokenDeletionRequest({
-                        url: "http://localhost/me/refreshTokens/refreshTokenId",
-                        headers: {
-                            get: requestGetStub,
-                        },
-                    });
-
-                    assert.equal(response.status, 404);
-                    const responseText = await response.text();
-                    assert.equal(responseText, "");
-
-                    sinon.assert.calledOnceWithExactly(logger.logMessage, "Attempting to deactivate refresh token with id 'refreshTokenId' of user 'dummy'.");
-                });
-
-                it("should return not found if deactivating refresh token rejects", async () => {
+                it("should return internal server error if deactivating refresh token rejects", async () => {
                     sinon.stub(refreshTokenStorage);
 
                     refreshTokenStorage.getRefreshToken.withArgs("dummy:refreshTokenId").resolves({ refresh: "yes" });
@@ -539,19 +481,42 @@ describe("User info request handler", () => {
 
                     sinon.assert.calledOnceWithExactly(logger.logMessage, "Attempting to deactivate refresh token with id 'refreshTokenId' of user 'dummy'.");
                 });
+
+                it("should return not found if deactivating refresh token returns unsuccessful result", async () => {
+                    sinon.stub(refreshTokenStorage);
+
+                    refreshTokenStorage.deactivateRefreshToken
+                        .withArgs({
+                            refreshTokenId: "refreshTokenId",
+                            username: "dummy",
+                        })
+                        .resolves(false);
+
+                    const response = await userInfoRequestHandler.handleRefreshTokenDeletionRequest({
+                        url: "http://localhost/me/refreshTokens/refreshTokenId",
+                        headers: {
+                            get: requestGetStub,
+                        },
+                    });
+
+                    assert.equal(response.status, 404);
+                    const responseText = await response.text();
+                    assert.equal(responseText, "");
+
+                    sinon.assert.calledOnceWithExactly(logger.logMessage, "Attempting to deactivate refresh token with id 'refreshTokenId' of user 'dummy'.");
+                });
             });
 
             describe("success cases", () => {
                 it("should deactivate refresh token", async () => {
                     sinon.stub(refreshTokenStorage);
 
-                    refreshTokenStorage.getRefreshToken.withArgs("dummy:refreshTokenId").resolves({ refresh: "yes" });
                     refreshTokenStorage.deactivateRefreshToken
                         .withArgs({
                             refreshTokenId: "refreshTokenId",
                             username: "dummy",
                         })
-                        .resolves();
+                        .resolves(true);
 
                     const response = await userInfoRequestHandler.handleRefreshTokenDeletionRequest({
                         url: "http://localhost/me/refreshTokens/refreshTokenId",

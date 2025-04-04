@@ -13,7 +13,7 @@ const authenticateClient = async (clientId, redirectUri) => {
             });
         }
 
-        if (client.redirectUri !== redirectUri) {
+        if (client.RedirectUri !== redirectUri) {
             throw new AuthenticationError({
                 errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
                 errorDescription: `Redirect URI '${redirectUri}' is not valid for client with id '${clientId}'.`,

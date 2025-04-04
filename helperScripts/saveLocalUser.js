@@ -5,7 +5,7 @@ const prompt = promptSync({ sigint: true });
 import crypto from "crypto";
 
 const username = prompt("Enter a user- / loginname (e.g. jdoe): ");
-const name = prompt("Enter the user's full name (e.g. John Doe): ");
+const fullname = prompt("Enter the user's full name (e.g. John Doe): ");
 const scopeString = prompt("Enter a comma separated list of scopes (e.g. 'MY_SCOPE1,MY_SCOPE2'): ");
 const password = prompt("Enter the password: ", { echo: "*" });
 
@@ -29,19 +29,17 @@ const derivedBits = await crypto.subtle.deriveBits(
 const passwordHash = btoa(new Uint8Array(derivedBits));
 
 const user = {
-    name,
+    username,
+    fullname,
     salt: btoa(salt),
-    passwordToken: passwordHash,
-    scope: ["userInfo", ...scopeString.split(",")],
+    passwordHash,
+    scope: ["userInfo", ...scopeString.split(",")].join(","),
 };
 console.log("Generated user:");
 console.log(user);
 console.log();
 
-const stringifiedUser = JSON.stringify(user);
-console.log(`Saving object with key '${username}': ${stringifiedUser}`);
-
-const command = `wrangler kv:key put --env local --binding USER --local '${username}' '${stringifiedUser}'`;
+const command = `wrangler d1 execute test-db --local --env local --command "INSERT INTO Users (Username, Fullname, Salt, PasswordHash, Scope) VALUES ('${user.username}', '${user.fullname}', '${user.salt}', '${user.passwordHash}', '${user.scope}')"`;
 
 console.log(`\nRunning command: ${command}`);
 execSync(command);

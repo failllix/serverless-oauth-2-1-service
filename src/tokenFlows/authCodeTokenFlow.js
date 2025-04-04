@@ -34,17 +34,17 @@ const exchangeAccessCodeForToken = async ({ formData, host }) => {
         });
     }
 
-    if (accessCodeDetails.clientId !== validatedParameters.clientId) {
+    if (accessCodeDetails.ClientId !== validatedParameters.clientId) {
         throw new AuthenticationError({
             errorCategory: AuthenticationError.errrorCategories.INVALID_GRANT,
             errorDescription: "Invalid client for access code.",
         });
     }
 
-    if (accessCodeDetails.codeChallengeMethod === "S256") {
+    if (accessCodeDetails.CodeChallengeMethod === "S256") {
         const calculatedCodeChallenge = util.uint8ToUrlBase64(await util.calculateSha256FromString(validatedParameters.codeVerifier));
 
-        if (calculatedCodeChallenge !== accessCodeDetails.codeChallenge) {
+        if (calculatedCodeChallenge !== accessCodeDetails.CodeChallenge) {
             throw new AuthenticationError({
                 errorCategory: AuthenticationError.errrorCategories.INVALID_GRANT,
                 errorDescription: "Invalid code challenge",
@@ -57,7 +57,7 @@ const exchangeAccessCodeForToken = async ({ formData, host }) => {
         });
     }
 
-    if (!validatedParameters.scope.every((scope) => accessCodeDetails.scope.includes(scope))) {
+    if (!validatedParameters.scope.every((scope) => accessCodeDetails.Scope.includes(scope))) {
         throw new AuthenticationError({
             errorCategory: AuthenticationError.errrorCategories.INVALID_GRANT,
             errorDescription: "Requested scopes were not granted for acccess code",
@@ -65,10 +65,10 @@ const exchangeAccessCodeForToken = async ({ formData, host }) => {
     }
 
     return await tokenCreator.getAccessTokenResponse({
-        clientId: accessCodeDetails.clientId,
-        grantId: accessCodeDetails.grantId,
-        scope: validatedParameters.scope.length === 0 ? accessCodeDetails.scope : validatedParameters.scope,
-        username: accessCodeDetails.username,
+        clientId: accessCodeDetails.ClientId,
+        grantId: accessCodeDetails.GrantId,
+        scope: validatedParameters.scope.length === 0 ? accessCodeDetails.Scope : validatedParameters.scope,
+        username: accessCodeDetails.Username,
         issuer: host,
     });
 };

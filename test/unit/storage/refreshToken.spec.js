@@ -1,112 +1,265 @@
 import { assert } from "chai";
 import { describe } from "mocha";
 import sinon from "sinon";
-import keyValueHelper from "../../../src/helper/keyValueHelper.js";
-import environmentVariables from "../../../src/storage/environmentVariables.js";
 import storageManager from "../../../src/storage/manager.js";
 import refreshTokenStorage from "../../../src/storage/refreshToken.js";
 
 describe("Refresh token storage", () => {
+    let databaseStub;
+    let databasePrepareStub;
+
+    beforeEach(() => {
+        databasePrepareStub = sinon.stub();
+
+        databaseStub = {
+            prepare: databasePrepareStub,
+        };
+
+        sinon.stub(storageManager);
+
+        storageManager.getDatabase.returns(databaseStub);
+    });
+
     describe("getRefreshToken", () => {
-        it("should get refresh token key-value storage from manager and return parsed refresh token information by token id", async () => {
-            const keyValueGetStub = sinon.stub();
-            keyValueGetStub.withArgs("myTokenId").resolves(JSON.stringify({ refresh: "something" }));
+        it("should throw if running database statement rejects", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
 
-            sinon.stub(storageManager);
-            storageManager.getRefreshTokenKeyValueStorage.returns({ get: keyValueGetStub });
+            databasePrepareStub.withArgs("SELECT * FROM RefreshTokens WHERE RefreshTokenId = ?").returns({
+                bind: statementBindStub,
+            });
 
-            const refreshTokenInfo = await refreshTokenStorage.getRefreshToken("myTokenId");
+            statementBindStub.withArgs("refreshTokenId").returns({ run: statementRunStub });
 
-            assert.deepEqual(refreshTokenInfo, { refresh: "something" });
-            sinon.assert.calledOnceWithExactly(storageManager.getRefreshTokenKeyValueStorage);
+            const expectedError = new Error("Database connection is broken");
+            statementRunStub.withArgs().rejects(expectedError);
+
+            try {
+                await refreshTokenStorage.getRefreshToken("refreshTokenId");
+                throw new Error("Function under test never threw an error ");
+            } catch (error) {
+                assert.deepEqual(error, expectedError);
+            }
+        });
+
+        it("should throw if database returns more than one row for key", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
+
+            databasePrepareStub.withArgs("SELECT * FROM RefreshTokens WHERE RefreshTokenId = ?").returns({
+                bind: statementBindStub,
+            });
+
+            statementBindStub.withArgs("refreshTokenId").returns({ run: statementRunStub });
+
+            statementRunStub.withArgs().resolves({ results: [{ row: true }, { row: true, notExpected: true }] });
+
+            try {
+                await refreshTokenStorage.getRefreshToken("refreshTokenId");
+                throw new Error("Function under test never threw an error ");
+            } catch (error) {
+                assert.deepEqual(error.message, "Expected to receive only one refresh token with id 'refreshTokenId'");
+            }
+        });
+
+        it("should get database and run prepared statement with refresh token and return result with expanded scopes and converted Active flag", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
+
+            databasePrepareStub.withArgs("SELECT * FROM RefreshTokens WHERE RefreshTokenId = ?").returns({
+                bind: statementBindStub,
+            });
+
+            statementBindStub.withArgs("refreshTokenId").returns({ run: statementRunStub });
+
+            statementRunStub.withArgs().resolves({ results: [{ row: true, Scope: "a,b,c", Active: 1 }] });
+
+            const result = await refreshTokenStorage.getRefreshToken("refreshTokenId");
+
+            assert.deepEqual(result, {
+                row: true,
+                Scope: ["a", "b", "c"],
+                Active: true,
+            });
+        });
+
+        it("should get database and run prepared statement and return null if empty array was returned", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
+
+            databasePrepareStub.withArgs("SELECT * FROM RefreshTokens WHERE RefreshTokenId = ?").returns({
+                bind: statementBindStub,
+            });
+
+            statementBindStub.withArgs("refreshTokenId").returns({ run: statementRunStub });
+
+            statementRunStub.withArgs().resolves({ results: [] });
+
+            const result = await refreshTokenStorage.getRefreshToken("refreshTokenId");
+
+            assert.deepEqual(result, null);
         });
     });
 
     describe("saveRefreshToken", () => {
-        it("should save stringified refresh token information to key-value storage", async () => {
-            sinon.stub(environmentVariables);
+        it("should get database and run prepared statement", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
 
-            environmentVariables.getRefreshTokenTimeToLive.returns("fooo");
+            databasePrepareStub.withArgs("INSERT INTO RefreshTokens (RefreshTokenId, ClientId, GrantId, Username, Scope) VALUES (?, ?, ?, ?, ?)").returns({
+                bind: statementBindStub,
+            });
 
-            const keyValuePutStub = sinon.stub();
+            statementBindStub.withArgs("myRefreshToken", "testClient", "someGrantId", "testUser", "testScope1,testScope2").returns({ run: statementRunStub });
 
-            sinon.stub(storageManager);
-            storageManager.getRefreshTokenKeyValueStorage.returns({ put: keyValuePutStub });
+            statementRunStub.resolves();
 
-            await refreshTokenStorage.saveRefreshToken({ refreshTokenId: "myTokenId", scope: ["something"], clientId: "fooClient", grantId: "myRefreshTokenId", username: "dummy" });
+            await refreshTokenStorage.saveRefreshToken({
+                refreshTokenId: "myRefreshToken",
+                scope: ["testScope1", "testScope2"],
+                clientId: "testClient",
+                grantId: "someGrantId",
+                username: "testUser",
+            });
 
-            sinon.assert.calledTwice(storageManager.getRefreshTokenKeyValueStorage);
-            sinon.assert.calledWithExactly(storageManager.getRefreshTokenKeyValueStorage);
-
-            sinon.assert.calledTwice(keyValuePutStub);
-            sinon.assert.calledWithExactly(keyValuePutStub, "myTokenId", '{"clientId":"fooClient","scope":["something"],"grantId":"myRefreshTokenId","active":true,"username":"dummy"}', { expirationTtl: "fooo" });
-            sinon.assert.calledWithExactly(keyValuePutStub, "dummy:myTokenId", '{"clientId":"fooClient","scope":["something"],"grantId":"myRefreshTokenId","active":true,"username":"dummy"}', { expirationTtl: "fooo" });
-        });
-    });
-
-    describe("deactivateRefreshToken", () => {
-        it("should set 'active' field of existing refresh token information to false", async () => {
-            const keyValuePutStub = sinon.stub();
-            const keyValueGetStub = sinon.stub();
-
-            sinon.stub(storageManager);
-            storageManager.getRefreshTokenKeyValueStorage.returns({ put: keyValuePutStub, get: keyValueGetStub });
-
-            keyValueGetStub.withArgs("myRefreshTokenId").resolves(
-                JSON.stringify({
-                    someValue: "yes",
-                    active: true,
-                    someMoreKey: "yes",
-                }),
-            );
-
-            await refreshTokenStorage.deactivateRefreshToken({ refreshTokenId: "myRefreshTokenId", username: "dummy" });
-
-            sinon.assert.calledThrice(storageManager.getRefreshTokenKeyValueStorage);
-            sinon.assert.calledWithExactly(storageManager.getRefreshTokenKeyValueStorage);
-
-            sinon.assert.calledOnceWithExactly(keyValueGetStub, "myRefreshTokenId");
-
-            sinon.assert.calledTwice(keyValuePutStub);
-            sinon.assert.calledWithExactly(keyValuePutStub, "myRefreshTokenId", '{"someValue":"yes","active":false,"someMoreKey":"yes"}');
-            sinon.assert.calledWithExactly(keyValuePutStub, "dummy:myRefreshTokenId", '{"someValue":"yes","active":false,"someMoreKey":"yes"}');
+            sinon.assert.calledOnceWithExactly(statementRunStub);
         });
 
-        it("should throw error when refresh token cannot be received", async () => {
-            const keyValuePutStub = sinon.stub();
-            const keyValueGetStub = sinon.stub();
+        it("should throw if running statement rejects", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
 
-            sinon.stub(storageManager);
-            storageManager.getRefreshTokenKeyValueStorage.returns({ put: keyValuePutStub, get: keyValueGetStub });
+            databasePrepareStub.withArgs("INSERT INTO RefreshTokens (RefreshTokenId, ClientId, GrantId, Username, Scope) VALUES (?, ?, ?, ?, ?)").returns({
+                bind: statementBindStub,
+            });
 
-            keyValueGetStub.withArgs("myRefreshTokenId").resolves(null);
+            statementBindStub.withArgs("myRefreshToken", "testClient", "someGrantId", "testUser", "testScope1,testScope2").returns({ run: statementRunStub });
+
+            const expectedError = new Error("Cannot insert");
+            statementRunStub.rejects(expectedError);
 
             try {
-                await refreshTokenStorage.deactivateRefreshToken({ refreshTokenId: "myRefreshTokenId", username: "dummy" });
-                throw new Error("Function under test never threw error");
+                await refreshTokenStorage.saveRefreshToken({
+                    refreshTokenId: "myRefreshToken",
+                    scope: ["testScope1", "testScope2"],
+                    clientId: "testClient",
+                    grantId: "someGrantId",
+                    username: "testUser",
+                });
+                throw new Error("Function under test never threw");
             } catch (error) {
-                assert.equal(error.message, "Refresh token cannot be deactivated. It no longer exists.");
-                sinon.assert.calledWithExactly(storageManager.getRefreshTokenKeyValueStorage);
-                sinon.assert.calledOnceWithExactly(keyValueGetStub, "myRefreshTokenId");
-                sinon.assert.notCalled(keyValuePutStub);
+                assert.equal(expectedError, error);
+                sinon.assert.calledOnceWithExactly(statementRunStub);
             }
         });
     });
 
-    describe("getAccessCodesByUsername", () => {
+    describe("deactivateRefreshToken", () => {
+        it("should get database and run prepared statement and return if update changed database", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
+
+            databasePrepareStub.withArgs("UPDATE RefreshTokens SET Active = 0 WHERE Active = 1 AND RefreshTokenId = ? AND Username = ?").returns({
+                bind: statementBindStub,
+            });
+
+            statementBindStub.withArgs("myRefreshToken", "testUser").returns({ run: statementRunStub });
+
+            statementRunStub.resolves({
+                meta: {
+                    changed_db: "db_status",
+                },
+            });
+
+            const result = await refreshTokenStorage.deactivateRefreshToken({
+                refreshTokenId: "myRefreshToken",
+                username: "testUser",
+            });
+
+            assert.equal(result, "db_status");
+            sinon.assert.calledOnceWithExactly(statementRunStub);
+        });
+
+        it("should throw if running statement rejects", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
+
+            databasePrepareStub.withArgs("UPDATE RefreshTokens SET Active = 0 WHERE Active = 1 AND RefreshTokenId = ? AND Username = ?").returns({
+                bind: statementBindStub,
+            });
+
+            statementBindStub.withArgs("myRefreshToken", "testUser").returns({ run: statementRunStub });
+
+            const expectedError = new Error("Cannot update");
+            statementRunStub.rejects(expectedError);
+
+            try {
+                await refreshTokenStorage.deactivateRefreshToken({
+                    refreshTokenId: "myRefreshToken",
+                    username: "testUser",
+                });
+                throw new Error("Function under test never threw");
+            } catch (error) {
+                assert.equal(expectedError, error);
+                sinon.assert.calledOnceWithExactly(statementRunStub);
+            }
+        });
+    });
+
+    describe("getRefreshTokensByUsername", () => {
         it("should return all access codes by username", async () => {
-            sinon.stub(keyValueHelper);
-            sinon.stub(storageManager);
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
 
-            const refreshTokenKeyValueStub = sinon.stub();
+            databasePrepareStub.withArgs("SELECT * FROM RefreshTokens WHERE Username = ?").returns({
+                bind: statementBindStub,
+            });
 
-            storageManager.getRefreshTokenKeyValueStorage.returns(refreshTokenKeyValueStub);
+            statementBindStub.withArgs("username").returns({ run: statementRunStub });
 
-            keyValueHelper.getAllValuesForPrefix.withArgs({ keyValueStorage: refreshTokenKeyValueStub, keyPrefix: "dummy" }).resolves({ foo: "bar" });
+            statementRunStub.withArgs().resolves({
+                results: [
+                    { row: true, Scope: "a,b,c", Active: 1 },
+                    { row: true, Scope: "a", Active: 0 },
+                ],
+            });
 
-            const allRefreshTokens = await refreshTokenStorage.getRefreshTokensByUsername("dummy");
+            const result = await refreshTokenStorage.getRefreshTokensByUsername("username");
 
-            assert.deepEqual(allRefreshTokens, { foo: "bar" });
+            assert.deepEqual(result, [
+                {
+                    row: true,
+                    Scope: ["a", "b", "c"],
+                    Active: true,
+                },
+                {
+                    row: true,
+                    Scope: ["a"],
+                    Active: false,
+                },
+            ]);
+        });
+
+        it("should throw if running statement rejects", async () => {
+            const statementBindStub = sinon.stub();
+            const statementRunStub = sinon.stub();
+
+            databasePrepareStub.withArgs("SELECT * FROM RefreshTokens WHERE Username = ?").returns({
+                bind: statementBindStub,
+            });
+
+            statementBindStub.withArgs("username").returns({ run: statementRunStub });
+
+            const expectedError = new Error("Cannot select");
+            statementRunStub.rejects(expectedError);
+
+            try {
+                await refreshTokenStorage.getRefreshTokensByUsername("username");
+                throw new Error("Function under test never threw");
+            } catch (error) {
+                assert.equal(expectedError, error);
+                sinon.assert.calledOnceWithExactly(statementRunStub);
+            }
         });
     });
 });

@@ -394,11 +394,12 @@ describe("The authorization request handler", () => {
                 sinon.assert.calledOnceWithExactly(logger.logError, expectedError);
             });
 
-            it("should redirect to app URL with error when saving access code fails", async () => {
+            it("should redirect to app URL with error when saving grant", async () => {
                 sinon.stub(clientAuthenticator);
                 sinon.stub(basicAuthHelper);
                 sinon.stub(userAuthenticator);
                 sinon.stub(util);
+                sinon.stub(grantStorage);
                 sinon.stub(codeStorage);
 
                 clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
@@ -418,6 +419,71 @@ describe("The authorization request handler", () => {
 
                 util.generateRandomSha256HexString.resolves("sha256");
                 util.getRandomUUID.returns("fooUUID");
+
+                const expectedError = new Error("Cannot save grant");
+
+                grantStorage.saveGrant
+                    .withArgs({
+                        grantId: "fooUUID",
+                        clientId: "test",
+                        scope: ["test", "test2"],
+                        username: "dummy",
+                    })
+                    .rejects(expectedError);
+
+                const headersGetStub = sinon.stub();
+                headersGetStub.returns("something:basic");
+
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                    json: jsonBodyStub,
+                    url: "http://localhost:8787",
+                    method: "POST",
+                    headers: {
+                        get: headersGetStub,
+                    },
+                });
+
+                assert.equal(response.status, 302);
+                const url = new URL(response.headers.get("Location"));
+                assert.equal(url.searchParams.get("error"), "server_error");
+                assert.equal(url.searchParams.get("error_description"), "Cannot save grant");
+                sinon.assert.calledOnceWithExactly(logger.logError, expectedError);
+            });
+
+            it("should redirect to app URL with error when saving access code fails", async () => {
+                sinon.stub(clientAuthenticator);
+                sinon.stub(basicAuthHelper);
+                sinon.stub(userAuthenticator);
+                sinon.stub(util);
+                sinon.stub(grantStorage);
+                sinon.stub(codeStorage);
+
+                clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+
+                basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
+                    username: "dummy",
+                    password: "insecure",
+                });
+
+                userAuthenticator.authenticateUser
+                    .withArgs({
+                        username: "dummy",
+                        password: "insecure",
+                        scope: ["test", "test2"],
+                    })
+                    .resolves();
+
+                util.generateRandomSha256HexString.resolves("sha256");
+                util.getRandomUUID.returns("fooUUID");
+
+                grantStorage.saveGrant
+                    .withArgs({
+                        grantId: "fooUUID",
+                        clientId: "test",
+                        scope: ["test", "test2"],
+                        username: "dummy",
+                    })
+                    .resolves();
 
                 const expectedError = new Error("No more boxes found for storage");
 
@@ -449,74 +515,6 @@ describe("The authorization request handler", () => {
                 const url = new URL(response.headers.get("Location"));
                 assert.equal(url.searchParams.get("error"), "server_error");
                 assert.equal(url.searchParams.get("error_description"), "No more boxes found for storage");
-                sinon.assert.calledOnceWithExactly(logger.logError, expectedError);
-            });
-
-            it("should redirect to app URL with error when saving grant", async () => {
-                sinon.stub(clientAuthenticator);
-                sinon.stub(basicAuthHelper);
-                sinon.stub(userAuthenticator);
-                sinon.stub(util);
-                sinon.stub(codeStorage);
-                sinon.stub(grantStorage);
-
-                clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
-
-                basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
-                    username: "dummy",
-                    password: "insecure",
-                });
-
-                userAuthenticator.authenticateUser
-                    .withArgs({
-                        username: "dummy",
-                        password: "insecure",
-                        scope: ["test", "test2"],
-                    })
-                    .resolves();
-
-                util.generateRandomSha256HexString.resolves("sha256");
-                util.getRandomUUID.returns("fooUUID");
-
-                codeStorage.saveAccessCode
-                    .withArgs({
-                        code: "sha256",
-                        scope: ["test", "test2"],
-                        clientId: "test",
-                        codeChallenge: "challenge",
-                        codeChallengeMethod: "challenge_method",
-                        username: "dummy",
-                        grantId: "fooUUID",
-                    })
-                    .resolves();
-
-                const expectedError = new Error("Cannot save grant");
-
-                grantStorage.saveGrant
-                    .withArgs({
-                        grantId: "fooUUID",
-                        clientId: "test",
-                        scope: ["test", "test2"],
-                        username: "dummy",
-                    })
-                    .rejects(expectedError);
-
-                const headersGetStub = sinon.stub();
-                headersGetStub.returns("something:basic");
-
-                const response = await authorizationRequestHandler.handleAuthorizationRequest({
-                    json: jsonBodyStub,
-                    url: "http://localhost:8787",
-                    method: "POST",
-                    headers: {
-                        get: headersGetStub,
-                    },
-                });
-
-                assert.equal(response.status, 302);
-                const url = new URL(response.headers.get("Location"));
-                assert.equal(url.searchParams.get("error"), "server_error");
-                assert.equal(url.searchParams.get("error_description"), "Cannot save grant");
                 sinon.assert.calledOnceWithExactly(logger.logError, expectedError);
             });
         });
@@ -621,6 +619,15 @@ describe("The authorization request handler", () => {
             util.generateRandomSha256HexString.resolves("sha256");
             util.getRandomUUID.returns("fooUUID");
 
+            grantStorage.saveGrant
+                .withArgs({
+                    grantId: "fooUUID",
+                    clientId: "test",
+                    scope: ["test", "test2"],
+                    username: "dummy",
+                })
+                .resolves();
+
             codeStorage.saveAccessCode
                 .withArgs({
                     code: "sha256",
@@ -630,15 +637,6 @@ describe("The authorization request handler", () => {
                     codeChallengeMethod: "challenge_method",
                     username: "dummy",
                     grantId: "fooUUID",
-                })
-                .resolves();
-
-            grantStorage.saveGrant
-                .withArgs({
-                    grantId: "fooUUID",
-                    clientId: "test",
-                    scope: ["test", "test2"],
-                    username: "dummy",
                 })
                 .resolves();
 

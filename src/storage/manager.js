@@ -1,8 +1,4 @@
-const clientKeyValueNamespace = "CLIENT";
-const userKeyValueNamespace = "USER";
-const codeKeyValueNamespace = "CODE";
-const refreshTokenKeyValueNamespace = "REFRESH_TOKEN";
-const grantKeyValueNamespace = "GRANT";
+const dbName = "DB";
 const environmentVariableNames = {
     signingKey: "SIGNING_KEY",
     publicKey: "PUBLIC_KEY",
@@ -10,44 +6,12 @@ const environmentVariableNames = {
     refreshTokenTimeToLive: "REFRESH_TOKEN_TIME_TO_LIVE",
 };
 
-let clientKeyValueStorage;
-const getClientKeyValueStorage = () => {
-    if (clientKeyValueStorage === undefined) {
-        throw new Error("Client key-value storage was not initialized.");
+let database;
+const getDatabase = () => {
+    if (database === undefined) {
+        throw new Error("Database was not initialized.");
     }
-    return clientKeyValueStorage;
-};
-
-let userKeyValueStorage;
-const getUserKeyValueStorage = () => {
-    if (userKeyValueStorage === undefined) {
-        throw new Error("User key-value storage was not initialized.");
-    }
-    return userKeyValueStorage;
-};
-
-let codeKeyValueStorage;
-const getCodeKeyValueStorage = () => {
-    if (codeKeyValueStorage === undefined) {
-        throw new Error("Code key-value storage was not initialized.");
-    }
-    return codeKeyValueStorage;
-};
-
-let refreshTokenKeyValueStorage;
-const getRefreshTokenKeyValueStorage = () => {
-    if (refreshTokenKeyValueStorage === undefined) {
-        throw new Error("Refresh token key-value storage was not initialized.");
-    }
-    return refreshTokenKeyValueStorage;
-};
-
-let grantKeyValueStorage;
-const getGrantKeyValueStorage = () => {
-    if (grantKeyValueStorage === undefined) {
-        throw new Error("Grant key-value storage was not initialized.");
-    }
-    return grantKeyValueStorage;
+    return database;
 };
 
 let environmentVariableStorage;
@@ -60,11 +24,7 @@ const getEnvironmentVariableStorage = () => {
 };
 
 const initializeStorage = (env) => {
-    clientKeyValueStorage = env[clientKeyValueNamespace];
-    userKeyValueStorage = env[userKeyValueNamespace];
-    codeKeyValueStorage = env[codeKeyValueNamespace];
-    refreshTokenKeyValueStorage = env[refreshTokenKeyValueNamespace];
-    grantKeyValueStorage = env[grantKeyValueNamespace];
+    database = env[dbName];
     environmentVariableStorage = {
         signingKey: env[environmentVariableNames.signingKey],
         publicKey: env[environmentVariableNames.publicKey],
@@ -75,10 +35,6 @@ const initializeStorage = (env) => {
 
 export default {
     initializeStorage,
-    getClientKeyValueStorage,
-    getUserKeyValueStorage,
-    getCodeKeyValueStorage,
-    getRefreshTokenKeyValueStorage,
-    getGrantKeyValueStorage,
+    getDatabase,
     getEnvironmentVariableStorage,
 };

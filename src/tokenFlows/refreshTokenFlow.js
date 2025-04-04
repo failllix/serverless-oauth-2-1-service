@@ -54,13 +54,13 @@ async function exchangeRefreshTokenForAccessToken({ formData, host }) {
         });
     }
 
-    const username = savedRefreshTokenDetails.username;
+    const username = savedRefreshTokenDetails.Username;
     await refreshTokenStorage.deactivateRefreshToken({ refreshTokenId: verifiedRefreshTokenPayload.token_id, username });
 
-    if (!savedRefreshTokenDetails.active) {
+    if (!savedRefreshTokenDetails.Active) {
         logger.logError("Encountered inactive refresh token. Revoking grant.");
 
-        await grantStorage.deleteGrant({ grantId: savedRefreshTokenDetails.grantId, username });
+        await grantStorage.deleteGrant({ grantId: savedRefreshTokenDetails.GrantId, username });
 
         throw new AuthenticationError({
             errorCategory: AuthenticationError.errrorCategories.INVALID_GRANT,
@@ -68,7 +68,7 @@ async function exchangeRefreshTokenForAccessToken({ formData, host }) {
         });
     }
 
-    if (validatedParameters.clientId !== savedRefreshTokenDetails.clientId) {
+    if (validatedParameters.clientId !== savedRefreshTokenDetails.ClientId) {
         throw new AuthenticationError({
             errorCategory: AuthenticationError.errrorCategories.INVALID_GRANT,
             errorDescription: "Invalid client for refresh token.",
@@ -84,7 +84,7 @@ async function exchangeRefreshTokenForAccessToken({ formData, host }) {
         });
     }
 
-    if (!validatedParameters.scope.every((scope) => grantDetails.scope.includes(scope))) {
+    if (!validatedParameters.scope.every((scope) => grantDetails.Scope.includes(scope))) {
         throw new AuthenticationError({
             errorCategory: AuthenticationError.errrorCategories.INVALID_GRANT,
             errorDescription: "Requested scopes were not granted for refresh token",
@@ -94,7 +94,7 @@ async function exchangeRefreshTokenForAccessToken({ formData, host }) {
     return await tokenCreator.getAccessTokenResponse({
         grantId: verifiedRefreshTokenPayload.grant_id,
         clientId: validatedParameters.clientId,
-        scope: validatedParameters.scope.length === 0 ? grantDetails.scope : validatedParameters.scope,
+        scope: validatedParameters.scope.length === 0 ? grantDetails.Scope : validatedParameters.scope,
         username,
         issuer: host,
     });

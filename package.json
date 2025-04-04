@@ -27,6 +27,7 @@
     "create:local-user": "node ./helperScripts/saveLocalUser.js",
     "create:local-client": "node ./helperScripts/saveLocalClient.js",
     "create:key-pair": "node ./helperScripts/generateKey.js",
-    "create:api-test-setup": "node ./helperScripts/setupApiTests.js"
+    "db:reset-schema": "npx wrangler d1 execute test-db --local --env local --file=db/schema.sql",
+    "db:apply-local-values": "npx wrangler d1 execute test-db --local --env local --file=db/localSetup.sql"
   }
 }

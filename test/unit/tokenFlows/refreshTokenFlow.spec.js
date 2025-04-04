@@ -299,7 +299,7 @@ describe("Refresh token flow", () => {
                     }),
                 );
 
-                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ active: false, grantId: "someGrantId", username: "dummy" });
+                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ Active: false, GrantId: "someGrantId", Username: "dummy" });
 
                 try {
                     await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
@@ -348,9 +348,9 @@ describe("Refresh token flow", () => {
                     }),
                 );
 
-                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ active: true, clientId: "someDIFFERENTClientId", grantId: "someGrantId", username: "dummy" });
+                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ Active: true, ClientId: "someDIFFERENTClientId", GrantId: "someGrantId", Username: "dummy" });
 
-                grantStorage.getGrant.withArgs("someGrantId").resolves({ scope: ["someScope1", "someScope2"], username: "dummy" });
+                grantStorage.getGrant.withArgs("someGrantId").resolves({ Scope: ["someScope1", "someScope2"], Username: "dummy" });
 
                 try {
                     await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
@@ -396,8 +396,8 @@ describe("Refresh token flow", () => {
                     }),
                 );
 
-                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ active: true, clientId: "someClientId", grantId: "someGrantId", username: "dummy" });
-                grantStorage.getGrant.withArgs("someGrantId").resolves({ scope: ["someScope1", "someScope2"], username: "dummy" });
+                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ Active: true, ClientId: "someClientId", GrantId: "someGrantId", Username: "dummy" });
+                grantStorage.getGrant.withArgs("someGrantId").resolves({ Scope: ["someScope1", "someScope2"], Username: "dummy" });
 
                 const expectedError = new Error("Cannot deactivate refresh token");
                 refreshTokenStorage.deactivateRefreshToken.withArgs({ refreshTokenId: "someTokenId", username: "dummy" }).rejects(expectedError);
@@ -440,7 +440,7 @@ describe("Refresh token flow", () => {
                     }),
                 );
 
-                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ active: true, clientId: "someClientId", grantId: "someGrantId", username: "dummy" });
+                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ Active: true, ClientId: "someClientId", GrantId: "someGrantId", Username: "dummy" });
 
                 const expectedError = new Error("No grants to be found");
                 grantStorage.getGrant.withArgs("someGrantId").rejects(expectedError);
@@ -483,7 +483,7 @@ describe("Refresh token flow", () => {
                     }),
                 );
 
-                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ active: true, clientId: "someClientId", grantId: "someGrantId", username: "dummy" });
+                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ Active: true, ClientId: "someClientId", GrantId: "someGrantId", Username: "dummy" });
 
                 grantStorage.getGrant.withArgs("someGrantId").resolves(null);
 
@@ -531,9 +531,9 @@ describe("Refresh token flow", () => {
                     }),
                 );
 
-                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ active: true, clientId: "someClientId", grantId: "someGrantId", username: "dummy" });
+                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ Active: true, ClientId: "someClientId", GrantId: "someGrantId", Username: "dummy" });
 
-                grantStorage.getGrant.withArgs("someGrantId").resolves({ scope: ["otherScope1", "otherScope1"], username: "dummy" });
+                grantStorage.getGrant.withArgs("someGrantId").resolves({ Scope: ["otherScope1", "otherScope1"], Username: "dummy" });
 
                 try {
                     await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
@@ -579,9 +579,9 @@ describe("Refresh token flow", () => {
                     }),
                 );
 
-                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ active: true, clientId: "someClientId", grantId: "someGrantId", username: "dummy" });
+                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ Active: true, ClientId: "someClientId", GrantId: "someGrantId", Username: "dummy" });
 
-                grantStorage.getGrant.withArgs("someGrantId").resolves({ scope: ["someScope1", "otherScope1"], username: "dummy" });
+                grantStorage.getGrant.withArgs("someGrantId").resolves({ Scope: ["someScope1", "otherScope1"], Username: "dummy" });
 
                 try {
                     await refreshTokenFlow.exchangeRefreshTokenForAccessToken({ formData: mockedFormData, host: "someHost" });
@@ -628,8 +628,8 @@ describe("Refresh token flow", () => {
                     }),
                 );
 
-                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ active: true, clientId: "someClientId", grantId: "someGrantId", username: "dummy" });
-                grantStorage.getGrant.withArgs("someGrantId").resolves({ scope: ["someScope1", "someScope2"], username: "dummy" });
+                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ Active: true, ClientId: "someClientId", GrantId: "someGrantId", Username: "dummy" });
+                grantStorage.getGrant.withArgs("someGrantId").resolves({ Scope: ["someScope1", "someScope2"], Username: "dummy" });
 
                 refreshTokenStorage.deactivateRefreshToken.withArgs("someTokenId").resolves();
 
@@ -689,8 +689,8 @@ describe("Refresh token flow", () => {
                     }),
                 );
 
-                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ active: true, clientId: "someClientId", grantId: "someGrantId", username: "dummy" });
-                grantStorage.getGrant.withArgs("someGrantId").resolves({ scope: ["someScope1", "someScope2"], username: "dummy" });
+                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ Active: true, ClientId: "someClientId", GrantId: "someGrantId", Username: "dummy" });
+                grantStorage.getGrant.withArgs("someGrantId").resolves({ Scope: ["someScope1", "someScope2"], Username: "dummy" });
 
                 refreshTokenStorage.deactivateRefreshToken.withArgs("someTokenId").resolves();
 
@@ -752,8 +752,8 @@ describe("Refresh token flow", () => {
                     }),
                 );
 
-                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ active: true, clientId: "someClientId", grantId: "someGrantId", username: "dummy" });
-                grantStorage.getGrant.withArgs("someGrantId").resolves({ scope: ["someScope1", "someScope2"], username: "dummy" });
+                refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ Active: true, ClientId: "someClientId", GrantId: "someGrantId", Username: "dummy" });
+                grantStorage.getGrant.withArgs("someGrantId").resolves({ Scope: ["someScope1", "someScope2"], Username: "dummy" });
 
                 refreshTokenStorage.deactivateRefreshToken.withArgs("someTokenId").resolves();
 

@@ -228,7 +228,7 @@ describe("Auth code token flow", () => {
                 sinon.stub(codeStorage);
 
                 codeStorage.getAccessCode.resolves({
-                    clientId: "somethingElse",
+                    ClientId: "somethingElse",
                 });
 
                 try {
@@ -247,8 +247,8 @@ describe("Auth code token flow", () => {
                 sinon.stub(codeStorage);
 
                 codeStorage.getAccessCode.resolves({
-                    clientId: "someClientId",
-                    codeChallengeMethod: "notS256",
+                    ClientId: "someClientId",
+                    CodeChallengeMethod: "notS256",
                 });
 
                 try {
@@ -268,8 +268,8 @@ describe("Auth code token flow", () => {
                 sinon.stub(util);
 
                 codeStorage.getAccessCode.resolves({
-                    clientId: "someClientId",
-                    codeChallengeMethod: "S256",
+                    ClientId: "someClientId",
+                    CodeChallengeMethod: "S256",
                 });
 
                 const expectedError = new Error("Cannot calculate SHA256 hash");
@@ -293,9 +293,9 @@ describe("Auth code token flow", () => {
                 sinon.stub(util);
 
                 codeStorage.getAccessCode.resolves({
-                    clientId: "someClientId",
-                    codeChallengeMethod: "S256",
-                    codeChallenge: "unexpected",
+                    ClientId: "someClientId",
+                    CodeChallengeMethod: "S256",
+                    CodeChallenge: "unexpected",
                 });
 
                 util.calculateSha256FromString.resolves("someCodeVerifierSha256Hash");
@@ -321,10 +321,10 @@ describe("Auth code token flow", () => {
                 sinon.stub(util);
 
                 codeStorage.getAccessCode.resolves({
-                    clientId: "someClientId",
-                    codeChallengeMethod: "S256",
-                    codeChallenge: "someCodeVerifierSha256HashBase64",
-                    scope: ["notSomeScope1", "notSomeScope2"],
+                    ClientId: "someClientId",
+                    CodeChallengeMethod: "S256",
+                    CodeChallenge: "someCodeVerifierSha256HashBase64",
+                    Scope: ["notSomeScope1", "notSomeScope2"],
                 });
 
                 util.calculateSha256FromString.resolves("someCodeVerifierSha256Hash");
@@ -350,10 +350,10 @@ describe("Auth code token flow", () => {
                 sinon.stub(util);
 
                 codeStorage.getAccessCode.resolves({
-                    clientId: "someClientId",
-                    codeChallengeMethod: "S256",
-                    codeChallenge: "someCodeVerifierSha256HashBase64",
-                    scope: ["someScope1", "notSomeScope2"],
+                    ClientId: "someClientId",
+                    CodeChallengeMethod: "S256",
+                    CodeChallenge: "someCodeVerifierSha256HashBase64",
+                    Scope: ["someScope1", "notSomeScope2"],
                 });
 
                 util.calculateSha256FromString.resolves("someCodeVerifierSha256Hash");
@@ -385,12 +385,12 @@ describe("Auth code token flow", () => {
                 sharedValidator.isValidOptionalScope.withArgs(["someScope2"]).returns(["someScope2"]);
 
                 codeStorage.getAccessCode.resolves({
-                    clientId: "someClientId",
-                    codeChallengeMethod: "S256",
-                    codeChallenge: "someCodeVerifierSha256HashBase64",
-                    scope: ["someScope1", "someScope2"],
-                    grantId: "someGrantId",
-                    username: "dummy",
+                    ClientId: "someClientId",
+                    CodeChallengeMethod: "S256",
+                    CodeChallenge: "someCodeVerifierSha256HashBase64",
+                    Scope: ["someScope1", "someScope2"],
+                    GrantId: "someGrantId",
+                    Username: "dummy",
                 });
 
                 util.calculateSha256FromString.resolves("someCodeVerifierSha256Hash");
@@ -435,12 +435,12 @@ describe("Auth code token flow", () => {
                 sharedValidator.isValidOptionalScope.withArgs([]).returns([]);
 
                 codeStorage.getAccessCode.resolves({
-                    clientId: "someClientId",
-                    codeChallengeMethod: "S256",
-                    codeChallenge: "someCodeVerifierSha256HashBase64",
-                    scope: ["someScope1", "someScope2"],
-                    grantId: "someGrantId",
-                    username: "dummy",
+                    ClientId: "someClientId",
+                    CodeChallengeMethod: "S256",
+                    CodeChallenge: "someCodeVerifierSha256HashBase64",
+                    Scope: ["someScope1", "someScope2"],
+                    GrantId: "someGrantId",
+                    Username: "dummy",
                 });
 
                 util.calculateSha256FromString.resolves("someCodeVerifierSha256Hash");

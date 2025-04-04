@@ -10,7 +10,7 @@ describe("User authentication", () => {
     describe("authenticateUser", () => {
         it("does not throw, if correct hash can be derived for password and user has all requested scopes", async () => {
             const getUserStub = sinon.stub(userStorage, "getUser");
-            getUserStub.withArgs("dummy").resolves({ salt: "abc", passwordToken: "hashed", scope: ["a", "b"] });
+            getUserStub.withArgs("dummy").resolves({ Salt: "abc", PasswordHash: "hashed", Scope: ["a", "b"] });
 
             const getPBKDF2PasswordHashStub = sinon.stub(util, "getPBKDF2PasswordHash");
             getPBKDF2PasswordHashStub.withArgs("insecure", "abc").resolves("hashed");
@@ -81,9 +81,9 @@ describe("User authentication", () => {
             }
         });
 
-        it("throws, if password and passwordToken don't match and logs error", async () => {
+        it("throws, if password and PasswordHash don't match and logs error", async () => {
             const getUserStub = sinon.stub(userStorage, "getUser");
-            getUserStub.withArgs("dummy").resolves({ salt: "abc", notPasswordToken: "hashed" });
+            getUserStub.withArgs("dummy").resolves({ Salt: "abc", notPasswordToken: "hashed" });
 
             const getPBKDF2PasswordHashStub = sinon.stub(util, "getPBKDF2PasswordHash");
             getPBKDF2PasswordHashStub.withArgs("wrong", "abc").resolves("notHashedPassword");
@@ -115,7 +115,7 @@ describe("User authentication", () => {
 
         it("throws, if user object does not include scope", async () => {
             const getUserStub = sinon.stub(userStorage, "getUser");
-            getUserStub.withArgs("dummy").resolves({ salt: "abc", passwordToken: "hash", notScope: ["a", "b"] });
+            getUserStub.withArgs("dummy").resolves({ Salt: "abc", PasswordHash: "hash", notScope: ["a", "b"] });
 
             const getPBKDF2PasswordHashStub = sinon.stub(util, "getPBKDF2PasswordHash");
             getPBKDF2PasswordHashStub.withArgs("insecure", "abc").resolves("hash");
@@ -134,7 +134,7 @@ describe("User authentication", () => {
 
         it("throws, if user does not have all requested scopes", async () => {
             const getUserStub = sinon.stub(userStorage, "getUser");
-            getUserStub.withArgs("dummy").resolves({ salt: "abc", passwordToken: "hash", scope: ["a"] });
+            getUserStub.withArgs("dummy").resolves({ Salt: "abc", PasswordHash: "hash", Scope: ["a"] });
 
             const getPBKDF2PasswordHashStub = sinon.stub(util, "getPBKDF2PasswordHash");
             getPBKDF2PasswordHashStub.withArgs("insecure", "abc").resolves("hash");

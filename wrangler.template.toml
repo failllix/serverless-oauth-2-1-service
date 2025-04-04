@@ -2,27 +2,21 @@ name = "oauth"
 main = "src/index.js"
 compatibility_date = "2023-02-04"
 
-[env.local]
-kv_namespaces = [
-    { binding = "USER", id = "local_users" },
-    { binding = "CODE", id = "local_codes" },
-    { binding = "CLIENT", id = "local_clients" },
-    { binding = "TOKEN", id = "local_tokens" },
-    { binding = "GRANT", id = "local_grants" },
-    { binding = "REFRESH_TOKEN", id = "local_refresh_tokens" },
-]
+[[env.local.d1_databases]]
+binding = "DB"
+database_name = "test-db"
+database_id = "847754d0-d7ed-4fb5-802d-aba6b4478028"
 
 [env.local.vars]
 ENVIRONMENT = "local"
 
 [env.production]
 name = "oauth"
-kv_namespaces = [
-    { binding = "USER", id = "SOME_KV_ID" },
-    { binding = "CODE", id = "SOME_KV_ID" },
-    { binding = "CLIENT", id = "SOME_KV_ID" },
-    { binding = "TOKEN", id = "SOME_KV_ID" },
-]
+
+[[env.local.d1_databases]]
+binding = "DB"
+database_name = "oauth-db"
+database_id = "SOME_DATABASE_ID"
 
 # Use `npm run create:key-pair` to gain a valid key pair. Make sure to set the signing key as a secret using `wrangler secert put SIGNING_KEY`. Never expose your private key!
 [env.production.vars]

@@ -1,33 +1,49 @@
-import keyValueHelper from "../helper/keyValueHelper.js";
 import storageManager from "./manager.js";
 
-const getGrant = async (grantId) => {
-    return JSON.parse(await storageManager.getGrantKeyValueStorage().get(grantId));
-};
-
-const getGrantsByUsername = async (username) => {
-    return await keyValueHelper.getAllValuesForPrefix({
-        keyValueStorage: storageManager.getGrantKeyValueStorage(),
-        keyPrefix: username,
+const convertOutput = (results) => {
+    return results.map((result) => {
+        return { ...result, Scope: result.Scope.split(",") };
     });
 };
 
-const getKeys = ({ grantId, username }) => {
-    return [grantId, `${username}:${grantId}`];
+const getGrant = async (grantId) => {
+    const statement = storageManager.getDatabase().prepare("SELECT * FROM Grants WHERE GrantId = ?").bind(grantId);
+
+    const dbResult = await statement.run();
+
+    const results = dbResult.results;
+
+    if (results.length === 0) {
+        return null;
+    }
+
+    if (results.length > 1) {
+        throw new Error(`Expected to receive only one grant with id '${grantId}'`);
+    }
+
+    return convertOutput(results)[0];
+};
+
+const getGrantsByUsername = async (username) => {
+    const statement = storageManager.getDatabase().prepare("SELECT * FROM Grants WHERE Username = ?").bind(username);
+
+    const dbResult = await statement.run();
+
+    return convertOutput(dbResult.results);
 };
 
 const saveGrant = async ({ grantId, clientId, scope, username }) => {
-    const grantInfo = JSON.stringify({ clientId, scope, username });
+    const statement = storageManager.getDatabase().prepare("INSERT INTO Grants (GrantId, ClientId, Username, Scope) VALUES (?, ?, ?, ?)").bind(grantId, clientId, username, scope.join(","));
 
-    for (const key of getKeys({ grantId, username })) {
-        await storageManager.getGrantKeyValueStorage().put(key, grantInfo);
-    }
+    await statement.run();
 };
 
 const deleteGrant = async ({ grantId, username }) => {
-    for (const key of getKeys({ grantId, username })) {
-        await storageManager.getGrantKeyValueStorage().delete(key);
-    }
+    const statement = storageManager.getDatabase().prepare("DELETE FROM Grants WHERE GrantId = ? AND Username = ?").bind(grantId, username);
+
+    const result = await statement.run();
+
+    return result.meta.changed_db;
 };
 
 export default { getGrant, saveGrant, deleteGrant, getGrantsByUsername };
