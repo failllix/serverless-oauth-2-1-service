@@ -2,7 +2,7 @@ INSERT INTO
     Clients (ClientId, Name, RedirectUri)
 VALUES
     (
-        'dc7623b082f575e5d54e28b18f5426f66dfc3d53d06c17c34785d0b833aefed1',
+        '664bddd3-efb2-4be2-842e-6b741c490b59',
         'Test',
         'http://localhost:8788/app'
     );
