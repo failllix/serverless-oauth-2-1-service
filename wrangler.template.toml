@@ -13,7 +13,7 @@ ENVIRONMENT = "local"
 [env.production]
 name = "oauth"
 
-[[env.local.d1_databases]]
+[[env.production.d1_databases]]
 binding = "DB"
 database_name = "oauth-db"
 database_id = "SOME_DATABASE_ID"
