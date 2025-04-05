@@ -1,79 +1,95 @@
 # Serverless OAuth 2.1 Service
 
-After using various OAuth 2 services, I was interested what it takes to implement one on my own.
-
 > ⛔⛔⛔ **Important note:** This project is not intended to be used in a productive manner.
 > It was built for educational purposes and likely contains critical security oversights.
 > It is not meant to protect any kind of service nor data.
 
+After using various OAuth 2 services, I was interested what it takes to implement one on my own.
+I took the [OAuth 2.1 RFC](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-12) as guidance while implementing this authorization server.
+
+Additional information about the established OAuth 2.0 concepts can be found on oauth.net's [OAuth 2.0 overview page](https://oauth.net/2/).
+A summary about the key differences of OAuth 2.1 are summarized in oauth.net's [OAuth 2.1 article](https://oauth.net/2.1/).
+
 ## Configuration
+
+To use the oAuth server the following entities must be configured
+
+1. [Clients](#clients)
+1. [Users](#users)
+1. APIs (tbd.)
+
+[!TIP]
+
+> Helper scripts exists to have a guided setup of entities where one must only enter corresponding values.
 
 ### Clients
 
-Clients are stored in a seperate KV store, where the key is the corresponding `client_id`. I recommend using UUIDs as `client_ids` to avoid brute forcability of `client_ids`. The corresponding value must be in JSON format and requires the following fields:
+Local clients can be generated using `npm run create:local-client`.
 
-| Fieldname     | Description                                               | Type          | Example                                                  |
-| ------------- | --------------------------------------------------------- | ------------- | -------------------------------------------------------- |
-| name          | Name of the client application                            | String        | "My fancy application"                                   |
-| redirect_uris | Valid redirection URIs pointing to the client application | Array[String] | ["http://localhost:3000", "http://localhost:3000/admin"] |
-
-```json
-{
-  "name": "My fancy application",
-  "redirect_uris": ["http://localhost:3000", "http://localhost:3000/admin"]
-}
-```
+| Fieldname   | Description                                              | Type   | Example                                |
+| ----------- | -------------------------------------------------------- | ------ | -------------------------------------- |
+| Name        | Name of the client application                           | String | "My fancy application"                 |
+| RedirectUri | Valid redirection URI pointing to the client application | String | "http://localhost:3000/app"            |
+| ClientId    | Identifier of the client                                 | String | '664bddd3-efb2-4be2-842e-6b741c490b59' |
 
 ### Users
 
-Users are stored in a seperate KV store, where the key is the corresponding `username`. The corresponding value must be in JSON format and requires the following fields:
+Local clients can be generated using `npm run create:local-user`.
 
-| Fieldname | Description                               | Type          | Example                                                                                                                            |
-| --------- | ----------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| pwdToken  | Hashed password of the user using SHA512  | String        | "c5e882bb4479f705dc777785c9e752517688a0ef00fe9a3ac3475d631a66999507589fea66c788751c993e2b1e18c237722940cf8637e98b51827cc82f68f479" |
-| salt      | Salt used during hashing of user password | String        | "3808fc54-fbe0-453f-a2b3-a2cdea0f8fe8"                                                                                             |
-| scope     | Scopes the user is able to request        | Array[String] | ["API_TEST"]                                                                                                                       |
-
-```json
-{
-  "pwdToken": "c5e882bb4479f705dc777785c9e752517688a0ef00fe9a3ac3475d631a66999507589fea66c788751c993e2b1e18c237722940cf8637e98b51827cc82f68f479",
-  "salt": "3808fc54-fbe0-453f-a2b3-a2cdea0f8fe8",
-  "scope": ["API_TEST"]
-}
-```
+| Fieldname    | Description                                                                                         | Type   | Example                                      |
+| ------------ | --------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
+| Username     | Loginname                                                                                           | String | "test"                                       |
+| Fullname     | Fullname of the user. Contained in access token and can e.g. be displayed in a frontend application | String | "Test User"                                  |
+| PasswordHash | Hashed password of the user using SHA512                                                            | String | "NDYsMjQ1LDI0NCwzNSwzNiwyMjIsMTgwLDM2LDI..." |
+| Salt         | Salt used during hashing of user password                                                           | String | "MjA4LDQwLDgsNDYsODc..."                     |
+| Scope        | Scopes the user is able to request (comma-separated)                                                | String | "user_info,API_TEST,access"                  |
 
 ## Local development
 
 ### Installation
 
-Make sure to install all dependencies by running:
+1. Make sure to install all dependencies:
+   ```bash
+   npm ci
+   ```
+1. Apply the database schema:
+   ```bash
+   npm run db:reset-schema
+   ```
+1. Apply the local default values (e.g. expected by the dummy application):
+   ```bash
+   npm run db:apply-local-values
+   ```
+1. Start development servers (in individual Terminal sessions):
+   1. Start the local server:
+      ```bash
+      npm run start:server:local
+      ```
+   1. Start the local application + login page:
+      ```bash
+      npm run start:login:local
+      ```
+
+Additional clients and users can be created using the corresponding convenience scripts:
+
+- `npm run create:local-client`
+- `npm run create:local-user`
+
+### Testing
+
+Unit tests can be executed using:
 
 ```bash
-npm ci
+npm run test:unit
 ```
 
-To sign and verify JWTs you will need a valid key pair. Use the following npm script to generate a key-pair in the expected configuration. Add the generated files to the `.dev.vars` file, that way they are used for local development.
+Coverage can be checked using:
 
 ```bash
-npm run create:key-pair
+npm run test:unit:coverage
 ```
 
-The service requires values in the `CLIENTS` and `USERS` key-value stores to be functional.
-To add your custom values, place files in the corresponding directories under `.wrangler/state/kv/<KV_NAME>`.
-
-Adding a valid client is as simple as placing a file under `.wrangler/state/kv/CLIENTS/<YOUR_CLIENT_ID>`, where the filename resembles the client_id. For convenience you can use this npm script:
-
-```bash
-npm run create:local-client
-```
-
-To create a local user that you can use to obtain a token for local development purposes, place a file under `.wrangler/state/kv/USERS/<YOUR_USERNAME>`, where the filename resembles the username. For convenience you can use this npm script:
-
-```bash
-npm run create:local-user
-```
-
-### Deployment
+<!-- ## Deployment
 
 To prepare deployment, copy the `wrangler.template.toml` file and rename it to `wrangler.toml`. Fill in the `id` properties concerning the key-value namespaces. To generate a new KV namespace, you can use:
 
@@ -99,19 +115,4 @@ To add the private (signing) key as a secret to your service run:
 
 ```
 wrangler secret:bulk ./.temp/privateKey.json
-```
-
-### Testing
-
-The app currently only features API tests.
-To setup the local environment to execute the tests run:
-
-```bash
-npm run create:api-test-setup
-```
-
-To execute the tests run:
-
-```bash
-npm run test:api
-```
+``` -->
