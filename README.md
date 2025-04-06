@@ -92,7 +92,7 @@ Local clients can be generated using `npm run create:local-client`.
       ```
 1. Access the local app at [http://localhost:8788/app](http://localhost:8788/app) and login using the user `test` with password `Test`.
 
-Additional clients, users and apis can be created using the corresponding convenience scripts:
+Additional clients, users and APIs can be created using the corresponding convenience scripts:
 
 - `npm run create:local-client`
 - `npm run create:local-user`
