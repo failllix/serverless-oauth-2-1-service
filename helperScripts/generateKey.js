@@ -1,6 +1,6 @@
-const crypto = require("crypto");
-const fs = require("fs");
-const path = require("path");
+import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 
 const { privateKey, publicKey } = crypto.generateKeyPairSync("ec", {
     namedCurve: "P-521",
@@ -14,7 +14,7 @@ publicJwk.use = "sig";
 const privateStr = JSON.stringify(privateJwk);
 const publicStr = JSON.stringify(publicJwk);
 
-const pathToClientsKV = path.join(__dirname, "..", ".temp");
+const pathToClientsKV = path.join(import.meta.dirname, "..", ".temp");
 fs.mkdirSync(pathToClientsKV, { recursive: true });
 fs.writeFileSync(
     path.join(pathToClientsKV, "privateKey.json"),
@@ -32,10 +32,10 @@ console.log(publicStr);
 console.log("");
 console.log("---------- LOCAL DEVELOPMENT ----------");
 console.log("");
-console.log("Add the following to your .dev.vars file for local development:");
+console.log("Add the following to your wrangler.toml file for local development:");
 console.log("");
-console.log(`SIGNING_KEY="${privateStr}"`);
-console.log(`PUBLIC_KEY="${publicStr}"`);
+console.log(`SIGNING_KEY='${privateStr}'`);
+console.log(`PUBLIC_KEY='${publicStr}'`);
 
 console.log("");
 console.log("---------- PRODUCTION ----------");
@@ -46,4 +46,4 @@ console.log(`PUBLIC_KEY="${publicStr.replaceAll('"', '\\"')}"`);
 console.log("");
 console.log("To add your signing key to your deployment run the command below. If this is your first deployment of the service, make sure to run 'npm run publish' before you try to update the secret.");
 console.log("");
-console.log("wrangler secret:bulk ./.temp/privateKey.json");
+console.log("npx wrangler secret:bulk ./.temp/privateKey.json");
