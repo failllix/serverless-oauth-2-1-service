@@ -59,4 +59,44 @@ describe("Environment Variables", () => {
             assert.equal(timeToLive, 600);
         });
     });
+
+    describe("getUserInfoApiUrl", () => {
+        it("should return value from storage manager", () => {
+            sinon.stub(storageManager);
+
+            storageManager.getEnvironmentVariableStorage.returns({
+                userInfoApiUrl: "some_URL",
+            });
+
+            const userInfoApiUrl = environmentVariables.getUserInfoApiUrl();
+
+            assert.equal(userInfoApiUrl, "some_URL");
+        });
+    });
+
+    describe("isLocalEnvironment", () => {
+        it("should return true if storage manager returns 'local'", () => {
+            sinon.stub(storageManager);
+
+            storageManager.getEnvironmentVariableStorage.returns({
+                environment: "local",
+            });
+
+            const isLocalEnvironment = environmentVariables.isLocalEnvironment();
+
+            assert.equal(isLocalEnvironment, true);
+        });
+
+        it("should return true if storage manager does not return 'local'", () => {
+            sinon.stub(storageManager);
+
+            storageManager.getEnvironmentVariableStorage.returns({
+                environment: "notLocal",
+            });
+
+            const isLocalEnvironment = environmentVariables.isLocalEnvironment();
+
+            assert.equal(isLocalEnvironment, false);
+        });
+    });
 });

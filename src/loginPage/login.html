@@ -11,8 +11,14 @@
     <main>
       <div id="login-wrapper" class="container">
         <h1>Login</h1>
-        <h2>Requested Scopes</h2>
-        <ul id="scope-list"></ul>
+        <div>
+          <h2>Requested Scopes</h2>
+          <ul id="scope-list"></ul>
+        </div>
+        <div id="audience-section">
+          <h2>Requested Resources</h2>
+          <ul id="audience-list"></ul>
+        </div>
         <form id="login-form">
           <input id="username" type="text" placeholder="Username" />
           <input id="password" type="password" placeholder="Password" />
@@ -36,6 +42,7 @@
     const loginForm = document.getElementById("login-form");
 
     const scopeList = document.getElementById("scope-list");
+    const audienceList = document.getElementById("audience-list");
 
     const errorContainer = document.getElementById("error-container");
     const errorCategory = document.getElementById("error-category");
@@ -46,9 +53,15 @@
       errorDetails.innerHTML = url.searchParams.get("error_description");
       loginForm.classList.add("hidden");
     } else {
+      errorContainer.classList.add("hidden");
+
       const scopes = url.searchParams.get("scope").split(",");
       scopeList.innerHTML = scopes.map((scope) => `<li>${scope}</li>`).join("");
-      errorContainer.classList.add("hidden");
+
+      const audiences = url.searchParams.get("audience").split(" ");
+      audienceList.innerHTML = audiences
+        .map((audience) => `<li>${audience}</li>`)
+        .join("");
     }
 
     const usernameInput = document.getElementById("username");

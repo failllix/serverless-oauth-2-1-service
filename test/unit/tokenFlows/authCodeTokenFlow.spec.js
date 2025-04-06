@@ -391,6 +391,7 @@ describe("Auth code token flow", () => {
                     Scope: ["someScope1", "someScope2"],
                     GrantId: "someGrantId",
                     Username: "dummy",
+                    Audience: "aud",
                 });
 
                 util.calculateSha256FromString.resolves("someCodeVerifierSha256Hash");
@@ -412,6 +413,7 @@ describe("Auth code token flow", () => {
                     scope: ["someScope2"],
                     username: "dummy",
                     issuer: "someHost",
+                    audience: "aud",
                 });
 
                 sinon.assert.calledOnceWithExactly(logger.logObject, {
@@ -441,6 +443,7 @@ describe("Auth code token flow", () => {
                     Scope: ["someScope1", "someScope2"],
                     GrantId: "someGrantId",
                     Username: "dummy",
+                    Audience: "aud",
                 });
 
                 util.calculateSha256FromString.resolves("someCodeVerifierSha256Hash");
@@ -462,6 +465,7 @@ describe("Auth code token flow", () => {
                     scope: ["someScope1", "someScope2"],
                     username: "dummy",
                     issuer: "someHost",
+                    audience: "aud",
                 });
 
                 sinon.assert.calledOnceWithExactly(logger.logObject, {

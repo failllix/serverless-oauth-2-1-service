@@ -2,7 +2,7 @@ import storageManager from "./manager.js";
 
 const convertOutput = (results) => {
     return results.map((result) => {
-        return { ...result, Scope: result.Scope.split(",") };
+        return { ...result, Scope: result.Scope.split(","), Audience: result.Audience.split(" ") };
     });
 };
 
@@ -34,8 +34,8 @@ const getAccessCode = async (code) => {
     return convertOutput(results)[0];
 };
 
-const saveAccessCode = async ({ code, scope = [], clientId, codeChallenge, codeChallengeMethod, username, grantId }) => {
-    const statement = storageManager.getDatabase().prepare("INSERT INTO Codes (AccessCode, ClientId, Username, GrantId, Scope, CodeChallengeMethod, CodeChallenge) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(code, clientId, username, grantId, scope.join(","), codeChallengeMethod, codeChallenge);
+const saveAccessCode = async ({ code, scope = [], clientId, codeChallenge, codeChallengeMethod, username, grantId, audience }) => {
+    const statement = storageManager.getDatabase().prepare("INSERT INTO Codes (AccessCode, ClientId, Username, GrantId, Scope, CodeChallengeMethod, CodeChallenge, Audience) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(code, clientId, username, grantId, scope.join(","), codeChallengeMethod, codeChallenge, audience.join(" "));
 
     await statement.run();
 };

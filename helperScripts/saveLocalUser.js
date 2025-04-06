@@ -42,4 +42,4 @@ console.log();
 const command = `wrangler d1 execute test-db --local --env local --command "INSERT INTO Users (Username, Fullname, Salt, PasswordHash, Scope) VALUES ('${user.username}', '${user.fullname}', '${user.salt}', '${user.passwordHash}', '${user.scope}')"`;
 
 console.log(`\nRunning command: ${command}`);
-execSync(command);
+execSync(command, { stdio: "inherit" });

@@ -4,6 +4,8 @@ const environmentVariableNames = {
     publicKey: "PUBLIC_KEY",
     tokenTimeToLive: "TOKEN_TIME_TO_LIVE",
     refreshTokenTimeToLive: "REFRESH_TOKEN_TIME_TO_LIVE",
+    userInfoApiUrl: "USER_INFO_API_URL",
+    environment: "ENVIRONMENT",
 };
 
 let database;
@@ -30,6 +32,8 @@ const initializeStorage = (env) => {
         publicKey: env[environmentVariableNames.publicKey],
         tokenTimeToLive: parseInt(env[environmentVariableNames.tokenTimeToLive]),
         refreshTokenTimeToLive: parseInt(env[environmentVariableNames.refreshTokenTimeToLive]),
+        userInfoApiUrl: env[environmentVariableNames.userInfoApiUrl],
+        environment: env[environmentVariableNames.environment],
     };
 };
 

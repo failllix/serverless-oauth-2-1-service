@@ -10,6 +10,7 @@ import basicAuthHelper from "../../src/helper/basicAuth.js";
 import util from "../../src/helper/util.js";
 import logger from "../../src/logger.js";
 import codeStorage from "../../src/storage/code.js";
+import environmentVariables from "../../src/storage/environmentVariables.js";
 import grantStorage from "../../src/storage/grant.js";
 import authCodeGrantValidator from "../../src/validation/authCodeGrantValidator.js";
 import sharedValidator from "../../src/validation/sharedValidator.js";
@@ -130,6 +131,23 @@ describe("The authorization request handler", () => {
                 sinon.assert.calledOnceWithExactly(logger.logError, authentionErrorStub);
             });
 
+            it("should return converted authentication error response, when validation of redirect uri fails", async () => {
+                const authentionErrorStub = sinon.createStubInstance(AuthenticationError);
+                authentionErrorStub.toResponse.withArgs("http://localhost:8788/login").returns("expectedErrorReturnValue");
+
+                sharedValidatorStub.isValidAudience.withArgs(["aud1", "aud2"]).throws(authentionErrorStub);
+
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                    url: getUrlWithSearchParams({
+                        audience: "aud1 aud2",
+                    }),
+                    method: "GET",
+                });
+
+                assert.equal(response, "expectedErrorReturnValue");
+                sinon.assert.calledOnceWithExactly(logger.logError, authentionErrorStub);
+            });
+
             it("should return converted authentication error response, when validation of scope fails", async () => {
                 const authentionErrorStub = sinon.createStubInstance(AuthenticationError);
                 authentionErrorStub.toResponse.withArgs("http://localhost:8788/login").returns("expectedErrorReturnValue");
@@ -193,6 +211,7 @@ describe("The authorization request handler", () => {
                     response_type: "testResponseType",
                     client_id: "test",
                     redirect_uri: "http://localhost:8787/fooUri",
+                    audience: "aud1 aud2",
                     scope: "test,test2",
                     code_challenge: "challenge",
                     code_challenge_method: "challenge_method",
@@ -202,6 +221,7 @@ describe("The authorization request handler", () => {
                 authCodeGrantValidator.isValidResponseType.withArgs("testResponseType").returns("testResponseType");
                 sharedValidator.isValidClientId.withArgs("test").returns("test");
                 sharedValidator.isValidRedirectUri.withArgs("http://localhost:8787/fooUri").returns("http://localhost:8787/fooUri");
+                sharedValidator.isValidAudience.withArgs(["aud1", "aud2"]).returns(["aud1", "aud2"]);
                 authCodeGrantValidator.isValidScope.withArgs(["test", "test2"]).returns(["test", "test2"]);
                 authCodeGrantValidator.isValidCodeChallenge.withArgs("challenge").returns("challenge");
                 authCodeGrantValidator.isValidCodeChallengeTransformMethod.withArgs("challenge_method").returns("challenge_method");
@@ -211,7 +231,7 @@ describe("The authorization request handler", () => {
                 sinon.stub(clientAuthenticator);
 
                 const expectedError = new Error("Invalid client");
-                clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").rejects(expectedError);
+                clientAuthenticator.authenticateClient.withArgs({ clientId: "test", redirectUri: "http://localhost:8787/fooUri", audience: ["aud1", "aud2"] }).rejects(expectedError);
 
                 const response = await authorizationRequestHandler.handleAuthorizationRequest({
                     json: jsonBodyStub,
@@ -231,7 +251,7 @@ describe("The authorization request handler", () => {
                 sinon.stub(basicAuthHelper);
                 sinon.stub(userAuthenticator);
 
-                clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+                clientAuthenticator.authenticateClient.withArgs({ clientId: "test", redirectUri: "http://localhost:8787/fooUri", audience: ["aud1", "aud2"] }).resolves();
 
                 basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
                     username: "dummy",
@@ -271,7 +291,7 @@ describe("The authorization request handler", () => {
                 sinon.stub(basicAuthHelper);
                 sinon.stub(userAuthenticator);
 
-                clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+                clientAuthenticator.authenticateClient.withArgs({ clientId: "test", redirectUri: "http://localhost:8787/fooUri", audience: ["aud1", "aud2"] }).resolves();
 
                 basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
                     username: "dummy",
@@ -312,7 +332,7 @@ describe("The authorization request handler", () => {
                 sinon.stub(userAuthenticator);
                 sinon.stub(util);
 
-                clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+                clientAuthenticator.authenticateClient.withArgs({ clientId: "test", redirectUri: "http://localhost:8787/fooUri", audience: ["aud1", "aud2"] }).resolves();
 
                 basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
                     username: "dummy",
@@ -356,7 +376,7 @@ describe("The authorization request handler", () => {
                 sinon.stub(userAuthenticator);
                 sinon.stub(util);
 
-                clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+                clientAuthenticator.authenticateClient.withArgs({ clientId: "test", redirectUri: "http://localhost:8787/fooUri", audience: ["aud1", "aud2"] }).resolves();
 
                 basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
                     username: "dummy",
@@ -394,7 +414,7 @@ describe("The authorization request handler", () => {
                 sinon.assert.calledOnceWithExactly(logger.logError, expectedError);
             });
 
-            it("should redirect to app URL with error when saving grant", async () => {
+            it("should redirect to app URL with error when saving grant rejects", async () => {
                 sinon.stub(clientAuthenticator);
                 sinon.stub(basicAuthHelper);
                 sinon.stub(userAuthenticator);
@@ -402,7 +422,7 @@ describe("The authorization request handler", () => {
                 sinon.stub(grantStorage);
                 sinon.stub(codeStorage);
 
-                clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+                clientAuthenticator.authenticateClient.withArgs({ clientId: "test", redirectUri: "http://localhost:8787/fooUri", audience: ["aud1", "aud2"] }).resolves();
 
                 basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
                     username: "dummy",
@@ -428,6 +448,7 @@ describe("The authorization request handler", () => {
                         clientId: "test",
                         scope: ["test", "test2"],
                         username: "dummy",
+                        audience: ["aud1", "aud2"],
                     })
                     .rejects(expectedError);
 
@@ -458,7 +479,7 @@ describe("The authorization request handler", () => {
                 sinon.stub(grantStorage);
                 sinon.stub(codeStorage);
 
-                clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+                clientAuthenticator.authenticateClient.withArgs({ clientId: "test", redirectUri: "http://localhost:8787/fooUri", audience: ["aud1", "aud2"] }).resolves();
 
                 basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
                     username: "dummy",
@@ -482,6 +503,7 @@ describe("The authorization request handler", () => {
                         clientId: "test",
                         scope: ["test", "test2"],
                         username: "dummy",
+                        audience: ["aud1", "aud2"],
                     })
                     .resolves();
 
@@ -496,6 +518,7 @@ describe("The authorization request handler", () => {
                         codeChallengeMethod: "challenge_method",
                         username: "dummy",
                         grantId: "fooUUID",
+                        audience: ["aud1", "aud2"],
                     })
                     .rejects(expectedError);
 
@@ -527,70 +550,123 @@ describe("The authorization request handler", () => {
             sinon.stub(authCodeGrantValidator);
             sinon.stub(sharedValidator);
 
-            jsonBodyStub.resolves({
-                response_type: "testResponseType",
-                client_id: "test",
-                redirect_uri: "http://localhost:8787/fooUri",
-                scope: "test,test2",
-                code_challenge: "challenge",
-                code_challenge_method: "challenge_method",
-                state: "washington",
-            });
-
             authCodeGrantValidator.isValidResponseType.withArgs("testResponseType").returns("testResponseType");
             sharedValidator.isValidClientId.withArgs("test").returns("test");
             sharedValidator.isValidRedirectUri.withArgs("http://localhost:8787/fooUri").returns("http://localhost:8787/fooUri");
-            authCodeGrantValidator.isValidScope.withArgs(["test", "test2"]).returns(["test", "test2"]);
             authCodeGrantValidator.isValidCodeChallenge.withArgs("challenge").returns("challenge");
             authCodeGrantValidator.isValidCodeChallengeTransformMethod.withArgs("challenge_method").returns("challenge_method");
         });
 
-        it("should redirect to login URL when authorization header is missing", async () => {
-            sinon.stub(clientAuthenticator);
+        describe("redirection to login", () => {
+            beforeEach(() => {
+                jsonBodyStub.resolves({
+                    response_type: "testResponseType",
+                    client_id: "test",
+                    redirect_uri: "http://localhost:8787/fooUri",
+                    scope: "test,test2",
+                    audience: "aud1 aud2",
+                    code_challenge: "challenge",
+                    code_challenge_method: "challenge_method",
+                    state: "washington",
+                });
 
-            clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+                sharedValidator.isValidAudience.withArgs(["aud1", "aud2"]).returns(["aud1", "aud2"]);
+                authCodeGrantValidator.isValidScope.withArgs(["test", "test2"]).returns(["test", "test2"]);
+            });
+            it("should redirect to login URL when authorization header is missing", async () => {
+                sinon.stub(clientAuthenticator);
+                sinon.stub(environmentVariables);
 
-            const headersGetStub = sinon.stub();
-            headersGetStub.returns(null);
+                clientAuthenticator.authenticateClient.withArgs({ clientId: "test", redirectUri: "http://localhost:8787/fooUri", audience: ["aud1", "aud2"] }).resolves();
 
-            const response = await authorizationRequestHandler.handleAuthorizationRequest({
-                json: jsonBodyStub,
-                url: "http://localhost:8787",
-                method: "POST",
-                headers: {
-                    get: headersGetStub,
-                },
+                const headersGetStub = sinon.stub();
+                headersGetStub.returns(null);
+
+                environmentVariables.isLocalEnvironment.returns(false);
+
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                    json: jsonBodyStub,
+                    url: "http://localhost:3000/authorization?someParameter=hello",
+                    method: "POST",
+                    headers: {
+                        get: headersGetStub,
+                    },
+                });
+
+                assert.equal(response.status, 302);
+                const url = response.headers.get("Location");
+                assert.equal(url, "http://localhost:3000/login?response_type=testResponseType&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8787%2FfooUri&audience=aud1+aud2&scope=test%2Ctest2&code_challenge=challenge&code_challenge_method=challenge_method&state=washington");
+                sinon.assert.calledOnceWithExactly(
+                    logger.logMessage,
+                    "Redirecting user to login at: http://localhost:3000/login?response_type=testResponseType&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8787%2FfooUri&audience=aud1+aud2&scope=test%2Ctest2&code_challenge=challenge&code_challenge_method=challenge_method&state=washington",
+                );
+                sinon.assert.calledWithExactly(headersGetStub, "Authorization");
             });
 
-            assert.equal(response.status, 302);
-            const url = response.headers.get("Location");
-            assert.equal(url, "http://localhost:8788/login");
-            sinon.assert.calledOnceWithExactly(logger.logMessage, "Redirecting user to login at: http://localhost:8788/login");
-            sinon.assert.calledWithExactly(headersGetStub, "Authorization");
-        });
+            it("should redirect to login URL when authorization header is empty", async () => {
+                sinon.stub(clientAuthenticator);
+                sinon.stub(environmentVariables);
 
-        it("should redirect to login URL when authorization header is empty", async () => {
-            sinon.stub(clientAuthenticator);
+                clientAuthenticator.authenticateClient.withArgs({ clientId: "test", redirectUri: "http://localhost:8787/fooUri", audience: ["aud1", "aud2"] }).resolves();
 
-            clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+                const headersGetStub = sinon.stub();
+                headersGetStub.returns("");
 
-            const headersGetStub = sinon.stub();
-            headersGetStub.returns("");
+                environmentVariables.isLocalEnvironment.returns(false);
 
-            const response = await authorizationRequestHandler.handleAuthorizationRequest({
-                json: jsonBodyStub,
-                url: "http://localhost:8787",
-                method: "POST",
-                headers: {
-                    get: headersGetStub,
-                },
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                    json: jsonBodyStub,
+                    url: "http://localhost:3000/authorization?someParameter=hello",
+                    method: "POST",
+                    headers: {
+                        get: headersGetStub,
+                    },
+                });
+
+                assert.equal(response.status, 302);
+                const url = response.headers.get("Location");
+                assert.equal(url, "http://localhost:3000/login?response_type=testResponseType&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8787%2FfooUri&audience=aud1+aud2&scope=test%2Ctest2&code_challenge=challenge&code_challenge_method=challenge_method&state=washington");
+                sinon.assert.calledOnceWithExactly(
+                    logger.logMessage,
+                    "Redirecting user to login at: http://localhost:3000/login?response_type=testResponseType&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8787%2FfooUri&audience=aud1+aud2&scope=test%2Ctest2&code_challenge=challenge&code_challenge_method=challenge_method&state=washington",
+                );
+                sinon.assert.calledWithExactly(headersGetStub, "Authorization");
             });
 
-            assert.equal(response.status, 302);
-            const url = response.headers.get("Location");
-            assert.equal(url, "http://localhost:8788/login");
-            sinon.assert.calledOnceWithExactly(logger.logMessage, "Redirecting user to login at: http://localhost:8788/login");
-            sinon.assert.calledWithExactly(headersGetStub, "Authorization");
+            it("should redirect to local login URL when authorization header is empty and environment is local", async () => {
+                sinon.stub(clientAuthenticator);
+                sinon.stub(environmentVariables);
+
+                clientAuthenticator.authenticateClient.withArgs({ clientId: "test", redirectUri: "http://localhost:8787/fooUri", audience: ["aud1", "aud2"] }).resolves();
+
+                const headersGetStub = sinon.stub();
+                headersGetStub.returns("");
+
+                environmentVariables.isLocalEnvironment.returns(true);
+
+                const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                    json: jsonBodyStub,
+                    url: "http://localhost:3000/authorization?someParameter=hello",
+                    method: "POST",
+                    headers: {
+                        get: headersGetStub,
+                    },
+                });
+
+                assert.equal(response.status, 302);
+                const url = response.headers.get("Location");
+                assert.equal(url, "http://localhost:8788/login?response_type=testResponseType&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8787%2FfooUri&audience=aud1+aud2&scope=test%2Ctest2&code_challenge=challenge&code_challenge_method=challenge_method&state=washington");
+                sinon.assert.calledTwice(logger.logMessage);
+                sinon.assert.calledWithExactly(
+                    logger.logMessage,
+                    "Redirecting user to login at: http://localhost:8788/login?response_type=testResponseType&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8787%2FfooUri&audience=aud1+aud2&scope=test%2Ctest2&code_challenge=challenge&code_challenge_method=challenge_method&state=washington",
+                );
+                sinon.assert.calledWithExactly(
+                    logger.logMessage,
+                    "Redirecting user to login at: http://localhost:8788/login?response_type=testResponseType&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8787%2FfooUri&audience=aud1+aud2&scope=test%2Ctest2&code_challenge=challenge&code_challenge_method=challenge_method&state=washington",
+                );
+                sinon.assert.calledWithExactly(headersGetStub, "Authorization");
+            });
         });
 
         it("should redirect to app URL when everthing is fine", async () => {
@@ -601,7 +677,21 @@ describe("The authorization request handler", () => {
             sinon.stub(codeStorage);
             sinon.stub(grantStorage);
 
-            clientAuthenticator.authenticateClient.withArgs("test", "http://localhost:8787/fooUri").resolves();
+            jsonBodyStub.resolves({
+                response_type: "testResponseType",
+                client_id: "test",
+                redirect_uri: "http://localhost:8787/fooUri",
+                scope: "test,test2",
+                audience: "aud1 aud2",
+                code_challenge: "challenge",
+                code_challenge_method: "challenge_method",
+                state: "washington",
+            });
+
+            sharedValidator.isValidAudience.withArgs(["aud1", "aud2"]).returns(["aud1", "aud2"]);
+            authCodeGrantValidator.isValidScope.withArgs(["test", "test2"]).returns(["test", "test2"]);
+
+            clientAuthenticator.authenticateClient.withArgs({ clientId: "test", redirectUri: "http://localhost:8787/fooUri", audience: ["aud1", "aud2"] }).resolves();
 
             basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
                 username: "dummy",
@@ -625,6 +715,7 @@ describe("The authorization request handler", () => {
                     clientId: "test",
                     scope: ["test", "test2"],
                     username: "dummy",
+                    audience: ["aud1", "aud2"],
                 })
                 .resolves();
 
@@ -637,6 +728,90 @@ describe("The authorization request handler", () => {
                     codeChallengeMethod: "challenge_method",
                     username: "dummy",
                     grantId: "fooUUID",
+                    audience: ["aud1", "aud2"],
+                })
+                .resolves();
+
+            const headersGetStub = sinon.stub();
+            headersGetStub.returns("something:basic");
+
+            const response = await authorizationRequestHandler.handleAuthorizationRequest({
+                json: jsonBodyStub,
+                url: "http://localhost:8787",
+                method: "POST",
+                headers: {
+                    get: headersGetStub,
+                },
+            });
+
+            assert.equal(response.status, 302);
+            assert.equal(response.headers.get("Location"), "http://localhost:8787/fooUri?code=sha256&state=washington");
+            sinon.assert.calledOnceWithExactly(logger.logMessage, "User authentication successful, redirecting to: http://localhost:8787/fooUri?code=sha256&state=washington");
+        });
+
+        it("should redirect to app URL and inject user info API to audience (de-duplicated) when everthing requested scopes contain 'userInfo'", async () => {
+            sinon.stub(environmentVariables);
+            sinon.stub(clientAuthenticator);
+            sinon.stub(basicAuthHelper);
+            sinon.stub(userAuthenticator);
+            sinon.stub(util);
+            sinon.stub(codeStorage);
+            sinon.stub(grantStorage);
+
+            jsonBodyStub.resolves({
+                response_type: "testResponseType",
+                client_id: "test",
+                redirect_uri: "http://localhost:8787/fooUri",
+                scope: "test,test2,userInfo",
+                audience: "aud1 aud2 userInfoApiUrl",
+                code_challenge: "challenge",
+                code_challenge_method: "challenge_method",
+                state: "washington",
+            });
+
+            sharedValidator.isValidAudience.withArgs(["aud1", "aud2", "userInfoApiUrl"]).returns(["aud1", "aud2", "userInfoApiUrl"]);
+            authCodeGrantValidator.isValidScope.withArgs(["test", "test2", "userInfo"]).returns(["test", "test2", "userInfo"]);
+
+            environmentVariables.getUserInfoApiUrl.returns("userInfoApiUrl");
+
+            clientAuthenticator.authenticateClient.withArgs({ clientId: "test", redirectUri: "http://localhost:8787/fooUri", audience: ["aud1", "aud2", "userInfoApiUrl"] }).resolves();
+
+            basicAuthHelper.extractUserInfoFromBasicAuthHeader.withArgs("something:basic").returns({
+                username: "dummy",
+                password: "insecure",
+            });
+
+            userAuthenticator.authenticateUser
+                .withArgs({
+                    username: "dummy",
+                    password: "insecure",
+                    scope: ["test", "test2", "userInfo"],
+                })
+                .resolves();
+
+            util.generateRandomSha256HexString.resolves("sha256");
+            util.getRandomUUID.returns("fooUUID");
+
+            grantStorage.saveGrant
+                .withArgs({
+                    grantId: "fooUUID",
+                    clientId: "test",
+                    scope: ["test", "test2", "userInfo"],
+                    username: "dummy",
+                    audience: ["aud1", "aud2", "userInfoApiUrl"],
+                })
+                .resolves();
+
+            codeStorage.saveAccessCode
+                .withArgs({
+                    code: "sha256",
+                    scope: ["test", "test2", "userInfo"],
+                    clientId: "test",
+                    codeChallenge: "challenge",
+                    codeChallengeMethod: "challenge_method",
+                    username: "dummy",
+                    grantId: "fooUUID",
+                    audience: ["aud1", "aud2", "userInfoApiUrl"],
                 })
                 .resolves();
 

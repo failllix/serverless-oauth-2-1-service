@@ -4,9 +4,11 @@ import clientAuthenticator from "./authentication/client.js";
 import userAuthenticator from "./authentication/user.js";
 import AuthenticationError from "./error/authenticationError.js";
 import basicAuthHelper from "./helper/basicAuth.js";
+import { USER_INFO_SCOPE } from "./helper/constants.js";
 import util from "./helper/util.js";
 import logger from "./logger.js";
 import codeStorage from "./storage/code.js";
+import environmentVariables from "./storage/environmentVariables.js";
 import grantStorage from "./storage/grant.js";
 import authCodeGrantValidator from "./validation/authCodeGrantValidator.js";
 import sharedValidator from "./validation/sharedValidator.js";
@@ -16,6 +18,7 @@ const getValidatedParameters = (parameters) => {
         responseType: authCodeGrantValidator.isValidResponseType(parameters.response_type),
         clientId: sharedValidator.isValidClientId(parameters.client_id),
         redirectUri: sharedValidator.isValidRedirectUri(parameters.redirect_uri),
+        audience: sharedValidator.isValidAudience(parameters.audience?.split(" ")),
         scope: authCodeGrantValidator.isValidScope(parameters.scope?.split(",")),
         codeChallenge: authCodeGrantValidator.isValidCodeChallenge(parameters.code_challenge),
         codeChallengeMethod: authCodeGrantValidator.isValidCodeChallengeTransformMethod(parameters.code_challenge_method),
@@ -54,13 +57,32 @@ async function handleAuthorizationRequest(request) {
 
         const validatedParameters = getValidatedParameters(parameters);
 
-        await clientAuthenticator.authenticateClient(validatedParameters.clientId, validatedParameters.redirectUri);
+        if (validatedParameters.scope.includes(USER_INFO_SCOPE)) {
+            validatedParameters.audience = Array.from(new Set([environmentVariables.getUserInfoApiUrl(), ...validatedParameters.audience]));
+        }
+
+        await clientAuthenticator.authenticateClient({ clientId: validatedParameters.clientId, redirectUri: validatedParameters.redirectUri, audience: validatedParameters.audience });
 
         const authHeader = request.headers.get("Authorization");
         if (authHeader === null || authHeader === "") {
             const loginUrl = new URL(url);
-            loginUrl.host = "localhost:8788";
+
+            if (environmentVariables.isLocalEnvironment()) {
+                logger.logMessage("Redirecting to local login page");
+                loginUrl.host = "localhost:8788";
+            }
+
             loginUrl.pathname = "login";
+            loginUrl.search = new URLSearchParams({
+                response_type: validatedParameters.responseType,
+                client_id: validatedParameters.clientId,
+                redirect_uri: validatedParameters.redirectUri,
+                audience: validatedParameters.audience.join(" "),
+                scope: validatedParameters.scope.join(","),
+                code_challenge: validatedParameters.codeChallenge,
+                code_challenge_method: validatedParameters.codeChallengeMethod,
+                state: validatedParameters.state,
+            }).toString();
 
             logger.logMessage(`Redirecting user to login at: ${loginUrl.toString()}`);
             return FOUND(loginUrl.toString());
@@ -78,7 +100,7 @@ async function handleAuthorizationRequest(request) {
 
         const grantId = util.getRandomUUID();
 
-        await grantStorage.saveGrant({ grantId, clientId: validatedParameters.clientId, scope: validatedParameters.scope, username });
+        await grantStorage.saveGrant({ grantId, clientId: validatedParameters.clientId, scope: validatedParameters.scope, username, audience: validatedParameters.audience });
 
         await codeStorage.saveAccessCode({
             code: accessCode,
@@ -88,6 +110,7 @@ async function handleAuthorizationRequest(request) {
             codeChallengeMethod: validatedParameters.codeChallengeMethod,
             username,
             grantId,
+            audience: validatedParameters.audience,
         });
 
         const redirectUrl = new URL(validatedParameters.redirectUri);

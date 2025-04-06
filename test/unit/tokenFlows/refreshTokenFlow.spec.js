@@ -629,7 +629,7 @@ describe("Refresh token flow", () => {
                 );
 
                 refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ Active: true, ClientId: "someClientId", GrantId: "someGrantId", Username: "dummy" });
-                grantStorage.getGrant.withArgs("someGrantId").resolves({ Scope: ["someScope1", "someScope2"], Username: "dummy" });
+                grantStorage.getGrant.withArgs("someGrantId").resolves({ Scope: ["someScope1", "someScope2"], Username: "dummy", Audience: "aud" });
 
                 refreshTokenStorage.deactivateRefreshToken.withArgs("someTokenId").resolves();
 
@@ -642,6 +642,7 @@ describe("Refresh token flow", () => {
                         scope: ["someScope1", "someScope2"],
                         username: "dummy",
                         issuer: "someHost",
+                        audience: "aud",
                     })
                     .rejects(expectedError);
 
@@ -690,7 +691,7 @@ describe("Refresh token flow", () => {
                 );
 
                 refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ Active: true, ClientId: "someClientId", GrantId: "someGrantId", Username: "dummy" });
-                grantStorage.getGrant.withArgs("someGrantId").resolves({ Scope: ["someScope1", "someScope2"], Username: "dummy" });
+                grantStorage.getGrant.withArgs("someGrantId").resolves({ Scope: ["someScope1", "someScope2"], Username: "dummy", Audience: "aud" });
 
                 refreshTokenStorage.deactivateRefreshToken.withArgs("someTokenId").resolves();
 
@@ -701,6 +702,7 @@ describe("Refresh token flow", () => {
                         scope: ["someScope2"],
                         username: "dummy",
                         issuer: "someHost",
+                        audience: "aud",
                     })
                     .resolves("tokenResponse");
 
@@ -753,7 +755,7 @@ describe("Refresh token flow", () => {
                 );
 
                 refreshTokenStorage.getRefreshToken.withArgs("someTokenId").resolves({ Active: true, ClientId: "someClientId", GrantId: "someGrantId", Username: "dummy" });
-                grantStorage.getGrant.withArgs("someGrantId").resolves({ Scope: ["someScope1", "someScope2"], Username: "dummy" });
+                grantStorage.getGrant.withArgs("someGrantId").resolves({ Scope: ["someScope1", "someScope2"], Username: "dummy", Audience: "aud" });
 
                 refreshTokenStorage.deactivateRefreshToken.withArgs("someTokenId").resolves();
 
@@ -764,6 +766,7 @@ describe("Refresh token flow", () => {
                         scope: ["someScope1", "someScope2"],
                         username: "dummy",
                         issuer: "someHost",
+                        audience: "aud",
                     })
                     .resolves("tokenResponse");
 

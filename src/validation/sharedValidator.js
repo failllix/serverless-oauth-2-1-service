@@ -34,6 +34,28 @@ const isValidRedirectUri = (redirectUri) => {
     });
 };
 
+const isValidAudience = (audience) => {
+    return validation.sequentiallyMatchAllValidations({
+        validations: [
+            {
+                rule: validation.isArray,
+                error: new AuthenticationError({
+                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                }),
+            },
+            {
+                rule: validation.arrayContainsOnlyValidEntries,
+                error: new AuthenticationError({
+                    errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                }),
+                args: [[validation.isNotUndefined, validation.isNotNull, validation.isNotEmpty, validation.isString]],
+            },
+        ],
+        fieldName: "audience",
+        value: audience,
+    });
+};
+
 const isValidClientId = (clientId) => {
     return validation.sequentiallyMatchAllValidations({
         validations: [
@@ -91,6 +113,7 @@ const isValidOptionalScope = (scope) => {
 
 export default {
     isValidClientId,
+    isValidAudience,
     isValidRedirectUri,
     isValidOptionalScope,
 };

@@ -70,6 +70,7 @@ const exchangeAccessCodeForToken = async ({ formData, host }) => {
         scope: validatedParameters.scope.length === 0 ? accessCodeDetails.Scope : validatedParameters.scope,
         username: accessCodeDetails.Username,
         issuer: host,
+        audience: accessCodeDetails.Audience,
     });
 };
 

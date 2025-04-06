@@ -6,7 +6,11 @@ DROP TABLE IF EXISTS RefreshTokens;
 
 DROP TABLE IF EXISTS Users;
 
+DROP TABLE IF EXISTS ClientApiAccess;
+
 DROP TABLE IF EXISTS Clients;
+
+DROP TABLE IF EXISTS Apis;
 
 CREATE TABLE
     IF NOT EXISTS Clients (
@@ -16,15 +20,25 @@ CREATE TABLE
     );
 
 CREATE TABLE
+    IF NOT EXISTS Apis (Uri TEXT PRIMARY KEY, Name TEXT NOT NULL);
+
+CREATE TABLE
+    IF NOT EXISTS ClientApiAccess (
+        ClientId TEXT REFERENCES Clients (ClientId) ON DELETE CASCADE ON UPDATE CASCADE,
+        Uri TEXT REFERENCES Apis (Uri) ON DELETE CASCADE ON UPDATE CASCADE
+    );
+
+CREATE TABLE
     IF NOT EXISTS Codes (
         AccessCode TEXT PRIMARY KEY,
         ClientId TEXT REFERENCES Clients (ClientId) ON DELETE CASCADE ON UPDATE CASCADE,
         Username TEXT REFERENCES Users (Username) ON DELETE CASCADE ON UPDATE CASCADE,
         GrantId TEXT REFERENCES Grants (GrantId) ON DELETE CASCADE ON UPDATE CASCADE,
         Scope TEXT NOT NULL,
+        Audience TEXT NOT NULL,
         CodeChallengeMethod TEXT NOT NULL,
         CodeChallenge TEXT NOT NULL,
-        ExpiresAt TIMESTAMP NOT NULL DEFAULT (datetime('now', '+00:00:30'))
+        ExpiresAt TIMESTAMP NOT NULL DEFAULT (datetime ('now', '+00:00:30'))
     );
 
 CREATE TABLE
@@ -32,7 +46,8 @@ CREATE TABLE
         GrantId TEXT PRIMARY KEY,
         ClientId TEXT REFERENCES Clients (ClientId) ON DELETE CASCADE ON UPDATE CASCADE,
         Username TEXT REFERENCES Users (Username) ON DELETE CASCADE ON UPDATE CASCADE,
-        Scope TEXT NOT NULL
+        Scope TEXT NOT NULL,
+        Audience TEXT NOT NULL
     );
 
 CREATE TABLE

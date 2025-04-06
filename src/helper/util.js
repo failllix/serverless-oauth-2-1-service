@@ -1,3 +1,5 @@
+import environmentVariables from "../storage/environmentVariables.js";
+
 function base64ToUrlBase64(base64String) {
     return base64String.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+/g, "");
 }
@@ -105,6 +107,13 @@ async function getPBKDF2PasswordHash(password, base64Salt) {
     }
 }
 
+const getUrlWithoutSearchParams = (url) => {
+    if (environmentVariables.isLocalEnvironment()) {
+        return `${url.protocol}//${url.hostname}:${url.port}${url.pathname}`;
+    }
+    return `${url.protocol}//${url.hostname}${url.pathname}`;
+};
+
 export default {
     strToUrlBase64,
     urlBase64ToStr,
@@ -116,4 +125,5 @@ export default {
     urlBase64Touint8,
     generateRandomSha256HexString,
     getRandomUUID,
+    getUrlWithoutSearchParams,
 };

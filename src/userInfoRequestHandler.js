@@ -1,5 +1,6 @@
+import { USER_INFO_SCOPE } from "./helper/constants.js";
 import keyHelper from "./helper/keyHelper.js";
-import { BAD_REQUEST, FOUND, INTERNAL_SERVER_ERROR, NOT_FOUND, SUCCESS, UNAUTHORIZED } from "./helper/responses.js";
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, SUCCESS } from "./helper/responses.js";
 import util from "./helper/util.js";
 import logger from "./logger.js";
 import codeStorage from "./storage/code.js";
@@ -30,12 +31,12 @@ async function getVerifiedToken(request) {
 
     logger.logObject({ label: "Verified token payload", object: tokenPayload });
 
-    // TODO adjust after adding proper audience handling
-    if (tokenPayload.aud !== "abc") {
+    const url = new URL(request.url);
+    if (!tokenPayload.aud.includes(`${util.getUrlWithoutSearchParams(url).split("/me")[0]}/me`)) {
         throw BAD_REQUEST("Audience of token does not match server URL");
     }
 
-    if (!tokenPayload.scope.includes("userInfo")) {
+    if (!tokenPayload.scope.includes(USER_INFO_SCOPE)) {
         throw BAD_REQUEST("Missing 'userInfo' scope in authorization token");
     }
 

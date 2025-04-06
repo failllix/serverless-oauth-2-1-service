@@ -38,6 +38,8 @@ describe("Storage Manager", () => {
                 PUBLIC_KEY: "notSecret",
                 TOKEN_TIME_TO_LIVE: "5",
                 REFRESH_TOKEN_TIME_TO_LIVE: "500",
+                USER_INFO_API_URL: "http://localhost:foo",
+                ENVIRONMENT: "test",
             });
 
             const environmentKeyValueStorage = storageManager.getEnvironmentVariableStorage();
@@ -47,6 +49,8 @@ describe("Storage Manager", () => {
                 publicKey: "notSecret",
                 refreshTokenTimeToLive: 500,
                 tokenTimeToLive: 5,
+                userInfoApiUrl: "http://localhost:foo",
+                environment: "test",
             });
         });
 
@@ -65,6 +69,8 @@ describe("Storage Manager", () => {
                     PUBLIC_KEY: "notSecret",
                     TOKEN_TIME_TO_LIVE: "5",
                     REFRESH_TOKEN_TIME_TO_LIVE: "10",
+                    USER_INFO_API_URL: "http://localhost:foo",
+                    ENVIRONMENT: "test",
                 });
                 storageManager.getEnvironmentVariableStorage();
                 return Promise.reject("Function under test never threw error");
@@ -79,6 +85,8 @@ describe("Storage Manager", () => {
                     SIGNING_KEY: "secret",
                     TOKEN_TIME_TO_LIVE: "5",
                     REFRESH_TOKEN_TIME_TO_LIVE: "10",
+                    USER_INFO_API_URL: "http://localhost:foo",
+                    ENVIRONMENT: "test",
                 });
                 storageManager.getEnvironmentVariableStorage();
                 return Promise.reject("Function under test never threw error");
@@ -93,6 +101,8 @@ describe("Storage Manager", () => {
                     SIGNING_KEY: "secret",
                     PUBLIC_KEY: "notSecret",
                     REFRESH_TOKEN_TIME_TO_LIVE: "10",
+                    USER_INFO_API_URL: "http://localhost:foo",
+                    ENVIRONMENT: "test",
                 });
                 storageManager.getEnvironmentVariableStorage();
                 return Promise.reject("Function under test never threw error");
@@ -108,6 +118,8 @@ describe("Storage Manager", () => {
                     PUBLIC_KEY: "notSecret",
                     TOKEN_TIME_TO_LIVE: "notANumber",
                     REFRESH_TOKEN_TIME_TO_LIVE: "10",
+                    USER_INFO_API_URL: "http://localhost:foo",
+                    ENVIRONMENT: "test",
                 });
                 storageManager.getEnvironmentVariableStorage();
                 return Promise.reject("Function under test never threw error");
@@ -122,6 +134,8 @@ describe("Storage Manager", () => {
                     SIGNING_KEY: "secret",
                     PUBLIC_KEY: "notSecret",
                     TOKEN_TIME_TO_LIVE: "10",
+                    USER_INFO_API_URL: "http://localhost:foo",
+                    ENVIRONMENT: "test",
                 });
                 storageManager.getEnvironmentVariableStorage();
                 return Promise.reject("Function under test never threw error");
@@ -137,6 +151,40 @@ describe("Storage Manager", () => {
                     PUBLIC_KEY: "notSecret",
                     TOKEN_TIME_TO_LIVE: "10",
                     REFRESH_TOKEN_TIME_TO_LIVE: "notANumber",
+                    USER_INFO_API_URL: "http://localhost:foo",
+                    ENVIRONMENT: "test",
+                });
+                storageManager.getEnvironmentVariableStorage();
+                return Promise.reject("Function under test never threw error");
+            } catch (error) {
+                assert.equal(error.message, "Environment variable storage was not initialized.");
+            }
+        });
+
+        it("should throw an error if user info API URL is missing", () => {
+            try {
+                storageManager.initializeStorage({
+                    SIGNING_KEY: "secret",
+                    PUBLIC_KEY: "notSecret",
+                    TOKEN_TIME_TO_LIVE: "5",
+                    REFRESH_TOKEN_TIME_TO_LIVE: "10",
+                    ENVIRONMENT: "test",
+                });
+                storageManager.getEnvironmentVariableStorage();
+                return Promise.reject("Function under test never threw error");
+            } catch (error) {
+                assert.equal(error.message, "Environment variable storage was not initialized.");
+            }
+        });
+
+        it("should throw an error if environment is missing", () => {
+            try {
+                storageManager.initializeStorage({
+                    SIGNING_KEY: "secret",
+                    PUBLIC_KEY: "notSecret",
+                    TOKEN_TIME_TO_LIVE: "5",
+                    REFRESH_TOKEN_TIME_TO_LIVE: "10",
+                    USER_INFO_API_URL: "http://localhost:foo",
                 });
                 storageManager.getEnvironmentVariableStorage();
                 return Promise.reject("Function under test never threw error");

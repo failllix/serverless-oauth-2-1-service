@@ -4,9 +4,10 @@ import tokenRequestHandler from "./tokenRequestHandler.js";
 import userInfoRequestHandler from "./userInfoRequestHandler.js";
 
 import { NOT_IMPLEMENTED, SUCCESS } from "./helper/responses.js";
+import environmentVariables from "./storage/environmentVariables.js";
 
-const enrichWithCorsHeadersInLocalEnvironment = (response, environment, corsHeaders) => {
-    if (environment.ENVIRONMENT === "local") {
+const enrichWithCorsHeadersInLocalEnvironment = (response, corsHeaders) => {
+    if (environmentVariables.isLocalEnvironment()) {
         for (const [key, value] of Object.entries(corsHeaders)) {
             response.headers.set(key, value);
         }
@@ -30,10 +31,10 @@ export default {
 
         if (pathname === "/authorize") {
             if (method === "OPTIONS") {
-                return enrichWithCorsHeadersInLocalEnvironment(SUCCESS({ jsonResponse: "" }), env, localAuthorizeCorsHeaders);
+                return enrichWithCorsHeadersInLocalEnvironment(SUCCESS({ jsonResponse: "" }), localAuthorizeCorsHeaders);
             }
             if (method === "POST" || method === "GET") {
-                return enrichWithCorsHeadersInLocalEnvironment(await authorizationRequestHandler.handleAuthorizationRequest(request), env, localAuthorizeCorsHeaders);
+                return enrichWithCorsHeadersInLocalEnvironment(await authorizationRequestHandler.handleAuthorizationRequest(request), localAuthorizeCorsHeaders);
             }
         }
 
@@ -45,10 +46,10 @@ export default {
 
         if (pathname === "/token") {
             if (method === "OPTIONS") {
-                return enrichWithCorsHeadersInLocalEnvironment(SUCCESS({ jsonResponse: "" }), env, localTokenCorsHeaders);
+                return enrichWithCorsHeadersInLocalEnvironment(SUCCESS({ jsonResponse: "" }), localTokenCorsHeaders);
             }
             if (method === "POST") {
-                return enrichWithCorsHeadersInLocalEnvironment(await tokenRequestHandler.handleTokenRequest(request), env, localTokenCorsHeaders);
+                return enrichWithCorsHeadersInLocalEnvironment(await tokenRequestHandler.handleTokenRequest(request), localTokenCorsHeaders);
             }
         }
 

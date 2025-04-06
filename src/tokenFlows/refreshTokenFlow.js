@@ -97,6 +97,7 @@ async function exchangeRefreshTokenForAccessToken({ formData, host }) {
         scope: validatedParameters.scope.length === 0 ? grantDetails.Scope : validatedParameters.scope,
         username,
         issuer: host,
+        audience: grantDetails.Audience,
     });
 }
 

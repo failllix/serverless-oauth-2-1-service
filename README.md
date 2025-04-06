@@ -14,23 +14,22 @@ A summary about the key differences of OAuth 2.1 are summarized in oauth.net's [
 
 To use the oAuth server the following entities must be configured
 
-1. [Clients](#clients)
+1. [APIs](#apis)
 1. [Users](#users)
-1. APIs (tbd.)
+1. [Clients](#clients)
 
-[!TIP]
-
+> [!TIP]
 > Helper scripts exists to have a guided setup of entities where one must only enter corresponding values.
+> The order in which entities are created matters, because for example clients can only reference existing APIs (audiences).
 
-### Clients
+### APIs
 
 Local clients can be generated using `npm run create:local-client`.
 
-| Fieldname   | Description                                              | Type   | Example                                |
-| ----------- | -------------------------------------------------------- | ------ | -------------------------------------- |
-| Name        | Name of the client application                           | String | "My fancy application"                 |
-| RedirectUri | Valid redirection URI pointing to the client application | String | "http://localhost:3000/app"            |
-| ClientId    | Identifier of the client                                 | String | '664bddd3-efb2-4be2-842e-6b741c490b59' |
+| Fieldname | Description                   | Type   | Example                           |
+| --------- | ----------------------------- | ------ | --------------------------------- |
+| Name      | Name of the API               | String | "Some resource"                   |
+| Uri       | Valid URI pointing to the API | String | "http://localhost:3000/resources" |
 
 ### Users
 
@@ -44,14 +43,32 @@ Local clients can be generated using `npm run create:local-user`.
 | Salt         | Salt used during hashing of user password                                                           | String | "MjA4LDQwLDgsNDYsODc..."                     |
 | Scope        | Scopes the user is able to request (comma-separated)                                                | String | "user_info,API_TEST,access"                  |
 
+> [!NOTE]
+> When creating user entities the `userInfo` scope is added automatically to ensure all users are allowed to use the authorizations server user info endpoint.
+> Whether a client is entitled to request tokens for the user info endpoint remains under the control of whoever sets up the client (i.e. whether the user info API audience is added to the client).
+
+### Clients
+
+Local clients can be generated using `npm run create:local-client`.
+
+| Fieldname   | Description                                              | Type   | Example                                |
+| ----------- | -------------------------------------------------------- | ------ | -------------------------------------- |
+| Name        | Name of the client application                           | String | "My fancy application"                 |
+| RedirectUri | Valid redirection URI pointing to the client application | String | "http://localhost:3000/app"            |
+| ClientId    | Identifier of the client                                 | String | '664bddd3-efb2-4be2-842e-6b741c490b59' |
+
 ## Local development
 
-### Installation
+### Setup
 
 1. Make sure to install all dependencies:
    ```bash
    npm ci
    ```
+1. Create `wrangler.toml` configuration file:
+   1. Copy the `wrangler.template.toml` file and rename it to `wrangler.toml`
+   1. Run `npm run create:key-pair` to get a new key pair for your local setup
+   1. Paste the corresponding environment variables into your `wrangler.toml` file
 1. Apply the database schema:
    ```bash
    npm run db:reset-schema
@@ -60,7 +77,7 @@ Local clients can be generated using `npm run create:local-user`.
    ```bash
    npm run db:apply-local-values
    ```
-1. Start development servers (in individual Terminal sessions):
+1. Start development servers (in individual terminal sessions):
    1. Start the local server:
       ```bash
       npm run start:server:local
@@ -69,11 +86,13 @@ Local clients can be generated using `npm run create:local-user`.
       ```bash
       npm run start:login:local
       ```
+1. Access the local app at [http://localhost:8788/app](http://localhost:8788/app) and login using the user `test` with password `Test`.
 
-Additional clients and users can be created using the corresponding convenience scripts:
+Additional clients, users and apis can be created using the corresponding convenience scripts:
 
 - `npm run create:local-client`
 - `npm run create:local-user`
+- `npm run create:local-api`
 
 ### Testing
 
@@ -83,36 +102,8 @@ Unit tests can be executed using:
 npm run test:unit
 ```
 
-Coverage can be checked using:
+Unit test coverage can be checked using:
 
 ```bash
 npm run test:unit:coverage
 ```
-
-<!-- ## Deployment
-
-To prepare deployment, copy the `wrangler.template.toml` file and rename it to `wrangler.toml`. Fill in the `id` properties concerning the key-value namespaces. To generate a new KV namespace, you can use:
-
-```bash
-wrangler kv:namespace create <NAMESPACE>
-```
-
-Proceed by generating a valid key-pair using:
-
-```bash
-npm run create:key-pair
-```
-
-After obtaining the private and public key, make sure to include the public key in your `wrangler.toml` file under `[env.production.vars]`.
-
-You are now ready to deploy the service using:
-
-```bash
-npm run publish
-```
-
-To add the private (signing) key as a secret to your service run:
-
-```
-wrangler secret:bulk ./.temp/privateKey.json
-``` -->

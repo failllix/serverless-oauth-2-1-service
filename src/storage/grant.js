@@ -2,7 +2,7 @@ import storageManager from "./manager.js";
 
 const convertOutput = (results) => {
     return results.map((result) => {
-        return { ...result, Scope: result.Scope.split(",") };
+        return { ...result, Scope: result.Scope.split(","), Audience: result.Audience.split(" ") };
     });
 };
 
@@ -32,8 +32,8 @@ const getGrantsByUsername = async (username) => {
     return convertOutput(dbResult.results);
 };
 
-const saveGrant = async ({ grantId, clientId, scope, username }) => {
-    const statement = storageManager.getDatabase().prepare("INSERT INTO Grants (GrantId, ClientId, Username, Scope) VALUES (?, ?, ?, ?)").bind(grantId, clientId, username, scope.join(","));
+const saveGrant = async ({ grantId, clientId, scope, username, audience }) => {
+    const statement = storageManager.getDatabase().prepare("INSERT INTO Grants (GrantId, ClientId, Username, Scope, Audience) VALUES (?, ?, ?, ?, ?)").bind(grantId, clientId, username, scope.join(","), audience.join(" "));
 
     await statement.run();
 };

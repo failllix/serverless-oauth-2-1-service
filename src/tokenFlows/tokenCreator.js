@@ -1,3 +1,4 @@
+import { USER_INFO_SCOPE } from "../helper/constants.js";
 import { SUCCESS } from "../helper/responses.js";
 import util from "../helper/util.js";
 import environmentVariables from "../storage/environmentVariables.js";
@@ -22,19 +23,19 @@ async function getUrlBase64EncodedSignature(content) {
     return util.uint8ToUrlBase64(new Uint8Array(await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-512" }, key, util.strToUint8(content))));
 }
 
-async function getSignedAccessToken({ scope, username, timeToLive, issuer }) {
+async function getSignedAccessToken({ scope, audience, username, timeToLive, issuer }) {
     const tokenHeader = {
         alg: "ES512",
         typ: "JWT",
     };
 
     const tokenPayload = {
-        aud: "abc",
+        aud: audience,
         iss: issuer,
         sub: username,
         exp: Math.round(Date.now() / 1000) + timeToLive,
         iat: Math.round(Date.now() / 1000),
-        scope: scope,
+        scope,
     };
 
     const tokenHeaderBase64 = util.strToUrlBase64(JSON.stringify(tokenHeader));
@@ -68,7 +69,7 @@ async function getSignedRefreshToken({ clientId, grantId, scope, timeToLive, use
     return refreshToken;
 }
 
-async function getAccessTokenResponse({ grantId, scope, username, clientId, issuer }) {
+async function getAccessTokenResponse({ grantId, scope, audience, username, clientId, issuer }) {
     const accessTokenTimeToLive = environmentVariables.getTokenTimeToLive();
     const refreshTokenTimeToLive = environmentVariables.getRefreshTokenTimeToLive();
 
@@ -77,6 +78,7 @@ async function getAccessTokenResponse({ grantId, scope, username, clientId, issu
         username,
         timeToLive: accessTokenTimeToLive,
         issuer,
+        audience,
     });
 
     const refreshToken = await getSignedRefreshToken({

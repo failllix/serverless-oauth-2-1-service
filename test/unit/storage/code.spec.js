@@ -99,6 +99,7 @@ describe("Code storage", () => {
                         {
                             expected: "yes",
                             Scope: "a,b,c",
+                            Audience: "aud1 aud2 aud3",
                         },
                     ],
                 },
@@ -109,6 +110,7 @@ describe("Code storage", () => {
             assert.deepEqual(result, {
                 expected: "yes",
                 Scope: ["a", "b", "c"],
+                Audience: ["aud1", "aud2", "aud3"],
             });
         });
 
@@ -141,11 +143,11 @@ describe("Code storage", () => {
             const statementBindStub = sinon.stub();
             const statementRunStub = sinon.stub();
 
-            databasePrepareStub.withArgs("INSERT INTO Codes (AccessCode, ClientId, Username, GrantId, Scope, CodeChallengeMethod, CodeChallenge) VALUES (?, ?, ?, ?, ?, ?, ?)").returns({
+            databasePrepareStub.withArgs("INSERT INTO Codes (AccessCode, ClientId, Username, GrantId, Scope, CodeChallengeMethod, CodeChallenge, Audience) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").returns({
                 bind: statementBindStub,
             });
 
-            statementBindStub.withArgs("myCode", "testClient", "testUser", "someGrantId", "testScope1,testScope2", "def", "abc").returns({ run: statementRunStub });
+            statementBindStub.withArgs("myCode", "testClient", "testUser", "someGrantId", "testScope1,testScope2", "def", "abc", "aud1 aud2").returns({ run: statementRunStub });
 
             statementRunStub.resolves();
 
@@ -157,6 +159,7 @@ describe("Code storage", () => {
                 codeChallengeMethod: "def",
                 username: "testUser",
                 grantId: "someGrantId",
+                audience: ["aud1", "aud2"],
             });
 
             sinon.assert.calledOnceWithExactly(statementRunStub);
@@ -166,11 +169,11 @@ describe("Code storage", () => {
             const statementBindStub = sinon.stub();
             const statementRunStub = sinon.stub();
 
-            databasePrepareStub.withArgs("INSERT INTO Codes (AccessCode, ClientId, Username, GrantId, Scope, CodeChallengeMethod, CodeChallenge) VALUES (?, ?, ?, ?, ?, ?, ?)").returns({
+            databasePrepareStub.withArgs("INSERT INTO Codes (AccessCode, ClientId, Username, GrantId, Scope, CodeChallengeMethod, CodeChallenge, Audience) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").returns({
                 bind: statementBindStub,
             });
 
-            statementBindStub.withArgs("myCode", "testClient", "testUser", "someGrantId", "testScope1,testScope2", "def", "abc").returns({ run: statementRunStub });
+            statementBindStub.withArgs("myCode", "testClient", "testUser", "someGrantId", "testScope1,testScope2", "def", "abc", "aud1 aud2").returns({ run: statementRunStub });
 
             const expectedError = new Error("Cannot insert");
             statementRunStub.rejects(expectedError);
@@ -184,6 +187,7 @@ describe("Code storage", () => {
                     codeChallengeMethod: "def",
                     username: "testUser",
                     grantId: "someGrantId",
+                    audience: ["aud1", "aud2"],
                 });
                 throw new Error("Function under test never threw");
             } catch (error) {
@@ -234,10 +238,12 @@ describe("Code storage", () => {
                         {
                             expected: "yes",
                             Scope: "a,b,c",
+                            Audience: "aud1 aud2 aud3",
                         },
                         {
                             expected: "yes",
                             Scope: "a",
+                            Audience: "aud",
                         },
                     ],
                 },
@@ -249,10 +255,12 @@ describe("Code storage", () => {
                 {
                     expected: "yes",
                     Scope: ["a", "b", "c"],
+                    Audience: ["aud1", "aud2", "aud3"],
                 },
                 {
                     expected: "yes",
                     Scope: ["a"],
+                    Audience: ["aud"],
                 },
             ]);
         });

@@ -36,7 +36,7 @@ describe("Token creator", () => {
             util.strToUrlBase64
                 .withArgs(
                     JSON.stringify({
-                        aud: "abc",
+                        aud: ["aud"],
                         iss: "someHost",
                         sub: "dummy",
                         exp: 11,
@@ -70,6 +70,7 @@ describe("Token creator", () => {
                     username: "dummy",
                     clientId: "someClientId",
                     issuer: "someHost",
+                    audience: ["aud"],
                 });
                 throw new Error("Function under test never threw error");
             } catch (error) {
@@ -101,7 +102,7 @@ describe("Token creator", () => {
             util.strToUrlBase64
                 .withArgs(
                     JSON.stringify({
-                        aud: "abc",
+                        aud: ["aud"],
                         iss: "someHost",
                         sub: "dummy",
                         exp: 11,
@@ -139,6 +140,7 @@ describe("Token creator", () => {
                     username: "dummy",
                     clientId: "someClientId",
                     issuer: "someHost",
+                    audience: ["aud"],
                 });
                 throw new Error("Function under test never threw error");
             } catch (error) {
@@ -170,7 +172,7 @@ describe("Token creator", () => {
             util.strToUrlBase64
                 .withArgs(
                     JSON.stringify({
-                        aud: "abc",
+                        aud: ["aud"],
                         iss: "someHost",
                         sub: "dummy",
                         exp: 11,
@@ -227,6 +229,7 @@ describe("Token creator", () => {
                     username: "dummy",
                     clientId: "someClientId",
                     issuer: "someHost",
+                    audience: ["aud"],
                 });
                 throw new Error("Function under test never threw error");
             } catch (error) {
@@ -258,7 +261,7 @@ describe("Token creator", () => {
             util.strToUrlBase64
                 .withArgs(
                     JSON.stringify({
-                        aud: "abc",
+                        aud: ["aud"],
                         iss: "someHost",
                         sub: "dummy",
                         exp: 11,
@@ -319,6 +322,7 @@ describe("Token creator", () => {
                     username: "dummy",
                     clientId: "someClientId",
                     issuer: "someHost",
+                    audience: ["aud"],
                 });
                 throw new Error("Function under test never threw error");
             } catch (error) {
@@ -352,7 +356,7 @@ describe("Token creator", () => {
             util.strToUrlBase64
                 .withArgs(
                     JSON.stringify({
-                        aud: "abc",
+                        aud: ["aud"],
                         iss: "someHost",
                         sub: "dummy",
                         exp: 11,
@@ -410,6 +414,7 @@ describe("Token creator", () => {
                 username: "dummy",
                 clientId: "someClientId",
                 issuer: "someHost",
+                audience: ["aud"],
             });
 
             assert.equal(response.status, 200);

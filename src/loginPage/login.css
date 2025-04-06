@@ -86,10 +86,16 @@ h2 {
     margin-bottom: 0.8rem;
 }
 
+ul{
+    list-style: inside;
+}
+
+
 #login-form{
     margin-top: 2rem;
 }
 
-#scope-list{
-    list-style: inside;
+#audience-section{
+    margin-top: 2rem;
 }
+

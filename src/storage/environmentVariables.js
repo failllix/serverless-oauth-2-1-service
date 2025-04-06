@@ -1,3 +1,4 @@
+import { LOCAL_ENVIRONMENT_NAME } from "../helper/constants.js";
 import storageManager from "./manager.js";
 
 const getSigningKey = () => {
@@ -16,4 +17,12 @@ const getRefreshTokenTimeToLive = () => {
     return storageManager.getEnvironmentVariableStorage().refreshTokenTimeToLive;
 };
 
-export default { getSigningKey, getPublicKey, getTokenTimeToLive, getRefreshTokenTimeToLive };
+const getUserInfoApiUrl = () => {
+    return storageManager.getEnvironmentVariableStorage().userInfoApiUrl;
+};
+
+const isLocalEnvironment = () => {
+    return storageManager.getEnvironmentVariableStorage().environment === LOCAL_ENVIRONMENT_NAME;
+};
+
+export default { getSigningKey, getPublicKey, getTokenTimeToLive, getRefreshTokenTimeToLive, getUserInfoApiUrl, isLocalEnvironment };

@@ -1,8 +1,9 @@
 import AuthenticationError from "../error/authenticationError.js";
 import logger from "../logger.js";
+import apiStorage from "../storage/api.js";
 import clientStorage from "../storage/client.js";
 
-const authenticateClient = async (clientId, redirectUri) => {
+const authenticateClient = async ({ clientId, redirectUri, audience }) => {
     try {
         const client = await clientStorage.getClient(clientId);
 
@@ -17,6 +18,15 @@ const authenticateClient = async (clientId, redirectUri) => {
             throw new AuthenticationError({
                 errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
                 errorDescription: `Redirect URI '${redirectUri}' is not valid for client with id '${clientId}'.`,
+            });
+        }
+
+        const apisOfClient = await apiStorage.getApisOfClient(clientId);
+
+        if (!audience.every((audience) => apisOfClient.includes(audience))) {
+            throw new AuthenticationError({
+                errorCategory: AuthenticationError.errrorCategories.INVALID_REQUEST,
+                errorDescription: `Client is not entitled to request tokens with audience '${audience}'.`,
             });
         }
     } catch (error) {

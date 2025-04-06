@@ -109,11 +109,14 @@ describe("User info request handler", () => {
                     keyHelper.verifyToken.withArgs({ uint8Signature: "verificationSignatureUint8", uint8TokenContent: "verificationPayloadUint8" }).resolves(true);
 
                     const dummyTokenPayload = {
-                        aud: "def",
+                        aud: ["incorrect"],
                     };
                     util.urlBase64ToStr.withArgs("payload").returns(JSON.stringify(dummyTokenPayload));
 
+                    util.getUrlWithoutSearchParams.returns("http://localhost:1234/me/subpath");
+
                     const response = await endpointHandler.call(null, {
+                        url: "http://localhost:1234/me/subpath",
                         headers: {
                             get: requestGetStub,
                         },
@@ -136,12 +139,15 @@ describe("User info request handler", () => {
                     keyHelper.verifyToken.withArgs({ uint8Signature: "verificationSignatureUint8", uint8TokenContent: "verificationPayloadUint8" }).resolves(true);
 
                     const dummyTokenPayload = {
-                        aud: "abc",
+                        aud: ["http://localhost:1234/me"],
                         scope: ["notUserInfo"],
                     };
                     util.urlBase64ToStr.withArgs("payload").returns(JSON.stringify(dummyTokenPayload));
 
+                    util.getUrlWithoutSearchParams.returns("http://localhost:1234/me/subpath");
+
                     const response = await endpointHandler.call(null, {
+                        url: "http://localhost:1234/me/subpath",
                         headers: {
                             get: requestGetStub,
                         },
@@ -166,13 +172,16 @@ describe("User info request handler", () => {
                     clock.tick(20_000);
 
                     const dummyTokenPayload = {
-                        aud: "abc",
+                        aud: ["http://localhost:1234/me"],
                         scope: ["userInfo"],
                         exp: 19,
                     };
                     util.urlBase64ToStr.withArgs("payload").returns(JSON.stringify(dummyTokenPayload));
 
+                    util.getUrlWithoutSearchParams.returns("http://localhost:1234/me/subpath");
+
                     const response = await endpointHandler.call(null, {
+                        url: "http://localhost:1234/me/subpath",
                         headers: {
                             get: requestGetStub,
                         },
@@ -189,7 +198,7 @@ describe("User info request handler", () => {
     describe("post token verification", () => {
         const dummyTokenPayload = {
             sub: "dummy",
-            aud: "abc",
+            aud: ["http://localhost:1234/me"],
             scope: ["userInfo"],
         };
 
@@ -204,6 +213,8 @@ describe("User info request handler", () => {
             keyHelper.verifyToken.withArgs({ uint8Signature: "verificationSignatureUint8", uint8TokenContent: "verificationPayloadUint8" }).resolves(true);
 
             util.urlBase64ToStr.withArgs("payload").returns(JSON.stringify(dummyTokenPayload));
+
+            util.getUrlWithoutSearchParams.returns("http://localhost:1234/me/subpath");
         });
 
         afterEach(() => {
@@ -219,6 +230,7 @@ describe("User info request handler", () => {
                     codeStorage.getAccessCodesByUsername.withArgs("dummy").rejects(expectedError);
 
                     const response = await userInfoRequestHandler.handleGetUserInfoRequest({
+                        url: "http://localhost:1234/me",
                         headers: {
                             get: requestGetStub,
                         },
@@ -247,6 +259,7 @@ describe("User info request handler", () => {
                     grantStorage.getGrantsByUsername.withArgs("dummy").rejects(expectedError);
 
                     const response = await userInfoRequestHandler.handleGetUserInfoRequest({
+                        url: "http://localhost:1234/me",
                         headers: {
                             get: requestGetStub,
                         },
@@ -281,6 +294,7 @@ describe("User info request handler", () => {
                     refreshTokenStorage.getRefreshTokensByUsername.withArgs("dummy").rejects(expectedError);
 
                     const response = await userInfoRequestHandler.handleGetUserInfoRequest({
+                        url: "http://localhost:1234/me",
                         headers: {
                             get: requestGetStub,
                         },
@@ -318,6 +332,7 @@ describe("User info request handler", () => {
                     ]);
 
                     const response = await userInfoRequestHandler.handleGetUserInfoRequest({
+                        url: "http://localhost:1234/me",
                         headers: {
                             get: requestGetStub,
                         },

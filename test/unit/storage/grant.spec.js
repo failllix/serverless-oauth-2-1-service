@@ -72,13 +72,14 @@ describe("Grant storage", () => {
 
             statementBindStub.withArgs("grantId").returns({ run: statementRunStub });
 
-            statementRunStub.withArgs().resolves({ results: [{ row: true, Scope: "a,b,c" }] });
+            statementRunStub.withArgs().resolves({ results: [{ row: true, Scope: "a,b,c", Audience: "aud1 aud2 aud3" }] });
 
             const result = await grantStorage.getGrant("grantId");
 
             assert.deepEqual(result, {
                 row: true,
                 Scope: ["a", "b", "c"],
+                Audience: ["aud1", "aud2", "aud3"],
             });
         });
 
@@ -105,17 +106,18 @@ describe("Grant storage", () => {
             const statementBindStub = sinon.stub();
             const statementRunStub = sinon.stub();
 
-            databasePrepareStub.withArgs("INSERT INTO Grants (GrantId, ClientId, Username, Scope) VALUES (?, ?, ?, ?)").returns({
+            databasePrepareStub.withArgs("INSERT INTO Grants (GrantId, ClientId, Username, Scope, Audience) VALUES (?, ?, ?, ?, ?)").returns({
                 bind: statementBindStub,
             });
 
-            statementBindStub.withArgs("someGrantId", "testClient", "testUser", "testScope1,testScope2").returns({ run: statementRunStub });
+            statementBindStub.withArgs("someGrantId", "testClient", "testUser", "testScope1,testScope2", "aud1 aud2 aud3").returns({ run: statementRunStub });
 
             statementRunStub.resolves();
 
             await grantStorage.saveGrant({
                 grantId: "someGrantId",
                 scope: ["testScope1", "testScope2"],
+                audience: ["aud1", "aud2", "aud3"],
                 clientId: "testClient",
                 username: "testUser",
             });
@@ -127,11 +129,11 @@ describe("Grant storage", () => {
             const statementBindStub = sinon.stub();
             const statementRunStub = sinon.stub();
 
-            databasePrepareStub.withArgs("INSERT INTO Grants (GrantId, ClientId, Username, Scope) VALUES (?, ?, ?, ?)").returns({
+            databasePrepareStub.withArgs("INSERT INTO Grants (GrantId, ClientId, Username, Scope, Audience) VALUES (?, ?, ?, ?, ?)").returns({
                 bind: statementBindStub,
             });
 
-            statementBindStub.withArgs("someGrantId", "testClient", "testUser", "testScope1,testScope2").returns({ run: statementRunStub });
+            statementBindStub.withArgs("someGrantId", "testClient", "testUser", "testScope1,testScope2", "aud1 aud2 aud3").returns({ run: statementRunStub });
 
             const expectedError = new Error("Cannot insert");
             statementRunStub.rejects(expectedError);
@@ -140,6 +142,7 @@ describe("Grant storage", () => {
                 await grantStorage.saveGrant({
                     grantId: "someGrantId",
                     scope: ["testScope1", "testScope2"],
+                    audience: ["aud1", "aud2", "aud3"],
                     clientId: "testClient",
                     username: "testUser",
                 });
@@ -219,10 +222,12 @@ describe("Grant storage", () => {
                     {
                         row: true,
                         Scope: "a,b,c",
+                        Audience: "aud1 aud2 aud3",
                     },
                     {
                         row: true,
                         Scope: "b",
+                        Audience: "aud1",
                     },
                 ],
             });
@@ -233,10 +238,12 @@ describe("Grant storage", () => {
                 {
                     row: true,
                     Scope: ["a", "b", "c"],
+                    Audience: ["aud1", "aud2", "aud3"],
                 },
                 {
                     row: true,
                     Scope: ["b"],
+                    Audience: ["aud1"],
                 },
             ]);
             sinon.assert.calledOnceWithExactly(statementRunStub);
