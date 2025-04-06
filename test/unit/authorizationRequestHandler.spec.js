@@ -82,7 +82,7 @@ describe("The authorization request handler", () => {
 
             it("should return converted authentication error response, when validation of response type fails", async () => {
                 const authentionErrorStub = sinon.createStubInstance(AuthenticationError);
-                authentionErrorStub.toResponse.withArgs("http://localhost:8788/login").returns("expectedErrorReturnValue");
+                authentionErrorStub.toResponse.withArgs("http://localhost:8789/login").returns("expectedErrorReturnValue");
 
                 authCodeGrantValidatorStub.isValidResponseType.withArgs("myResponseTypeUnderTest").throws(authentionErrorStub);
 
@@ -99,7 +99,7 @@ describe("The authorization request handler", () => {
 
             it("should return converted authentication error response, when validation of client id fails", async () => {
                 const authentionErrorStub = sinon.createStubInstance(AuthenticationError);
-                authentionErrorStub.toResponse.withArgs("http://localhost:8788/login").returns("expectedErrorReturnValue");
+                authentionErrorStub.toResponse.withArgs("http://localhost:8789/login").returns("expectedErrorReturnValue");
 
                 sharedValidator.isValidClientId.withArgs("myClientIdUnderTest").throws(authentionErrorStub);
 
@@ -116,7 +116,7 @@ describe("The authorization request handler", () => {
 
             it("should return converted authentication error response, when validation of redirect uri fails", async () => {
                 const authentionErrorStub = sinon.createStubInstance(AuthenticationError);
-                authentionErrorStub.toResponse.withArgs("http://localhost:8788/login").returns("expectedErrorReturnValue");
+                authentionErrorStub.toResponse.withArgs("http://localhost:8789/login").returns("expectedErrorReturnValue");
 
                 sharedValidatorStub.isValidRedirectUri.withArgs("myUrlUnderTest").throws(authentionErrorStub);
 
@@ -133,7 +133,7 @@ describe("The authorization request handler", () => {
 
             it("should return converted authentication error response, when validation of redirect uri fails", async () => {
                 const authentionErrorStub = sinon.createStubInstance(AuthenticationError);
-                authentionErrorStub.toResponse.withArgs("http://localhost:8788/login").returns("expectedErrorReturnValue");
+                authentionErrorStub.toResponse.withArgs("http://localhost:8789/login").returns("expectedErrorReturnValue");
 
                 sharedValidatorStub.isValidAudience.withArgs(["aud1", "aud2"]).throws(authentionErrorStub);
 
@@ -150,7 +150,7 @@ describe("The authorization request handler", () => {
 
             it("should return converted authentication error response, when validation of scope fails", async () => {
                 const authentionErrorStub = sinon.createStubInstance(AuthenticationError);
-                authentionErrorStub.toResponse.withArgs("http://localhost:8788/login").returns("expectedErrorReturnValue");
+                authentionErrorStub.toResponse.withArgs("http://localhost:8789/login").returns("expectedErrorReturnValue");
 
                 authCodeGrantValidatorStub.isValidScope.withArgs(["myScopeUnderTest"]).throws(authentionErrorStub);
 
@@ -167,7 +167,7 @@ describe("The authorization request handler", () => {
 
             it("should return converted authentication error response, when validation of code challenge fails", async () => {
                 const authentionErrorStub = sinon.createStubInstance(AuthenticationError);
-                authentionErrorStub.toResponse.withArgs("http://localhost:8788/login").returns("expectedErrorReturnValue");
+                authentionErrorStub.toResponse.withArgs("http://localhost:8789/login").returns("expectedErrorReturnValue");
 
                 authCodeGrantValidatorStub.isValidCodeChallenge.withArgs("myCodeChallengeUnderTest").throws(authentionErrorStub);
 
@@ -184,7 +184,7 @@ describe("The authorization request handler", () => {
 
             it("should return converted authentication error response, when validation of code challenge transform method fails", async () => {
                 const authentionErrorStub = sinon.createStubInstance(AuthenticationError);
-                authentionErrorStub.toResponse.withArgs("http://localhost:8788/login").returns("expectedErrorReturnValue");
+                authentionErrorStub.toResponse.withArgs("http://localhost:8789/login").returns("expectedErrorReturnValue");
 
                 authCodeGrantValidatorStub.isValidCodeChallengeTransformMethod.withArgs("myCodeChallengeMethodUnderTest").throws(authentionErrorStub);
 
@@ -655,15 +655,12 @@ describe("The authorization request handler", () => {
 
                 assert.equal(response.status, 302);
                 const url = response.headers.get("Location");
-                assert.equal(url, "http://localhost:8788/login?response_type=testResponseType&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8787%2FfooUri&audience=aud1+aud2&scope=test%2Ctest2&code_challenge=challenge&code_challenge_method=challenge_method&state=washington");
+                assert.equal(url, "http://localhost:8789/login?response_type=testResponseType&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8787%2FfooUri&audience=aud1+aud2&scope=test%2Ctest2&code_challenge=challenge&code_challenge_method=challenge_method&state=washington");
                 sinon.assert.calledTwice(logger.logMessage);
+                sinon.assert.calledWithExactly(logger.logMessage, "Redirecting to local login page");
                 sinon.assert.calledWithExactly(
                     logger.logMessage,
-                    "Redirecting user to login at: http://localhost:8788/login?response_type=testResponseType&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8787%2FfooUri&audience=aud1+aud2&scope=test%2Ctest2&code_challenge=challenge&code_challenge_method=challenge_method&state=washington",
-                );
-                sinon.assert.calledWithExactly(
-                    logger.logMessage,
-                    "Redirecting user to login at: http://localhost:8788/login?response_type=testResponseType&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8787%2FfooUri&audience=aud1+aud2&scope=test%2Ctest2&code_challenge=challenge&code_challenge_method=challenge_method&state=washington",
+                    "Redirecting user to login at: http://localhost:8789/login?response_type=testResponseType&client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8787%2FfooUri&audience=aud1+aud2&scope=test%2Ctest2&code_challenge=challenge&code_challenge_method=challenge_method&state=washington",
                 );
                 sinon.assert.calledWithExactly(headersGetStub, "Authorization");
             });

@@ -44,7 +44,7 @@ describe("App entry point", () => {
             assert.equal(response.status, 200);
             assert.equal(await response.text(), '""');
             assert.deepEqual(Object.fromEntries(response.headers), {
-                "access-control-allow-origin": "http://localhost:8788",
+                "access-control-allow-origin": "http://localhost:8789",
                 "access-control-allow-methods": "GET, POST",
                 "access-control-allow-headers": "Authorization, Content-Type",
                 "content-type": "text/plain;charset=UTF-8",
@@ -98,7 +98,7 @@ describe("App entry point", () => {
 
                     assert.equal(response, dummyResponse);
                     assert.deepEqual(Object.fromEntries(response.headers), {
-                        "access-control-allow-origin": "http://localhost:8788",
+                        "access-control-allow-origin": "http://localhost:8789",
                         "access-control-allow-methods": "GET, POST",
                         "access-control-allow-headers": "Authorization, Content-Type",
                         "content-type": "text/plain;charset=UTF-8",

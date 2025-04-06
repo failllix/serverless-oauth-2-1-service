@@ -82,7 +82,11 @@ Local clients can be generated using `npm run create:local-client`.
       ```bash
       npm run start:server:local
       ```
-   1. Start the local application + login page:
+   1. Start the local dummy application:
+      ```bash
+      npm run start:app:local
+      ```
+   1. Start the local login page:
       ```bash
       npm run start:login:local
       ```

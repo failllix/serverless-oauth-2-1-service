@@ -24,7 +24,7 @@ export default {
         const pathname = url.pathname;
 
         const localAuthorizeCorsHeaders = {
-            "Access-Control-Allow-Origin": "http://localhost:8788",
+            "Access-Control-Allow-Origin": "http://localhost:8789",
             "Access-Control-Allow-Methods": "GET, POST",
             "Access-Control-Allow-Headers": "Authorization, Content-Type",
         };

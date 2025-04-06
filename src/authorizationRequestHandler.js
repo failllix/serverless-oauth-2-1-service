@@ -69,7 +69,7 @@ async function handleAuthorizationRequest(request) {
 
             if (environmentVariables.isLocalEnvironment()) {
                 logger.logMessage("Redirecting to local login page");
-                loginUrl.host = "localhost:8788";
+                loginUrl.host = "localhost:8789";
             }
 
             loginUrl.pathname = "login";
@@ -125,13 +125,13 @@ async function handleAuthorizationRequest(request) {
     } catch (failure) {
         logger.logError(failure);
         if (failure instanceof AuthenticationError) {
-            return failure.toResponse("http://localhost:8788/login");
+            return failure.toResponse("http://localhost:8789/login");
         }
 
         return new AuthenticationError({
             errorCategory: AuthenticationError.errrorCategories.SERVER_ERROR,
             errorDescription: failure.message,
-        }).toResponse("http://localhost:8788/login");
+        }).toResponse("http://localhost:8789/login");
     }
 }
 
