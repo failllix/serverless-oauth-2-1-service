@@ -20,7 +20,7 @@ To use the oAuth server the following entities must be configured
 
 > [!TIP]
 > Helper scripts exists to have a guided setup of entities where one must only enter corresponding values.
-> The order in which entities are created matters, because for example clients can only reference existing APIs (audiences).
+> The order in which entities are created matters, because clients, for example, can only reference existing APIs (audiences).
 
 ### APIs
 
