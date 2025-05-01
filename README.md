@@ -1,8 +1,8 @@
 # Serverless OAuth 2.1 Service
 
-> ⛔⛔⛔ **Important note:** This project is not intended to be used in a productive manner.
+> ⛔ **Important note:** This project is _**not**_ intended to be used in a productive manner.
 > It was built for educational purposes and likely contains critical security oversights.
-> It is not meant to protect any kind of service nor data.
+> It is _**not**_ meant to protect any kind of service nor data.
 
 After using various OAuth 2 services, I was interested what it takes to implement one on my own.
 I took the [OAuth 2.1 RFC](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-12) as guidance while implementing this authorization server.
