@@ -1,6 +1,6 @@
 # Serverless OAuth 2.1 Service
 
-> ⛔ **Important note:** This project is _**not**_ intended to be used in a productive manner.
+> ⛔ **Important note:** This project is _**not**_ intended to be used in production.
 > It was built for educational purposes and likely contains critical security oversights.
 > It is _**not**_ meant to protect any kind of service nor data.
 
